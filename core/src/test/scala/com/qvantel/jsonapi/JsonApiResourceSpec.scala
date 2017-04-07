@@ -360,15 +360,15 @@ final class JsonApiResourceSpec extends Specification with ScalaCheck {
                                              map: Map[String, String])
 
       readOne[Test]("""
-                                     |{
-                                     |  "data": {
-                                     |    "type": "tests",
-                                     |    "attributes": {
-                                     |
-                                     |    },
-                                     |    "id": "1"
-                                     |  }
-                                     |}
+                      |{
+                      |  "data": {
+                      |    "type": "tests",
+                      |    "attributes": {
+                      |
+                      |    },
+                      |    "id": "1"
+                      |  }
+                      |}
         """.stripMargin.parseJson.asJsObject) must be equalTo Test("1",
                                                                    List.empty,
                                                                    Seq.empty,
@@ -377,19 +377,19 @@ final class JsonApiResourceSpec extends Specification with ScalaCheck {
                                                                    Map.empty)
 
       readOne[Test]("""
-                                     |{
-                                     |  "data": {
-                                     |    "type": "tests",
-                                     |    "attributes": {
-                                     |      "list": ["test"],
-                                     |      "seq": ["test"],
-                                     |      "set": ["test"],
-                                     |      "iterable": ["test"],
-                                     |      "map": { "test": "test" }
-                                     |    },
-                                     |    "id": "1"
-                                     |  }
-                                     |}
+                      |{
+                      |  "data": {
+                      |    "type": "tests",
+                      |    "attributes": {
+                      |      "list": ["test"],
+                      |      "seq": ["test"],
+                      |      "set": ["test"],
+                      |      "iterable": ["test"],
+                      |      "map": { "test": "test" }
+                      |    },
+                      |    "id": "1"
+                      |  }
+                      |}
         """.stripMargin.parseJson.asJsObject) must be equalTo Test("1",
                                                                    List("test"),
                                                                    Seq("test"),

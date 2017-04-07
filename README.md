@@ -1,6 +1,7 @@
 # http://jsonapi.org/ implementation in scala
 
 [![Build Status](https://travis-ci.org/qvantel/jsonapi-scala.svg?branch=master)](https://travis-ci.org/qvantel/jsonapi-scala)
+[![Coverage Status](https://coveralls.io/repos/github/qvantel/jsonapi-scala/badge.svg?branch=master)](https://coveralls.io/github/qvantel/jsonapi-scala?branch=master)
 
 ## Features
 * Automatic generation of jsonapi json writers with relationship handling for case classes
