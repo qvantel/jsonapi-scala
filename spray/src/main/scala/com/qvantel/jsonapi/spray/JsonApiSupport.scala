@@ -175,5 +175,4 @@ object JsonApiClient extends RequestBuilding with ResponseTransformation {
 object JsonApiSupport extends JsonApiSupport {
   val JsonApiIncludeHeader: String = "X-Internal-Include"
 
-
 }

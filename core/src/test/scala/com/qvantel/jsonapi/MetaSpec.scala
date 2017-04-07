@@ -85,8 +85,7 @@ class MetaSpec extends Specification {
           |}
         """.stripMargin.parseJson.asJsObject
 
-      readOne[Test](json) must throwA[DeserializationException](
-        "expected meta to be a json object but got")
+      readOne[Test](json) must throwA[DeserializationException]("expected meta to be a json object but got")
     }
   }
 }

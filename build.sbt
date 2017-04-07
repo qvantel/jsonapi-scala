@@ -88,7 +88,6 @@ scalacOptions in ThisBuild ++= Seq(
   ""
 )
 
-
 wartremoverErrors in (Compile, compile) ++= (Warts.unsafe.toSet -- Set(Wart.Any,
                                                                        Wart.Null,
                                                                        Wart.NonUnitStatements,
@@ -98,11 +97,11 @@ wartremoverErrors in (Compile, compile) ++= (Warts.unsafe.toSet -- Set(Wart.Any,
 
 libraryDependencies in ThisBuild ++= Seq(
   // testing related
-  "org.specs2" %% "specs2-core"       % "3.8.9" % "test",
-  "org.specs2" %% "specs2-junit"      % "3.8.9" % "test",
-  "org.specs2" %% "specs2-scalacheck" % "3.8.9" % "test",
-  "io.spray"   %% "spray-testkit"     % "1.3.4" % "test",
-  "com.typesafe.akka" %% "akka-testkit" % "2.4.14" % "test"
+  "org.specs2"        %% "specs2-core"       % "3.8.9"  % "test",
+  "org.specs2"        %% "specs2-junit"      % "3.8.9"  % "test",
+  "org.specs2"        %% "specs2-scalacheck" % "3.8.9"  % "test",
+  "io.spray"          %% "spray-testkit"     % "1.3.4"  % "test",
+  "com.typesafe.akka" %% "akka-testkit"      % "2.4.14" % "test"
 )
 
 lazy val core = (project in file("core"))
@@ -115,10 +114,10 @@ lazy val core = (project in file("core"))
       "com.typesafe.akka"     %% "akka-actor"      % "2.4.14" excludeAll (ExclusionRule(
         organization = "com.typesafe.akka",
         name = "akka-cluster_2.11"), ExclusionRule(organization = "com.typesafe.akka", name = "akka-remote_2.11")),
-      "io.spray" %% "spray-json"   % "1.3.2",
-      "io.spray" %% "spray-httpx"  % "1.3.4",
+      "io.spray"         %% "spray-json"  % "1.3.2",
+      "io.spray"         %% "spray-httpx" % "1.3.4",
       "net.virtual-void" %% "json-lenses" % "0.6.1" excludeAll ExclusionRule(organization = "org.parboiled",
-        name = "parboiled-scala_2.11")
+                                                                             name = "parboiled-scala_2.11")
     )
   )
 
@@ -128,9 +127,9 @@ lazy val spray = (project in file("spray"))
     libraryDependencies ++= Seq(
       "io.spray" %% "spray-httpx"  % "1.3.4",
       "io.spray" %% "spray-client" % "1.3.4" excludeAll ExclusionRule(organization = "com.typesafe.akka",
-        name = "akka-actor_2.11"),
+                                                                      name = "akka-actor_2.11"),
       "io.spray" %% "spray-routing-shapeless23" % "1.3.4" excludeAll ExclusionRule(organization = "com.chuusai",
-        name = "shapeless_2.11")
+                                                                                   name = "shapeless_2.11")
     )
   )
 
