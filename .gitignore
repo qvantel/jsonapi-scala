@@ -1,0 +1,16 @@
+.idea
+/.idea_modules
+.DS_Store
+test_data
+staging_data
+input
+archive
+error
+.*\.orig
+.*\.swp
+input
+archive
+error
+*/target/
+target/
+keys/
