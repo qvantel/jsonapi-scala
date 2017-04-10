@@ -142,6 +142,7 @@ libraryDependencies in ThisBuild ++= Seq(
 
 lazy val core = (project in file("core"))
   .settings(
+    name := "jsonapi-scala-core",
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
       compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
@@ -160,6 +161,7 @@ lazy val core = (project in file("core"))
 lazy val spray = (project in file("spray"))
   .dependsOn(core, model)
   .settings(
+    name := "jsonapi-scala-spray",
     libraryDependencies ++= Seq(
       "io.spray" %% "spray-httpx"  % "1.3.4",
       "io.spray" %% "spray-client" % "1.3.4" excludeAll ExclusionRule(organization = "com.typesafe.akka",
@@ -170,6 +172,9 @@ lazy val spray = (project in file("spray"))
   )
 
 lazy val model = (project in file("model"))
+  .settings(
+    name := "jsonapi-scala-model"
+  )
   .dependsOn(core)
 
 lazy val root = (project in file(".")).aggregate(core, spray, model)
