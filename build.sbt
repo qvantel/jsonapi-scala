@@ -29,13 +29,49 @@ name := "jsonapi-scala"
 
 description := "jsonapi.org scala implementation"
 
-version in ThisBuild := "3.7.2-SNAPSHOT"
+version in ThisBuild := "3.7.2"
 
 startYear in ThisBuild := Some(2015)
 
 organization in ThisBuild := "com.qvantel"
 
 organizationHomepage in ThisBuild := Some(new java.net.URL("https://www.qvantel.com/"))
+
+pomIncludeRepository in ThisBuild := { _ =>
+  false
+}
+
+licenses in ThisBuild := Seq("BSD-3-Clause" -> url("https://opensource.org/licenses/BSD-3-Clause"))
+
+homepage in ThisBuild := Some(url("https://github.com/qvantel/jsonapi-scala"))
+
+scmInfo in ThisBuild := Some(
+  ScmInfo(
+    url("https://github.com/qvantel/jsonapi-scala"),
+    "scm:git@github.com:qvantel/jsonapi-scala.git"
+  )
+)
+
+developers in ThisBuild := List(
+  Developer(
+    id = "Doikor",
+    name = "Aki Huttunen",
+    email = "doikor@gmail.com",
+    url = url("http://doikor.fi")
+  )
+)
+
+publishMavenStyle := true
+
+publishTo := {
+  val nexus = "https://oss.sonatype.org/"
+  if (isSnapshot.value)
+    Some("snapshots" at nexus + "content/repositories/snapshots")
+  else
+    Some("releases" at nexus + "service/local/staging/deploy/maven2")
+}
+
+publishArtifact in Test := false
 
 scalaVersion in ThisBuild := "2.11.8"
 
