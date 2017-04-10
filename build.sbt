@@ -122,7 +122,7 @@ lazy val core = (project in file("core"))
   )
 
 lazy val spray = (project in file("spray"))
-  .dependsOn(core)
+  .dependsOn(core, model)
   .settings(
     libraryDependencies ++= Seq(
       "io.spray" %% "spray-httpx"  % "1.3.4",
@@ -133,4 +133,7 @@ lazy val spray = (project in file("spray"))
     )
   )
 
-lazy val root = (project in file(".")).aggregate(core, spray)
+lazy val model = (project in file("model"))
+  .dependsOn(core)
+
+lazy val root = (project in file(".")).aggregate(core, spray, model)

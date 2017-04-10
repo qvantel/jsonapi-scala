@@ -9,14 +9,14 @@ modification, are permitted provided that the following conditions are met:
  * Redistributions in binary form must reproduce the above copyright
       notice, this list of conditions and the following disclaimer in the
       documentation and/or other materials provided with the distribution.
- * Neither the name of the <organization> nor the
+ * Neither the name of the Qvantel nor the
       names of its contributors may be used to endorse or promote products
       derived from this software without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+DISCLAIMED. IN NO EVENT SHALL Qvantel BE LIABLE FOR ANY
 DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -29,40 +29,38 @@ package com.qvantel.jsonapi.model
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
 
-final case class ErrorObject(id: Option[String],
-                             links: Links,
-                             status: Option[String],
-                             code: Option[String],
-                             title: Option[String],
-                             detail: Option[String],
-                             source: Option[ErrorSource],
-                             meta: MetaObject)
+final case class ResourceObject(id: Option[String],
+                                `type`: String,
+                                attributes: Attributes,
+                                relationships: Relationships,
+                                links: Links,
+                                meta: MetaObject)
 
-object ErrorObject {
-  implicit object ErrorObjectJsonFormat extends RootJsonFormat[ErrorObject] {
-    override def write(obj: ErrorObject): JsValue = {
+object ResourceObject {
+  implicit object ResourceObjectJsonFormat extends RootJsonFormat[ResourceObject] {
+    override def write(obj: ResourceObject): JsValue = {
       val builder = Map.newBuilder[String, JsValue]
-      obj.id.foreach(x => builder += ("id" -> x.toJson))
-      if (obj.links.nonEmpty) builder += "links" -> obj.links.toJson
-      obj.status.foreach(x => builder += ("status" -> x.toJson))
-      obj.code.foreach(x => builder += ("code"     -> x.toJson))
-      obj.title.foreach(x => builder += ("title"   -> x.toJson))
-      obj.detail.foreach(x => builder += ("detail" -> x.toJson))
-      obj.source.foreach(x => builder += ("source" -> x.toJson))
-      if (obj.meta.nonEmpty) builder += "meta" -> obj.meta.toJson
+      obj.id.foreach(x => builder += "id" -> x.toJson)
+      builder += "type" -> obj.`type`.toJson
+      if (obj.attributes.nonEmpty) builder += "attributes"       -> obj.attributes.toJson
+      if (obj.relationships.nonEmpty) builder += "relationships" -> obj.relationships.toJson
+      if (obj.links.nonEmpty) builder += "links"                 -> obj.links.toJson
+      if (obj.meta.nonEmpty) builder += "meta"                   -> obj.meta.toJson
       JsObject(builder.result())
     }
 
-    override def read(json: JsValue): ErrorObject = {
+    override def read(json: JsValue): ResourceObject = {
       val fields = json.asJsObject.fields
-      ErrorObject(
+
+      ResourceObject(
         id = fields.get("id").flatMap(_.convertTo[Option[String]]),
-        links = fields.get("links").map(_.convertTo[Links]).getOrElse(Map.empty),
-        status = fields.get("status").flatMap(_.convertTo[Option[String]]),
-        code = fields.get("code").flatMap(_.convertTo[Option[String]]),
-        title = fields.get("title").flatMap(_.convertTo[Option[String]]),
-        detail = fields.get("detail").flatMap(_.convertTo[Option[String]]),
-        source = fields.get("source").flatMap(_.convertTo[Option[ErrorSource]]),
+        `type` = fields
+          .get("type")
+          .map(_.convertTo[String])
+          .getOrElse(deserializationError(s"No ‘type’ field in resource object")),
+        attributes = fields.get("attributes").map(_.convertTo[Map[String, JsValue]]).getOrElse(Map.empty),
+        relationships = fields.get("relationships").map(_.convertTo[Relationships]).getOrElse(Map.empty),
+        links = fields.get("links").map(Link.convertToLinks).getOrElse(Map.empty),
         meta = fields.get("meta").map(_.convertTo[MetaObject]).getOrElse(Map.empty)
       )
     }
