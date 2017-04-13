@@ -31,6 +31,7 @@ import _root_.spray.http.Uri.Path
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
 
+import com.qvantel.jsonapi._
 import spray.JsonApiSupport._
 import _root_.spray.httpx.marshalling._
 import _root_.spray.routing.HttpService

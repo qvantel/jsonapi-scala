@@ -28,7 +28,7 @@ package com.qvantel.jsonapi.spray
 
 import org.specs2.mutable.Specification
 import _root_.spray.http.StatusCodes._
-import _root_.spray.http.{ContentType, HttpCharsets, MediaTypes}
+import _root_.spray.http.{ContentType, MediaTypes}
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json.lenses.JsonLenses._
 import _root_.spray.json.{JsArray, JsonParser}
@@ -40,8 +40,7 @@ class SprayExceptionHandlerSpec extends Specification with Directives with Specs
 
   val testSprayExceptionHandler = new TestSprayExceptionHandler
   private[this] val wrap        = handleExceptions(testSprayExceptionHandler.defaultSprayExceptionHandler)
-  val JSON =
-    ContentType(MediaTypes.`application/json`, HttpCharsets.`UTF-8`)
+  val JSON                      = ContentType(MediaTypes.`application/vnd.api+json`)
 
   "The spray ExceptionHandler" should {
     "Respond with InternalServerError and specified error message" in {

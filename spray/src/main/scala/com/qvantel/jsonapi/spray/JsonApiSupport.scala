@@ -46,8 +46,8 @@ trait JsonApiSupport extends JsonApiSupport0 {
       printer: JsonPrinter = PrettyPrinter,
       metaProfiles: Set[MetaProfile] = Set.empty,
       sorting: JsonApiSorting = JsonApiSorting.Unsorted): Marshaller[Iterable[T]] =
-    Marshaller.delegate[Iterable[T], String](MediaTypes.`application/vnd.api+json`) { value =>
-      rawCollection(value)
+    Marshaller.of[Iterable[T]](ct) { (value, _, ctx) =>
+      ctx.marshalTo(HttpEntity(ct, printer.apply(rawCollection(value))))
     }
 
   implicit def jsonApiCollectionRequestUnmarshaller[T](
@@ -55,8 +55,8 @@ trait JsonApiSupport extends JsonApiSupport0 {
     new FromRequestUnmarshaller[Iterable[T]] {
       override def apply(req: HttpRequest): Deserialized[Iterable[T]] =
         req.entity match {
-          case HttpEntity.NonEmpty(ContentType(mediaType, _), data)
-              if mediaType == MediaTypes.`application/vnd.api+json` =>
+          case HttpEntity.NonEmpty(requestCt @ ContentType(mediaType, _), data)
+              if requestCt == ct || mediaType == MediaTypes.`application/vnd.api+json` =>
             Try { JsonParser(data.asString(HttpCharsets.`UTF-8`)).asJsObject } match {
               case Failure(e) => Left(MalformedContent(e.getMessage, e))
               case Success(json) =>
@@ -75,8 +75,8 @@ trait JsonApiSupport extends JsonApiSupport0 {
     new FromResponseUnmarshaller[Iterable[T]] {
       override def apply(resp: HttpResponse): Deserialized[Iterable[T]] =
         resp.entity match {
-          case HttpEntity.NonEmpty(ContentType(mediaType, _), data)
-              if mediaType == MediaTypes.`application/vnd.api+json` =>
+          case HttpEntity.NonEmpty(requestCt @ ContentType(mediaType, _), data)
+              if requestCt == ct || mediaType == MediaTypes.`application/vnd.api+json` =>
             Try { JsonParser(data.asString(HttpCharsets.`UTF-8`)).asJsObject } match {
               case Failure(e) => Left(MalformedContent(e.getMessage, e))
               case Success(json) =>
@@ -95,12 +95,14 @@ trait JsonApiSupport extends JsonApiSupport0 {
 }
 
 trait JsonApiSupport0 {
+  val ct = ContentType(MediaTypes.`application/vnd.api+json`, None).withoutDefinedCharset
+
   implicit def jsonApiOneMarshaller[T](implicit writer: JsonApiWriter[T],
                                        printer: JsonPrinter = PrettyPrinter,
                                        metaProfiles: Set[MetaProfile] = Set.empty,
                                        sorting: JsonApiSorting = JsonApiSorting.Unsorted): Marshaller[T] =
-    Marshaller.delegate[T, String](MediaTypes.`application/vnd.api+json`) { value =>
-      rawOne(value)
+    Marshaller.of[T](ct) { (value, _, ctx) =>
+      ctx.marshalTo(HttpEntity(ct, printer.apply(rawOne(value))))
     }
 
   implicit def jsonApiOneRequestUnmarshaller[T](implicit reader: JsonApiReader[T]): FromRequestUnmarshaller[T] =
@@ -126,8 +128,8 @@ trait JsonApiSupport0 {
     new FromResponseUnmarshaller[T] {
       override def apply(resp: HttpResponse): Deserialized[T] =
         resp.entity match {
-          case HttpEntity.NonEmpty(ContentType(mediaType, _), data)
-              if mediaType == MediaTypes.`application/vnd.api+json` =>
+          case HttpEntity.NonEmpty(requestCt @ ContentType(mediaType, _), data)
+              if requestCt == ct || mediaType == MediaTypes.`application/vnd.api+json` =>
             Try { JsonParser(data.asString(HttpCharsets.`UTF-8`)).asJsObject } match {
               case Failure(e) => Left(MalformedContent(e.getMessage, e))
               case Success(json) =>
@@ -174,5 +176,4 @@ object JsonApiClient extends RequestBuilding with ResponseTransformation {
 
 object JsonApiSupport extends JsonApiSupport {
   val JsonApiIncludeHeader: String = "X-Internal-Include"
-
 }
