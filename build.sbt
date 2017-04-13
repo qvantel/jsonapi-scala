@@ -178,4 +178,8 @@ lazy val model = (project in file("model"))
   )
   .dependsOn(core)
 
-lazy val root = (project in file(".")).aggregate(core, spray, model)
+lazy val root = (project in file("."))
+  .aggregate(core, spray, model)
+  .settings(
+    publishArtifact := false
+  )
