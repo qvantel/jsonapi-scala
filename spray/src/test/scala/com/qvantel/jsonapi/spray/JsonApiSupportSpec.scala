@@ -30,14 +30,18 @@ import org.specs2.mutable.Specification
 import shapeless._
 import _root_.spray.http.MediaTypes
 import _root_.spray.http.Uri.Path
+import _root_.spray.http.ContentType
 import _root_.spray.json._
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.routing.HttpService
 import _root_.spray.testkit.Specs2RouteTest
 
-import com.qvantel.jsonapi.JsonApiSupport._
+import com.qvantel.jsonapi._
+import com.qvantel.jsonapi.spray.JsonApiSupport._
 
 final class JsonApiSupportSpec extends Specification with Specs2RouteTest with HttpService {
+  val ct = ContentType(MediaTypes.`application/vnd.api+json`)
+
   implicit val apiRoot = ApiRoot(None)
 
   final case class Root(id: String,
@@ -415,7 +419,7 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest with H
 
     "return correct media type" in {
       Get() ~> route ~> check {
-        mediaType must_== MediaTypes.`application/vnd.api+json`
+        contentType must_== ct
       }
     }
 
@@ -423,6 +427,8 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest with H
       Get() ~> route ~> check {
         import _root_.spray.json.DefaultJsonProtocol._
         import _root_.spray.json.lenses.JsonLenses._
+
+        contentType must_== ct
 
         val json = JsonParser(responseAs[String])
 
@@ -469,7 +475,7 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest with H
 
     "unmarshaller a single jsonapi object" in {
       Post("/single?include=loaded,article,referenced,many-referenced,many", data) ~> route ~> check {
-        mediaType must_== MediaTypes.`application/vnd.api+json`
+        contentType must_== ct
 
         val json    = JsonParser(responseAs[String])
         val printed = rawOne[Root](data)
@@ -482,7 +488,7 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest with H
       val thingData = Thing("test", ToOne.loaded(Thang("1", "test")))
 
       Post("/thing?include=thang", thingData) ~> route ~> check {
-        mediaType must_== MediaTypes.`application/vnd.api+json`
+        contentType must_== ct
 
         val json = JsonParser(responseAs[String])
 
@@ -494,7 +500,7 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest with H
 
     "unmarshaller collection jsonapi object" in {
       Post("/collection?include=loaded,article,referenced,many-referenced,many", Iterable(data, data2)) ~> route ~> check {
-        mediaType must_== MediaTypes.`application/vnd.api+json`
+        contentType must_== ct
 
         val json = JsonParser(responseAs[String])
 

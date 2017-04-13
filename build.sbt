@@ -29,7 +29,7 @@ name := "jsonapi-scala"
 
 description := "jsonapi.org scala implementation"
 
-version in ThisBuild := "3.7.2"
+version in ThisBuild := "3.7.3"
 
 startYear in ThisBuild := Some(2015)
 
@@ -163,6 +163,7 @@ lazy val spray = (project in file("spray"))
   .settings(
     name := "jsonapi-scala-spray",
     libraryDependencies ++= Seq(
+      compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
       "io.spray" %% "spray-httpx"  % "1.3.4",
       "io.spray" %% "spray-client" % "1.3.4" excludeAll ExclusionRule(organization = "com.typesafe.akka",
                                                                       name = "akka-actor_2.11"),
