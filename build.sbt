@@ -29,7 +29,7 @@ name := "jsonapi-scala"
 
 description := "jsonapi.org scala implementation"
 
-version in ThisBuild := "3.7.3"
+version in ThisBuild := "3.7.4"
 
 startYear in ThisBuild := Some(2015)
 

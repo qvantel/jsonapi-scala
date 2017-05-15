@@ -159,6 +159,25 @@ final class ToOneSpec extends Specification {
           |}
         """.stripMargin.parseJson
 
+      val emptyIdJson =
+        """
+          |{
+          |  "id": "test",
+          |  "type": "articles",
+          |  "attributes": {
+          |    "title": "boom"
+          |  },
+          |  "relationships": {
+          |    "author": {
+          |      "data": {
+          |        "id": "",
+          |        "type": "authors"
+          |      }
+          |    }
+          |  }
+          |}
+        """.stripMargin.parseJson
+
       val missingDataJson =
         """
           |{
@@ -222,6 +241,8 @@ final class ToOneSpec extends Specification {
       implicitly[JsonApiFormat[Article]].read(properJson, Set.empty) must be equalTo Article("test",
                                                                                              "boom",
                                                                                              ToOne.reference("test"))
+      implicitly[JsonApiFormat[Article]].read(emptyIdJson, Set.empty) must throwA[DeserializationException](
+        "illegal id 'empty string' found")
       implicitly[JsonApiFormat[Article]].read(missingDataJson, Set.empty) must throwA[DeserializationException](
         message = "expected 'data' in 'author' in relationships json")
       implicitly[JsonApiFormat[Maybe]].read(properJsonOptional, Set.empty) must be equalTo Maybe(

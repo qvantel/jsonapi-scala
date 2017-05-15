@@ -113,10 +113,31 @@ final class ToManySpec extends Specification {
           |}
         """.stripMargin.parseJson
 
+      val emptyIdJson =
+        """
+          |{
+          |  "id": "test",
+          |  "type": "articles",
+          |  "attributes": {
+          |    "title": "boom"
+          |  },
+          |  "relationships": {
+          |    "comments": {
+          |      "data": [{
+          |        "id": "",
+          |        "type": "comments"
+          |      }]
+          |    }
+          |  }
+          |}
+        """.stripMargin.parseJson
+
       implicitly[JsonApiFormat[Article]].read(idMissingJson, Set.empty) must throwA[DeserializationException](
         message = """'id' not found in \{\"type\"\:\"comments\"\}""")
       implicitly[JsonApiFormat[Article]].read(typeMissingJson, Set.empty) must throwA[DeserializationException](
         message = """'type' not found in \{\"id\"\:\"test\"\}""")
+      implicitly[JsonApiFormat[Article]].read(emptyIdJson, Set.empty) must throwA[DeserializationException](
+        "illegal id 'empty string' found in")
     }
 
     "parse into reference with ids when id and type is found in relationship but not in includes" in {

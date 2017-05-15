@@ -103,10 +103,12 @@ trait JsonApiReaders extends JsonApiCommon {
         q"""
            $relationshipsObj.flatMap(_.fields.get($jsonName).filterNot(_.isInstanceOf[_root_.spray.json.JsNull.type]).map { rel =>
              rel.asJsObject.fields.get("data").filterNot(_.isInstanceOf[_root_.spray.json.JsNull.type]).map(_.convertTo[Seq[_root_.spray.json.JsObject]]
-               .map(x =>
-                 (x.fields.get("id").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'id' not found in " + x.compactPrint)),
+               .map { x =>
+                 val id = x.fields.get("id").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'id' not found in " + x.compactPrint))
+                 if (id == "") { throw new _root_.spray.json.DeserializationException("illegal id 'empty string' found in: " + x.compactPrint) }
+                 (id,
                  x.fields.get("type").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'type' not found in " + x.compactPrint)))
-               )
+               }
              ).getOrElse(Seq.empty)
            }).getOrElse(Seq.empty)
          """
@@ -155,10 +157,14 @@ trait JsonApiReaders extends JsonApiCommon {
         """
       def toOneCases =
         List(cq"""Seq(_root_.spray.json.JsString($relIdTerm), _root_.spray.json.JsString($relTypeTerm)) =>
-          $includedByIdTypeTerm.get(($relIdTerm, $relTypeTerm)) match {
-            case Some($jsObjectTerm) if $loadInclude =>
-              _root_.com.qvantel.jsonapi.ToOne.loaded[$containedType](implicitly[_root_.com.qvantel.jsonapi.JsonApiFormat[$containedType]].read($jsObjectTerm, $includedByIdTypeTerm, $includePaths, $newIncludePath))
-            case _ => _root_.com.qvantel.jsonapi.ToOne.reference[$containedType]($relIdTerm)
+          if ($relIdTerm == "") {
+            throw new _root_.spray.json.DeserializationException("illegal id 'empty string' found in Resource Identifier Object")
+          } else {
+            $includedByIdTypeTerm.get(($relIdTerm, $relTypeTerm)) match {
+              case Some($jsObjectTerm) if $loadInclude =>
+                _root_.com.qvantel.jsonapi.ToOne.loaded[$containedType](implicitly[_root_.com.qvantel.jsonapi.JsonApiFormat[$containedType]].read($jsObjectTerm, $includedByIdTypeTerm, $includePaths, $newIncludePath))
+              case _ => _root_.com.qvantel.jsonapi.ToOne.reference[$containedType]($relIdTerm)
+            }
           }
         """, cq"""_ => throw new _root_.spray.json.DeserializationException("id and type expected")""")
 
@@ -166,11 +172,15 @@ trait JsonApiReaders extends JsonApiCommon {
         coproductTypes(containedType).map { cType =>
           cq"""
             Seq(_root_.spray.json.JsString($relIdTerm), _root_.spray.json.JsString($relTypeTerm)) if $relTypeTerm == implicitly[_root_.com.qvantel.jsonapi.ResourceType[$cType]].resourceType =>
-              $includedByIdTypeTerm.get(($relIdTerm, $relTypeTerm)) match {
-                case Some($jsObjectTerm) if $loadInclude =>
-                  _root_.com.qvantel.jsonapi.PolyToOne.loaded[$containedType, $cType](implicitly[_root_.com.qvantel.jsonapi.JsonApiFormat[$cType]].read($jsObjectTerm, $includedByIdTypeTerm, $includePaths, $newIncludePath))
-                case _ =>
-                  _root_.com.qvantel.jsonapi.PolyToOne.reference[$containedType, $cType]($relIdTerm)
+              if ($relIdTerm == "") {
+                throw new _root_.spray.json.DeserializationException("illegal id 'empty string' found  n Resource Identifier Object")
+              } else {
+                $includedByIdTypeTerm.get(($relIdTerm, $relTypeTerm)) match {
+                  case Some($jsObjectTerm) if $loadInclude =>
+                    _root_.com.qvantel.jsonapi.PolyToOne.loaded[$containedType, $cType](implicitly[_root_.com.qvantel.jsonapi.JsonApiFormat[$cType]].read($jsObjectTerm, $includedByIdTypeTerm, $includePaths, $newIncludePath))
+                  case _ =>
+                    _root_.com.qvantel.jsonapi.PolyToOne.reference[$containedType, $cType]($relIdTerm)
+                }
               }
           """
         } :+ cq"""Seq(_root_.spray.json.JsString($relIdTerm), _root_.spray.json.JsString($relTypeTerm)) => throw new _root_.spray.json.DeserializationException("relationship of type '" + $relTypeTerm + "' is not part of coproduct '" + ${containedType.toString} + "'")"""
@@ -214,7 +224,13 @@ trait JsonApiReaders extends JsonApiCommon {
           q"""
             val entities = ${toManyRelationshipToEntities(
               List(
-                cq"""(($relIdTerm, $relTypeTerm), $jsObjectTerm) if $loadInclude => Some(implicitly[_root_.com.qvantel.jsonapi.JsonApiFormat[$containedType]].read($jsObjectTerm, $includedByIdTypeTerm, $includePaths, $newIncludePath))""",
+                cq"""(($relIdTerm, $relTypeTerm), $jsObjectTerm) if $loadInclude =>
+                  if($relIdTerm == "") {
+                    throw new _root_.spray.json.DeserializationException("illegal id 'empty string' found in Resource Identifier Object")
+                  } else {
+                    Some(implicitly[_root_.com.qvantel.jsonapi.JsonApiFormat[$containedType]].read($jsObjectTerm, $includedByIdTypeTerm, $includePaths, $newIncludePath))
+                  }
+                  """,
                 cq"_ => None"
               )
             )}.flatten
@@ -234,7 +250,11 @@ trait JsonApiReaders extends JsonApiCommon {
             List(
               cq"""
                 (($relIdTerm, $relTypeTerm), $jsObjectTerm) if $loadInclude && $relTypeTerm == implicitly[_root_.com.qvantel.jsonapi.ResourceType[$cType]].resourceType =>
-                  Some(_root_.shapeless.Coproduct[$containedType](implicitly[_root_.com.qvantel.jsonapi.JsonApiFormat[$cType]].read($jsObjectTerm, $includedByIdTypeTerm, $includePaths, $newIncludePath)))
+                  if($relIdTerm == "") {
+                    throw new _root_.spray.json.DeserializationException("illegal id 'empty string' found in Resource Identifier Object")
+                  } else {
+                    Some(_root_.shapeless.Coproduct[$containedType](implicitly[_root_.com.qvantel.jsonapi.JsonApiFormat[$cType]].read($jsObjectTerm, $includedByIdTypeTerm, $includePaths, $newIncludePath)))
+                  }
               """,
               cq"""((_, $relTypeTerm), _) if $relTypeTerm == implicitly[_root_.com.qvantel.jsonapi.ResourceType[$cType]].resourceType => None"""
             )
