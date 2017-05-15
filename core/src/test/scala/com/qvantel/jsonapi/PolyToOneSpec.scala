@@ -191,6 +191,22 @@ final class PolyToOneSpec extends Specification {
           |}
         """.stripMargin.parseJson
 
+      val emptyIdRelationship =
+        """
+          |{
+          |  "id": "test",
+          |  "type": "maybes",
+          |  "relationships": {
+          |    "maybe": {
+          |      "data": {
+          |        "id": "",
+          |        "type": "people"
+          |      }
+          |    }
+          |  }
+          |}
+        """.stripMargin.parseJson
+
       val nullRelationships =
         """
           |{
@@ -211,6 +227,9 @@ final class PolyToOneSpec extends Specification {
       implicitly[JsonApiFormat[Maybe]].read(emptyRelationships, Set.empty) must be equalTo Maybe("test", None)
       implicitly[JsonApiFormat[Maybe]].read(nullRelationships, Set.empty) must be equalTo Maybe("test", None)
       implicitly[JsonApiFormat[Maybe]].read(nonExistingRelationships, Set.empty) must be equalTo Maybe("test", None)
+
+      implicitly[JsonApiFormat[Maybe]].read(emptyIdRelationship, Set.empty) must throwA[DeserializationException](
+        "illegal id 'empty string' found")
     }
 
     "fail with deserialization exception when the entity in the relationship is of wrong type" in {

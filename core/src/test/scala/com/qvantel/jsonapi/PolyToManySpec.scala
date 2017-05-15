@@ -181,6 +181,28 @@ final class PolyToManySpec extends Specification {
           |}
         """.stripMargin.parseJson
 
+      val emptyId =
+        """
+          |{
+          |  "id": "test",
+          |  "type": "articles",
+          |  "attributes": {
+          |    "title": "boom"
+          |  },
+          |  "relationships": {
+          |    "authors": {
+          |      "data": [{
+          |        "id": "test",
+          |        "type": "people"
+          |      },{
+          |        "id": "",
+          |        "type": "people"
+          |      }]
+          |    }
+          |  }
+          |}
+        """.stripMargin.parseJson
+
       val nullRelationships =
         """
           |{
@@ -216,6 +238,9 @@ final class PolyToManySpec extends Specification {
         "test",
         "boom",
         PolyToMany.reference)
+
+      implicitly[JsonApiFormat[Article]].read(emptyId, Set.empty) must throwA[DeserializationException](
+        "illegal id 'empty string' found")
     }
 
     "fail with deserialization exception when one or more of the entities in relationship is of wrong type" in {
