@@ -40,7 +40,7 @@ import com.qvantel.jsonapi._
 import com.qvantel.jsonapi.spray.JsonApiSupport._
 
 final class JsonApiSupportSpec extends Specification with Specs2RouteTest with HttpService {
-  val ct = ContentType(MediaTypes.`application/vnd.api+json`)
+  val ct = ContentType(MediaTypes.`application/vnd.api+json`, None)
 
   implicit val apiRoot = ApiRoot(None)
 

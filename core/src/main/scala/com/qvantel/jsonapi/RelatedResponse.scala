@@ -26,7 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.qvantel.jsonapi
 
-import _root_.spray.http.{HttpEntity, MediaTypes}
+import _root_.spray.http.{HttpEntity, MediaTypes, ContentType}
 import _root_.spray.httpx.marshalling.Marshaller
 import _root_.spray.json.{JsArray, JsNull, JsObject, JsValue, JsonPrinter, PrettyPrinter}
 
@@ -96,10 +96,12 @@ object RelatedResponse {
   def apply[A](a: Seq[A]): RelatedResponse[A]      = ToMany(a.toList)
   def apply[A](a: Set[A]): RelatedResponse[A]      = ToMany(a.toList)
 
+  private[this] val ct = ContentType(MediaTypes.`application/vnd.api+json`, None)
+
   implicit def relatedResponseMarshaller[A](implicit writer: JsonApiWriter[A],
                                             printer: JsonPrinter = PrettyPrinter,
                                             sorting: JsonApiSorting = JsonApiSorting.Unsorted) =
-    Marshaller.of[RelatedResponse[A]](MediaTypes.`application/vnd.api+json`) { (value, contentType, ctx) =>
-      ctx.marshalTo(HttpEntity(contentType, printer.apply(value.toResponse)))
+    Marshaller.of[RelatedResponse[A]](ct) { (value, _, ctx) =>
+      ctx.marshalTo(HttpEntity(ct, printer.apply(value.toResponse)))
     }
 }

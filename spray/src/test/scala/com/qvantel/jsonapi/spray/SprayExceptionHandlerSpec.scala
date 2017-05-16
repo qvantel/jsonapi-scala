@@ -40,7 +40,7 @@ class SprayExceptionHandlerSpec extends Specification with Directives with Specs
 
   val testSprayExceptionHandler = new TestSprayExceptionHandler
   private[this] val wrap        = handleExceptions(testSprayExceptionHandler.defaultSprayExceptionHandler)
-  val JSON                      = ContentType(MediaTypes.`application/vnd.api+json`)
+  val JSON                      = ContentType(MediaTypes.`application/vnd.api+json`, None)
 
   "The spray ExceptionHandler" should {
     "Respond with InternalServerError and specified error message" in {

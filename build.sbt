@@ -29,7 +29,7 @@ name := "jsonapi-scala"
 
 description := "jsonapi.org scala implementation"
 
-version in ThisBuild := "3.7.4"
+version in ThisBuild := "3.7.5"
 
 startYear in ThisBuild := Some(2015)
 
@@ -133,11 +133,12 @@ wartremoverErrors in (Compile, compile) ++= (Warts.unsafe.toSet -- Set(Wart.Any,
 
 libraryDependencies in ThisBuild ++= Seq(
   // testing related
-  "org.specs2"        %% "specs2-core"       % "3.8.9"  % "test",
-  "org.specs2"        %% "specs2-junit"      % "3.8.9"  % "test",
-  "org.specs2"        %% "specs2-scalacheck" % "3.8.9"  % "test",
-  "io.spray"          %% "spray-testkit"     % "1.3.4"  % "test",
-  "com.typesafe.akka" %% "akka-testkit"      % "2.4.14" % "test"
+  "org.specs2"        %% "specs2-core"               % "3.8.9"  % "test",
+  "org.specs2"        %% "specs2-junit"              % "3.8.9"  % "test",
+  "org.specs2"        %% "specs2-scalacheck"         % "3.8.9"  % "test",
+  "io.spray"          %% "spray-testkit"             % "1.3.4"  % "test",
+  "com.typesafe.akka" %% "akka-testkit"              % "2.4.14" % "test",
+  "io.spray"          %% "spray-routing-shapeless23" % "1.3.4"  % "test"
 )
 
 lazy val core = (project in file("core"))
