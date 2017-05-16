@@ -201,8 +201,8 @@ object SprayExceptionHandler {
 
   def jsonApiErrorResponse(code: StatusCode, title: String, detail: String): HttpResponse =
     HttpResponse(status = code,
-                 entity =
-                   HttpEntity(MediaTypes.`application/vnd.api+json`, jsonApiError(code, title, detail).prettyPrint))
+                 entity = HttpEntity(ContentType(MediaTypes.`application/vnd.api+json`, None),
+                                     jsonApiError(code, title, detail).prettyPrint))
 
   def completeJsonApiError(code: StatusCode, title: String, detail: String): Route =
     complete(jsonApiErrorResponse(code, title, detail))

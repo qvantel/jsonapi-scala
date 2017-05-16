@@ -29,8 +29,12 @@ package com.qvantel.jsonapi
 import org.specs2.mutable._
 import _root_.spray.json._
 import _root_.spray.json.DefaultJsonProtocol._
+import _root_.spray.testkit.Specs2RouteTest
+import _root_.spray.routing.HttpService
+import _root_.spray.http.{ContentType, MediaTypes}
 
-class RelatedResponseSpec extends Specification {
+class RelatedResponseSpec extends Specification with Specs2RouteTest with HttpService {
+  def actorRefFactory  = system
   implicit val apiRoot = ApiRoot(None)
   @jsonApiResource final case class Test(id: String)
 
@@ -38,6 +42,12 @@ class RelatedResponseSpec extends Specification {
   val emptyTest: Option[Test] = None
   val tests: List[Test]       = List(Test("test 1"), Test("test 2"))
   val emptyTests: List[Test]  = List.empty
+
+  val route = get {
+    complete {
+      RelatedResponse(test)
+    }
+  }
 
   "correctly write to one none case" in {
     RelatedResponse(emptyTest).toResponse must be equalTo JsObject(
@@ -65,5 +75,11 @@ class RelatedResponseSpec extends Specification {
     RelatedResponse(tests.toSeq).toResponse must be equalTo answer
     RelatedResponse(tests.toIterable).toResponse must be equalTo answer
     RelatedResponse(tests.toSet).toResponse must be equalTo answer
+  }
+
+  "make sure that correct content type is given" in {
+    Get("/") ~> route ~> check {
+      contentType must be equalTo ContentType(MediaTypes.`application/vnd.api+json`, None)
+    }
   }
 }
