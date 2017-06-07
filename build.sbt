@@ -90,8 +90,8 @@ scalacOptions in ThisBuild ++= Seq(
   "-feature",
   "-target:jvm-1.8",
   "-unchecked",
-  "encoding",
-  "UTF-8",
+  "-encoding",
+  "utf-8",
   // advanced
   "-Xcheckinit",
   "-Xfuture",
