@@ -31,6 +31,7 @@ import shapeless._
 import _root_.spray.http.MediaTypes
 import _root_.spray.http.Uri.Path
 import _root_.spray.http.ContentType
+import _root_.spray.http.HttpCharsets
 import _root_.spray.json._
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.routing.HttpService
@@ -460,6 +461,24 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest with H
         json.extract[String]('included / element(3) / 'type) must_== Child.resourceType.resourceType
         json.extract[String]('included / element(4) / 'id) must_== "5"
         json.extract[String]('included / element(4) / 'type) must_== Child.resourceType.resourceType
+      }
+    }
+
+    "handle UTF-8 correctly" in {
+      val utf = "Ð²ÑÅÄÖåäöæøå"
+      val root = Root("foo",
+                      utf,
+                      ToOne.reference("foo"),
+                      ToOne.reference("foo"),
+                      ToMany.reference,
+                      ToMany.reference,
+                      ToOne.reference("foo"))
+      Post("/single", root) ~> route ~> check {
+        contentType must_== ct
+
+        val parsed = readOne[Root](JsonParser(response.entity.data.asString(HttpCharsets.`UTF-8`)).asJsObject)
+
+        parsed must_== root
       }
     }
 

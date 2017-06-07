@@ -29,7 +29,7 @@ name := "jsonapi-scala"
 
 description := "jsonapi.org scala implementation"
 
-version in ThisBuild := "3.7.5"
+version in ThisBuild := "3.7.6"
 
 startYear in ThisBuild := Some(2015)
 
@@ -90,6 +90,8 @@ scalacOptions in ThisBuild ++= Seq(
   "-feature",
   "-target:jvm-1.8",
   "-unchecked",
+  "encoding",
+  "UTF-8",
   // advanced
   "-Xcheckinit",
   "-Xfuture",
