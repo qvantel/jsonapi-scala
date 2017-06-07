@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/qvantel/jsonapi-scala.svg?branch=master)](https://travis-ci.org/qvantel/jsonapi-scala)
 [![Coverage Status](https://coveralls.io/repos/github/qvantel/jsonapi-scala/badge.svg?branch=master)](https://coveralls.io/github/qvantel/jsonapi-scala?branch=master)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.qvantel/jsonapi-scala_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.qvantel/jsonapi-scala_2.11)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.qvantel/jsonapi-scala-core_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.qvantel/jsonapi-scala-core_2.11)
 
 ## Features
 * Automatic generation of jsonapi json writers with relationship handling for case classes
