@@ -47,7 +47,7 @@ trait JsonApiSupport extends JsonApiSupport0 {
       metaProfiles: Set[MetaProfile] = Set.empty,
       sorting: JsonApiSorting = JsonApiSorting.Unsorted): Marshaller[Iterable[T]] =
     Marshaller.of[Iterable[T]](ct) { (value, _, ctx) =>
-      ctx.marshalTo(HttpEntity(ct, printer.apply(rawCollection(value))))
+      ctx.marshalTo(HttpEntity(ct, HttpData(printer.apply(rawCollection(value)), HttpCharsets.`UTF-8`)))
     }
 
   implicit def jsonApiCollectionRequestUnmarshaller[T](
@@ -102,7 +102,7 @@ trait JsonApiSupport0 {
                                        metaProfiles: Set[MetaProfile] = Set.empty,
                                        sorting: JsonApiSorting = JsonApiSorting.Unsorted): Marshaller[T] =
     Marshaller.of[T](ct) { (value, _, ctx) =>
-      ctx.marshalTo(HttpEntity(ct, printer.apply(rawOne(value))))
+      ctx.marshalTo(HttpEntity(ct, HttpData(printer.apply(rawOne(value)), HttpCharsets.`UTF-8`)))
     }
 
   implicit def jsonApiOneRequestUnmarshaller[T](implicit reader: JsonApiReader[T]): FromRequestUnmarshaller[T] =
