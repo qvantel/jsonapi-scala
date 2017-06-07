@@ -29,7 +29,7 @@ name := "jsonapi-scala"
 
 description := "jsonapi.org scala implementation"
 
-version in ThisBuild := "3.7.6"
+version in ThisBuild := "3.7.7"
 
 startYear in ThisBuild := Some(2015)
 
@@ -73,9 +73,7 @@ publishTo := {
 
 publishArtifact in Test := false
 
-scalaVersion in ThisBuild := "2.11.8"
-
-ivyScala := ivyScala.value map { _.copy(overrideScalaVersion = true) }
+scalaVersion in ThisBuild := "2.11.11"
 
 testOptions in Test in ThisBuild ++= Seq(
   Tests.Argument("-oD")

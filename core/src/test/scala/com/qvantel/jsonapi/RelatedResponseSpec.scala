@@ -38,7 +38,7 @@ class RelatedResponseSpec extends Specification with Specs2RouteTest with HttpSe
   implicit val apiRoot = ApiRoot(None)
   @jsonApiResource final case class Test(id: String)
 
-  val test: Option[Test]      = Some(Test("test"))
+  val test: Option[Test]      = Some(Test("teståöä•Ωé®")) // test UTF-8
   val emptyTest: Option[Test] = None
   val tests: List[Test]       = List(Test("test 1"), Test("test 2"))
   val emptyTests: List[Test]  = List.empty
