@@ -32,7 +32,7 @@ import _root_.spray.http.Uri.Path
 import _root_.spray.json.DefaultJsonProtocol._
 
 final class CoproductSpec extends Specification {
-  implicit val apiRoot = ApiRoot(None)
+  implicit val apiRoot: com.qvantel.jsonapi.ApiRoot = ApiRoot(None)
 
   private[this] final case class Limb(id: String, fingers: Int)
   private[this] final case class LightBulb(id: String, color: Long)

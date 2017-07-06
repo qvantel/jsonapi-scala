@@ -28,8 +28,6 @@ package com.qvantel.jsonapi
 
 import shapeless.Coproduct
 import shapeless.ops.coproduct.Inject
-import _root_.spray.json.DefaultJsonProtocol._
-import _root_.spray.json._
 
 sealed trait PolyToOne[A <: Coproduct] {
   def id: String
@@ -53,28 +51,4 @@ object PolyToOne {
   def loaded[A <: Coproduct, E](
       entity: E)(implicit rt: ResourceType[E], ida: Identifiable[E], inj: Inject[A, E]): PolyToOne[A] =
     Loaded[A](inj(entity), ida.identify(entity), rt.resourceType)
-
-  def renderRelation[P, A <: Coproduct](parent: P, name: String, relation: PolyToOne[A])(
-      implicit pt: PathTo[P]): JsObject = {
-    def json(id: String, resourceType: String): JsObject =
-      JsObject(
-        "links" -> JsObject("self" -> (pt.entity(parent) / "relationships" / name).toJson,
-                            "related" -> (pt.entity(parent) / name).toJson),
-        "data" -> JsObject("type" -> resourceType.toJson, "id" -> id.toJson)
-      )
-    relation match {
-      case Reference(id, rt) => json(id, rt)
-      case Loaded(_, id, rt) => json(id, rt)
-    }
-  }
-
-  def renderRelation[P, A <: Coproduct](parent: P, name: String, maybeRelation: Option[PolyToOne[A]])(
-      implicit pt: PathTo[P]): JsObject =
-    maybeRelation map { relation =>
-      renderRelation(parent, name, relation)
-    } getOrElse {
-      JsObject("links" -> JsObject("self" -> (pt.entity(parent) / "relationships" / name).toJson,
-                                   "related" -> (pt.entity(parent) / name).toJson),
-               "data" -> JsNull)
-    }
 }

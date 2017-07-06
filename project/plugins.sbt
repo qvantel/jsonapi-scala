@@ -1,4 +1,5 @@
-addSbtPlugin("org.wartremover" % "sbt-wartremover" % "2.0.2")
-addSbtPlugin("com.geirsson"    % "sbt-scalafmt"    % "0.6.8")
-addSbtPlugin("org.scoverage"   % "sbt-scoverage"   % "1.3.5")
+addSbtPlugin("org.wartremover" % "sbt-wartremover" % "2.1.1")
+addSbtPlugin("com.lucidchart" % "sbt-scalafmt" % "1.7")
+addSbtPlugin("org.scoverage"   % "sbt-scoverage"   % "1.5.0")
 addSbtPlugin("org.scoverage"   % "sbt-coveralls"   % "1.1.0")
+addSbtPlugin("ch.epfl.scala" % "sbt-scalafix" % "0.4.2")

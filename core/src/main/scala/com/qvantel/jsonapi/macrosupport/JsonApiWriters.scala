@@ -4,12 +4,12 @@ All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
-    * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
+ * Redistributions in binary form must reproduce the above copyright
       notice, this list of conditions and the following disclaimer in the
       documentation and/or other materials provided with the distribution.
-    * Neither the name of the Qvantel nor the
+ * Neither the name of the Qvantel nor the
       names of its contributors may be used to endorse or promote products
       derived from this software without specific prior written permission.
 
@@ -23,11 +23,10 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
 ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ */
 package com.qvantel.jsonapi.macrosupport
 
 import scala.annotation.compileTimeOnly
-
 
 @compileTimeOnly("Macros can only be used at compile-time")
 trait JsonApiWriters extends JsonApiCommon {
@@ -50,7 +49,6 @@ trait JsonApiWriters extends JsonApiCommon {
       """
   }
 
-
   private[this] val emptyJsObjectSet: c.Tree =
     q"_root_.scala.collection.immutable.Set.empty[_root_.spray.json.JsObject]"
 
@@ -64,7 +62,7 @@ trait JsonApiWriters extends JsonApiCommon {
     val fieldType = field.infoIn(t)
     val fieldName = field.name.toString
 
-    if(fieldType <:< typeOf[com.qvantel.jsonapi.JsonOption[_]]) {
+    if (fieldType <:< typeOf[com.qvantel.jsonapi.JsonOption[_]]) {
       c.abort(c.enclosingPosition, s"JsonOption[_] not allowed. $fieldName: $fieldType give")
     } else {
       q"""(${camelToDashes(fieldName)}, implicitly[_root_.spray.json.JsonWriter[$fieldType]].write($objName.${field.name}))"""
@@ -75,28 +73,35 @@ trait JsonApiWriters extends JsonApiCommon {
     val fieldType = field.infoIn(t)
     val fieldName = field.name.toString
 
-    if(fieldType <:< typeOf[com.qvantel.jsonapi.JsonOption[_]]) {
-      q"""if($objName.${field.name} == _root_.com.qvantel.jsonapi.JsonAbsent) None else Some((${camelToDashes(fieldName)}, implicitly[_root_.spray.json.JsonWriter[$fieldType]].write($objName.${field.name})))"""
+    if (fieldType <:< typeOf[com.qvantel.jsonapi.JsonOption[_]]) {
+      q"""if($objName.${field.name} == _root_.com.qvantel.jsonapi.JsonAbsent) None else Some((${camelToDashes(
+        fieldName)}, implicitly[_root_.spray.json.JsonWriter[$fieldType]].write($objName.${field.name})))"""
     } else {
       c.abort(c.enclosingPosition, s"only JsonOption[_] allowed. $fieldName: $fieldType give")
     }
   }
 
   private[this] def relationJson(t: c.Type, st: c.Type, objName: TermName)(field: c.universe.TermSymbol): c.Tree = {
-    val fieldType = field.infoIn(t)
-    val fieldName = field.name.toString
+    val fieldType     = field.infoIn(t)
+    val fieldName     = field.name.toString
     val containedType = resolveContainedType(fieldType)
-    val json = q"""_root_.com.qvantel.jsonapi.Link.to[$containedType, $st]($objName, $objName.${field.name}, ${camelToDashes(fieldName)})"""
+    val json =
+      q"""_root_.com.qvantel.jsonapi.Link.to[$containedType, $st]($objName, $objName.${field.name}, ${camelToDashes(
+        fieldName)})"""
     q"""(${camelToDashes(fieldName)}, $json)"""
   }
 
-  private[this] def relationJsonNoParentPath(t: c.Type, st: c.Type, objName: TermName)(field: c.universe.TermSymbol): c.Tree = {
-    val fieldType = field.infoIn(t)
-    val fieldName = field.name.toString
+  private[this] def relationJsonNoParentPath(t: c.Type, st: c.Type, objName: TermName)(
+      field: c.universe.TermSymbol): c.Tree = {
+    val fieldType     = field.infoIn(t)
+    val fieldName     = field.name.toString
     val containedType = resolveContainedType(fieldType)
-    val json = q"""_root_.com.qvantel.jsonapi.Link.toNoParentPath[$containedType, $st]($objName, $objName.${field.name}, ${camelToDashes(fieldName)})"""
-    if(fieldType <:< typeOf[com.qvantel.jsonapi.JsonOption[_]]) {
-      q"""if ($objName.${field.name} == _root_.com.qvantel.jsonapi.JsonAbsent) None else Some((${camelToDashes(fieldName)}, $json))"""
+    val json =
+      q"""_root_.com.qvantel.jsonapi.Link.toNoParentPath[$containedType, $st]($objName, $objName.${field.name}, ${camelToDashes(
+        fieldName)})"""
+    if (fieldType <:< typeOf[com.qvantel.jsonapi.JsonOption[_]]) {
+      q"""if ($objName.${field.name} == _root_.com.qvantel.jsonapi.JsonAbsent) None else Some((${camelToDashes(
+        fieldName)}, $json))"""
     } else {
       q"""Some((${camelToDashes(fieldName)}, $json))"""
     }
@@ -107,18 +112,18 @@ trait JsonApiWriters extends JsonApiCommon {
 
     val attributeFields = allAttributeFields.filter(x => x.name.toString != "id" && x.name.toString != "meta")
 
-    val hasId = allAttributeFields.exists(_.name.toString == "id")
+    val hasId   = allAttributeFields.exists(_.name.toString == "id")
     val hasMeta = allAttributeFields.exists(_.name.toString == "meta")
 
-    val idRequiredFields = if(hasId) {
-      val selfFieldJson = q"""("self", ${selfPathJson(st, objName)})"""
-      val idFieldJson = q"""("id", ${idJson(st, objName)})"""
-      val linksJson = q"""("links" -> _root_.spray.json.JsObject(..$selfFieldJson))"""
+    val idRequiredFields = if (hasId) {
+      val selfFieldJson      = q"""("self", ${selfPathJson(st, objName)})"""
+      val idFieldJson        = q"""("id", ${idJson(st, objName)})"""
+      val linksJson          = q"""("links" -> _root_.spray.json.JsObject(..$selfFieldJson))"""
       val relationFieldsJson = relationFields map relationJson(t, st, objName)
 
       val baseFields = Seq(idFieldJson, linksJson)
 
-      if(relationFieldsJson.isEmpty) {
+      if (relationFieldsJson.isEmpty) {
         baseFields
       } else {
         baseFields :+ q"""("relationships" -> _root_.spray.json.JsObject(..$relationFieldsJson))"""
@@ -126,24 +131,29 @@ trait JsonApiWriters extends JsonApiCommon {
     } else {
       val relationFieldsJson = relationFields map relationJsonNoParentPath(t, st, objName)
 
-      if(relationFieldsJson.isEmpty) {
+      if (relationFieldsJson.isEmpty) {
         Seq.empty
       } else {
         Seq(q"""("relationships" -> _root_.spray.json.JsObject($relationFieldsJson.flatten:_*))""")
       }
     }
 
-    val typeFieldJson       = q"""("type", ${resourceTypeJson(st)})"""
-    val jsonOptionAttributes = attributeFields.filter { field => field.infoIn(t) <:< typeOf[com.qvantel.jsonapi.JsonOption[_]] }
-    val nonJsonOptionAttribtes = attributeFields.filterNot { field => field.infoIn(t) <:< typeOf[com.qvantel.jsonapi.JsonOption[_]] }
+    val typeFieldJson = q"""("type", ${resourceTypeJson(st)})"""
+    val jsonOptionAttributes = attributeFields.filter { field =>
+      field.infoIn(t) <:< typeOf[com.qvantel.jsonapi.JsonOption[_]]
+    }
+    val nonJsonOptionAttribtes = attributeFields.filterNot { field =>
+      field.infoIn(t) <:< typeOf[com.qvantel.jsonapi.JsonOption[_]]
+    }
     val nonJsonOptionAttributeFieldsJson = nonJsonOptionAttribtes map fieldJson(t, objName)
-    val jsonOptionAttributeFieldsJson = jsonOptionAttributes map jsonOptionFieldJson(t, objName)
-    val attributesJson      = q"""("attributes" -> _root_.spray.json.JsObject(($nonJsonOptionAttributeFieldsJson ++ $jsonOptionAttributeFieldsJson.flatten):_*))"""
+    val jsonOptionAttributeFieldsJson    = jsonOptionAttributes map jsonOptionFieldJson(t, objName)
+    val attributesJson =
+      q"""("attributes" -> _root_.spray.json.JsObject(($nonJsonOptionAttributeFieldsJson ++ $jsonOptionAttributeFieldsJson.flatten):_*))"""
 
     val metaFields = allAttributeFields.find(_.name.toString == "meta") match {
       case Some(meta) if meta.infoIn(t) <:< typeOf[Map[String, com.qvantel.jsonapi.Meta]] =>
         //val m =
-          Seq(q"""
+        Seq(q"""
             if($objName.meta.isEmpty) {
               Map.empty[String, JsObject]
             } else {
@@ -169,7 +179,7 @@ trait JsonApiWriters extends JsonApiCommon {
   }
 
   private[this] def sumTypePrimaryDataWriter(t: c.Type, objName: TermName): c.Tree = {
-    val children = t.typeSymbol.asClass.knownDirectSubclasses
+    val children    = t.typeSymbol.asClass.knownDirectSubclasses
     val caseObjName = TermName(c.freshName())
     val cases = children map { (child: c.universe.Symbol) =>
       cq"$caseObjName: $child => ${simpleCaseClassPrimaryDataWriter(child.asClass.toType, t, caseObjName)}"
@@ -181,92 +191,99 @@ trait JsonApiWriters extends JsonApiCommon {
     val caseObjName = TermName(c.freshName())
     val relationFieldsJson = for {
       field <- relationFields(t)
-      fieldType = field.infoIn(t)
+      fieldType     = field.infoIn(t)
       containedType = resolveContainedType(fieldType)
     } yield {
-        if (fieldType <:< toOneType) {
-          q"""$objName.${field.name} match {
+      if (fieldType <:< toOneType) {
+        q"""$objName.${field.name} match {
               case _root_.com.qvantel.jsonapi.ToOne.Loaded($caseObjName) =>
                 ${entityJsonSingleton(containedType, caseObjName)} ++ implicitly[_root_.com.qvantel.jsonapi.JsonApiWriter[$containedType]].included($caseObjName)
               case _ => $emptyJsObjectSet
             }"""
-        } else if (fieldType <:< polyToOneType) {
-          val referenceCase = cq"_root_.com.qvantel.jsonapi.PolyToOne.Reference(_, _) => $emptyJsObjectSet"
-          val containedCoproductTypes = coproductTypes(containedType)
-          val loadedCases = containedCoproductTypes.zip(coproductPatterns(containedCoproductTypes.size, caseObjName)) map { case (cType, pattern) =>
+      } else if (fieldType <:< polyToOneType) {
+        val referenceCase           = cq"_root_.com.qvantel.jsonapi.PolyToOne.Reference(_, _) => $emptyJsObjectSet"
+        val containedCoproductTypes = coproductTypes(containedType)
+        val loadedCases = containedCoproductTypes.zip(coproductPatterns(containedCoproductTypes.size, caseObjName)) map {
+          case (cType, pattern) =>
             cq"""_root_.com.qvantel.jsonapi.PolyToOne.Loaded($pattern, _, _) =>
                  ${entityJsonSingleton(cType, caseObjName)} ++ implicitly[_root_.com.qvantel.jsonapi.JsonApiWriter[$cType]].included($caseObjName)"""
-          }
-          val defaultCase = cq"""_ => throw new Exception("Internal error in Coproduct handling")"""
-          val cases = referenceCase +: loadedCases :+ defaultCase
-          q"$objName.${field.name} match { case ..$cases }"
-        } else if (fieldType <:< optionalToOneType) {
-          q"""$objName.${field.name} match {
+        }
+        val defaultCase = cq"""_ => throw new Exception("Internal error in Coproduct handling")"""
+        val cases       = referenceCase +: loadedCases :+ defaultCase
+        q"$objName.${field.name} match { case ..$cases }"
+      } else if (fieldType <:< optionalToOneType) {
+        q"""$objName.${field.name} match {
               case _root_.scala.Some(_root_.com.qvantel.jsonapi.ToOne.Loaded($caseObjName)) =>
                 ${entityJsonSingleton(containedType, caseObjName)} ++ implicitly[_root_.com.qvantel.jsonapi.JsonApiWriter[$containedType]].included($caseObjName)
               case _ => $emptyJsObjectSet
             }"""
-        } else if (fieldType <:< jsonOptionalToOneType) {
-          q"""$objName.${field.name} match {
+      } else if (fieldType <:< jsonOptionalToOneType) {
+        q"""$objName.${field.name} match {
                   case _root_.com.qvantel.jsonapi.JsonSome(_root_.com.qvantel.jsonapi.ToOne.Loaded($caseObjName)) =>
                     ${entityJsonSingleton(containedType, caseObjName)} ++ implicitly[_root_.com.qvantel.jsonapi.JsonApiWriter[$containedType]].included($caseObjName)
                   case _ => $emptyJsObjectSet
                 }"""
-        } else if (fieldType <:< optionalPolyToOneType) {
-          val referenceCase = cq"_root_.scala.None | _root_.scala.Some(_root_.com.qvantel.jsonapi.PolyToOne.Reference(_, _)) => $emptyJsObjectSet"
-          val containedCoproductTypes = coproductTypes(containedType)
-          val loadedCases = containedCoproductTypes.zip(coproductPatterns(containedCoproductTypes.size, caseObjName)) map { case (cType, pattern) =>
+      } else if (fieldType <:< optionalPolyToOneType) {
+        val referenceCase =
+          cq"_root_.scala.None | _root_.scala.Some(_root_.com.qvantel.jsonapi.PolyToOne.Reference(_, _)) => $emptyJsObjectSet"
+        val containedCoproductTypes = coproductTypes(containedType)
+        val loadedCases = containedCoproductTypes.zip(coproductPatterns(containedCoproductTypes.size, caseObjName)) map {
+          case (cType, pattern) =>
             cq"""_root_.scala.Some(_root_.com.qvantel.jsonapi.PolyToOne.Loaded($pattern, _, _)) =>
                    ${entityJsonSingleton(cType, caseObjName)} ++ implicitly[_root_.com.qvantel.jsonapi.JsonApiWriter[$cType]].included($caseObjName)"""
-          }
-          val defaultCase = cq"""_ => throw new Exception("Internal error in Coproduct handling")"""
-          val cases = referenceCase +: loadedCases :+ defaultCase
-          q"$objName.${field.name} match { case ..$cases }"
-        } else if (fieldType <:< jsonOptionalPolyToOneType) {
-          val referenceCase =
-            cq"""(_root_.com.qvantel.jsonapi.JsonAbsent |
+        }
+        val defaultCase = cq"""_ => throw new Exception("Internal error in Coproduct handling")"""
+        val cases       = referenceCase +: loadedCases :+ defaultCase
+        q"$objName.${field.name} match { case ..$cases }"
+      } else if (fieldType <:< jsonOptionalPolyToOneType) {
+        val referenceCase =
+          cq"""(_root_.com.qvantel.jsonapi.JsonAbsent |
                   _root_.com.qvantel.jsonapi.JsonNull |
                   _root_.com.qvantel.jsonapi.JsonSome(_root_.com.qvantel.jsonapi.PolyToOne.Reference(_, _))) => $emptyJsObjectSet"""
-          val containedCoproductTypes = coproductTypes(containedType)
-          val loadedCases = containedCoproductTypes.zip(coproductPatterns(containedCoproductTypes.size, caseObjName)) map { case (cType, pattern) =>
+        val containedCoproductTypes = coproductTypes(containedType)
+        val loadedCases = containedCoproductTypes.zip(coproductPatterns(containedCoproductTypes.size, caseObjName)) map {
+          case (cType, pattern) =>
             cq"""_root_.com.qvantel.jsonapi.JsonSome(_root_.com.qvantel.jsonapi.PolyToOne.Loaded($pattern, _, _)) =>
                    ${entityJsonSingleton(cType, caseObjName)} ++ implicitly[_root_.com.qvantel.jsonapi.JsonApiWriter[$cType]].included($caseObjName)"""
-          }
-          val defaultCase = cq"""_ => throw new Exception("Internal error in Coproduct handling")"""
-          val cases = referenceCase +: loadedCases :+ defaultCase
-          q"$objName.${field.name} match { case ..$cases }"
-        } else if (fieldType <:< toManyType) {
-          val itemName = TermName(c.freshName())
-          val itemSym = q"$itemName: $containedType"
-          q"""$objName.${field.name} match {
+        }
+        val defaultCase = cq"""_ => throw new Exception("Internal error in Coproduct handling")"""
+        val cases       = referenceCase +: loadedCases :+ defaultCase
+        q"$objName.${field.name} match { case ..$cases }"
+      } else if (fieldType <:< toManyType) {
+        val itemName = TermName(c.freshName())
+        val itemSym  = q"$itemName: $containedType"
+        q"""$objName.${field.name} match {
               case _root_.com.qvantel.jsonapi.ToMany.Loaded($caseObjName) =>
                 $caseObjName.map($itemSym => ${entityJson(containedType, itemName)}).toSet ++
                   $caseObjName.flatMap($itemSym => implicitly[_root_.com.qvantel.jsonapi.JsonApiWriter[$containedType]].included($itemSym)).toSet
               case _ => $emptyJsObjectSet
             }"""
-        } else if (fieldType <:< polyToManyType) {
-          val itemName = TermName(c.freshName())
-          val containedCoproductTypes = coproductTypes(containedType)
-          val casePatternsAndTypes = containedCoproductTypes.zip(coproductPatterns(containedCoproductTypes.size, itemName))
-          val defaultCase = cq"""_ => throw new Exception("Internal error in Coproduct handling")"""
-          val entityElementCases = casePatternsAndTypes map { case (cType, pattern) =>
+      } else if (fieldType <:< polyToManyType) {
+        val itemName                = TermName(c.freshName())
+        val containedCoproductTypes = coproductTypes(containedType)
+        val casePatternsAndTypes =
+          containedCoproductTypes.zip(coproductPatterns(containedCoproductTypes.size, itemName))
+        val defaultCase = cq"""_ => throw new Exception("Internal error in Coproduct handling")"""
+        val entityElementCases = casePatternsAndTypes map {
+          case (cType, pattern) =>
             cq"$pattern => ${entityJson(cType, itemName)}"
-          }
+        }
 
-          val entityRelationCases = casePatternsAndTypes map { case (cType, pattern) =>
-              cq"$pattern =>implicitly[_root_.com.qvantel.jsonapi.JsonApiWriter[$cType]].included($itemName)"
-            }
+        val entityRelationCases = casePatternsAndTypes map {
+          case (cType, pattern) =>
+            cq"$pattern =>implicitly[_root_.com.qvantel.jsonapi.JsonApiWriter[$cType]].included($itemName)"
+        }
 
-          q"""$objName.${field.name} match {
+        q"""$objName.${field.name} match {
                 case _root_.com.qvantel.jsonapi.PolyToMany.Loaded($caseObjName) =>
                   $caseObjName.map{case ..${entityElementCases :+ defaultCase}}.toSet ++
                     $caseObjName.flatMap{case ..${entityRelationCases :+ defaultCase}}.toSet
                 case _ => $emptyJsObjectSet
               }"""
-        } else {
-          c.abort(c.enclosingPosition, s"Unexpected relation type $fieldType")
-        }
+      } else {
+        c.abort(c.enclosingPosition, s"Unexpected relation type $fieldType")
       }
+    }
 
     if (relationFieldsJson.isEmpty) {
       q"_root_.scala.collection.immutable.Set.empty[_root_.spray.json.JsObject]"
@@ -276,7 +293,7 @@ trait JsonApiWriters extends JsonApiCommon {
   }
 
   private[this] def sumTypeRelationWriter(t: c.Type, depth: Int, objName: TermName): c.Tree = {
-    val children = t.typeSymbol.asClass.knownDirectSubclasses
+    val children    = t.typeSymbol.asClass.knownDirectSubclasses
     val caseObjName = TermName(c.freshName())
     val okCases = children map { (child: c.universe.Symbol) =>
       cq"$caseObjName: $child => ${simpleCaseClassRelationWriter(child.asClass.toType, depth, caseObjName)}"
@@ -302,100 +319,107 @@ trait JsonApiWriters extends JsonApiCommon {
     val caseObjName = TermName(c.freshName())
     val relationFieldsJson = for {
       field <- relationFields(t)
-      fieldType = field.infoIn(t)
+      fieldType     = field.infoIn(t)
       containedType = resolveContainedType(fieldType)
     } yield {
-        if (fieldType <:< toOneType) {
-          q"""$objName.${field.name} match {
+      if (fieldType <:< toOneType) {
+        q"""$objName.${field.name} match {
                 case _root_.com.qvantel.jsonapi.ToOne.Loaded($caseObjName) =>
                   ${entityJsonSingleton(containedType, caseObjName)} ++ ${relationWriter(containedType, 0, caseObjName)}
                 case _ => $emptyJsObjectSet
               }"""
-        } else if (fieldType <:< optionalToOneType) {
-          q"""$objName.${field.name} match {
+      } else if (fieldType <:< optionalToOneType) {
+        q"""$objName.${field.name} match {
                 case _root_.scala.Some(_root_.com.qvantel.jsonapi.ToOne.Loaded($caseObjName)) =>
                   ${entityJsonSingleton(containedType, caseObjName)} ++ ${relationWriter(containedType, 0, caseObjName)}
                 case _ => $emptyJsObjectSet
               }"""
-        } else if (fieldType <:< jsonOptionalToOneType) {
-          q"""$objName.${field.name} match {
+      } else if (fieldType <:< jsonOptionalToOneType) {
+        q"""$objName.${field.name} match {
                 case _root_.com.qvantel.jsonapi.JsonSome(_root_.com.qvantel.jsonapi.ToOne.Loaded($caseObjName)) =>
                   ${entityJsonSingleton(containedType, caseObjName)} ++ ${relationWriter(containedType, 0, caseObjName)}
                 case _ => $emptyJsObjectSet
               }"""
-        } else if (fieldType <:< polyToOneType) {
-          val containedCoproductTypes = coproductTypes(containedType)
-          val referenceCase = cq"_root_.com.qvantel.jsonapi.PolyToOne.Reference(_, _) => $emptyJsObjectSet"
-          val loadedCases = containedCoproductTypes.zip(coproductPatterns(containedCoproductTypes.size, caseObjName)) map { case (cType, pattern) =>
+      } else if (fieldType <:< polyToOneType) {
+        val containedCoproductTypes = coproductTypes(containedType)
+        val referenceCase           = cq"_root_.com.qvantel.jsonapi.PolyToOne.Reference(_, _) => $emptyJsObjectSet"
+        val loadedCases = containedCoproductTypes.zip(coproductPatterns(containedCoproductTypes.size, caseObjName)) map {
+          case (cType, pattern) =>
             cq"""_root_.com.qvantel.jsonapi.PolyToOne.Loaded($pattern, _, _) =>
                    ${entityJsonSingleton(cType, caseObjName)} ++ ${relationWriter(cType, 0, caseObjName)}"""
-          }
-          val defaultCase = cq"""_ => throw new Exception("Internal error in Coproduct handling")"""
-          val cases = referenceCase +: loadedCases :+ defaultCase
-          q"$objName.${field.name} match { case ..$cases }"
-        } else if (fieldType <:< optionalPolyToOneType) {
-          val containedCoproductTypes = coproductTypes(containedType)
-          val referenceCase = cq"_root_.scala.None | _root_.scala.Some(_root_.com.qvantel.jsonapi.PolyToOne.Reference(_, _)) => $emptyJsObjectSet"
-          val loadedCases = containedCoproductTypes.zip(coproductPatterns(containedCoproductTypes.size, caseObjName)) map { case (cType, pattern) =>
+        }
+        val defaultCase = cq"""_ => throw new Exception("Internal error in Coproduct handling")"""
+        val cases       = referenceCase +: loadedCases :+ defaultCase
+        q"$objName.${field.name} match { case ..$cases }"
+      } else if (fieldType <:< optionalPolyToOneType) {
+        val containedCoproductTypes = coproductTypes(containedType)
+        val referenceCase =
+          cq"_root_.scala.None | _root_.scala.Some(_root_.com.qvantel.jsonapi.PolyToOne.Reference(_, _)) => $emptyJsObjectSet"
+        val loadedCases = containedCoproductTypes.zip(coproductPatterns(containedCoproductTypes.size, caseObjName)) map {
+          case (cType, pattern) =>
             cq"""_root_.scala.Some(_root_.com.qvantel.jsonapi.PolyToOne.Loaded($pattern, _, _)) =>
                    ${entityJsonSingleton(cType, caseObjName)} ++ ${relationWriter(cType, 0, caseObjName)}"""
-          }
-          val defaultCase = cq"""_ => throw new Exception("Internal error in Coproduct handling")"""
-          val cases = referenceCase +: loadedCases :+ defaultCase
-          q"$objName.${field.name} match { case ..$cases }"
-        } else if (fieldType <:< jsonOptionalPolyToOneType) {
-          val containedCoproductTypes = coproductTypes(containedType)
-          val referenceCase =
-            cq"""(_root_.com.qvantel.jsonapi.JsonAbsent |
+        }
+        val defaultCase = cq"""_ => throw new Exception("Internal error in Coproduct handling")"""
+        val cases       = referenceCase +: loadedCases :+ defaultCase
+        q"$objName.${field.name} match { case ..$cases }"
+      } else if (fieldType <:< jsonOptionalPolyToOneType) {
+        val containedCoproductTypes = coproductTypes(containedType)
+        val referenceCase =
+          cq"""(_root_.com.qvantel.jsonapi.JsonAbsent |
                   _root_.com.qvantel.jsonapi.JsonNull |
                   _root_.com.qvantel.jsonapi.JsonSome(_root_.com.qvantel.jsonapi.PolyToOne.Reference(_, _))) => $emptyJsObjectSet"""
-          val loadedCases = containedCoproductTypes.zip(coproductPatterns(containedCoproductTypes.size, caseObjName)) map { case (cType, pattern) =>
+        val loadedCases = containedCoproductTypes.zip(coproductPatterns(containedCoproductTypes.size, caseObjName)) map {
+          case (cType, pattern) =>
             cq"""_root_.com.qvantel.jsonapi.JsonSome(_root_.com.qvantel.jsonapi.PolyToOne.Loaded($pattern, _, _)) =>
                    ${entityJsonSingleton(cType, caseObjName)} ++ ${relationWriter(cType, 0, caseObjName)}"""
-          }
-          val defaultCase = cq"""_ => throw new Exception("Internal error in Coproduct handling")"""
-          val cases = referenceCase +: loadedCases :+ defaultCase
-          q"$objName.${field.name} match { case ..$cases }"
-        } else if (fieldType <:< toManyType) {
-          val itemName = TermName(c.freshName())
-          val itemSym = q"$itemName: $containedType"
-          q"""$objName.${field.name} match {
+        }
+        val defaultCase = cq"""_ => throw new Exception("Internal error in Coproduct handling")"""
+        val cases       = referenceCase +: loadedCases :+ defaultCase
+        q"$objName.${field.name} match { case ..$cases }"
+      } else if (fieldType <:< toManyType) {
+        val itemName = TermName(c.freshName())
+        val itemSym  = q"$itemName: $containedType"
+        q"""$objName.${field.name} match {
                 case _root_.com.qvantel.jsonapi.ToMany.Loaded($caseObjName) =>
                   $caseObjName.map($itemSym => ${entityJson(containedType, itemName)}).toSet ++
                     $caseObjName.flatMap($itemSym => ${relationWriter(containedType, 0, itemName)}).toSet
                 case _ => $emptyJsObjectSet
               }"""
-        } else if (fieldType <:< toManyType) {
-          val itemName = TermName(c.freshName())
-          val itemSym = q"$itemName: $containedType"
-          q"""$objName.${field.name} match {
+      } else if (fieldType <:< toManyType) {
+        val itemName = TermName(c.freshName())
+        val itemSym  = q"$itemName: $containedType"
+        q"""$objName.${field.name} match {
                 case _root_.com.qvantel.jsonapi.ToMany.Loaded($caseObjName) =>
                   $caseObjName.map($itemSym => ${entityJson(containedType, itemName)}).toSet ++
                     $caseObjName.flatMap($itemSym => ${relationWriter(containedType, 0, itemName)}).toSet
                 case _ => $emptyJsObjectSet
               }"""
-        } else if (fieldType <:< polyToManyType) {
-          val itemName = TermName(c.freshName())
-          val containedCoproductTypes = coproductTypes(containedType)
-          val casePatternsAndTypes = containedCoproductTypes.zip(coproductPatterns(containedCoproductTypes.size, itemName))
-          val defaultCase = cq"""_ => throw new Exception("Internal error in Coproduct handling")"""
-          val entityElementCases = casePatternsAndTypes map { case (cType, pattern) =>
+      } else if (fieldType <:< polyToManyType) {
+        val itemName                = TermName(c.freshName())
+        val containedCoproductTypes = coproductTypes(containedType)
+        val casePatternsAndTypes =
+          containedCoproductTypes.zip(coproductPatterns(containedCoproductTypes.size, itemName))
+        val defaultCase = cq"""_ => throw new Exception("Internal error in Coproduct handling")"""
+        val entityElementCases = casePatternsAndTypes map {
+          case (cType, pattern) =>
             cq"$pattern => ${entityJson(cType, itemName)}"
-          }
-          val entityRelationCases = casePatternsAndTypes map { case (cType, pattern) =>
+        }
+        val entityRelationCases = casePatternsAndTypes map {
+          case (cType, pattern) =>
             cq"$pattern => ${relationWriter(cType, 0, itemName)}"
-          }
-          q"""$objName.${field.name} match {
+        }
+        q"""$objName.${field.name} match {
                 case _root_.com.qvantel.jsonapi.PolyToMany.Loaded($caseObjName) =>
                   $caseObjName.map{case ..${entityElementCases :+ defaultCase}}.toSet ++
                     $caseObjName.flatMap{case ..${entityRelationCases :+ defaultCase}}.toSet
                 case _ => $emptyJsObjectSet
               }"""
-        } else {
-          println("FOOBAR INCLUDE")
-          c.abort(c.enclosingPosition, s"Unexpected relation type $fieldType")
-        }
+      } else {
+        println("FOOBAR INCLUDE")
+        c.abort(c.enclosingPosition, s"Unexpected relation type $fieldType")
       }
+    }
 
     if (relationFieldsJson.isEmpty) {
       q"_root_.scala.collection.immutable.Set.empty[_root_.spray.json.JsObject]"
@@ -405,7 +429,7 @@ trait JsonApiWriters extends JsonApiCommon {
   }
 
   private[this] def sumTypeIncludedWriter(t: c.Type, st: c.Type, objName: TermName): c.Tree = {
-    val children = t.typeSymbol.asClass.knownDirectSubclasses
+    val children    = t.typeSymbol.asClass.knownDirectSubclasses
     val caseObjName = TermName(c.freshName())
     val cases = children map { (child: c.universe.Symbol) =>
       cq"$caseObjName: $child => ${simpleCaseClassIncludedWriter(child.asClass.toType, t, caseObjName)}"
@@ -428,30 +452,29 @@ trait JsonApiWriters extends JsonApiCommon {
   private[this] def simpleIncludesMap(t: c.Type): c.Tree = {
     val ts = t.typeSymbol
 
-    if(!ts.isClass) {
+    if (!ts.isClass) {
       c.abort(c.enclosingPosition, "Can only handle case classes")
     }
 
     val relTypes = for {
       field <- relationFields(t)
-      fieldType = field.infoIn(t)
+      fieldType     = field.infoIn(t)
       containedType = resolveContainedType(fieldType)
     } yield {
       val fieldName = field.name.toString()
-      if(fieldType <:< polyToOneType || fieldType <:< optionalPolyToOneType || fieldType <:< jsonOptionalPolyToOneType || fieldType <:< polyToManyType) {
+      if (fieldType <:< polyToOneType || fieldType <:< optionalPolyToOneType || fieldType <:< jsonOptionalPolyToOneType || fieldType <:< polyToManyType) {
         val polyIncludes = coproductTypes(containedType).map { cType =>
           q"implicitly[_root_.com.qvantel.jsonapi.Includes[$cType]]"
         }
 
         (camelToDashes(fieldName),
-          q"""
+         q"""
             new _root_.com.qvantel.jsonapi.Includes[$containedType] {
               override def includeAllowed(include: String): Boolean = {
                 List(..$polyIncludes).exists(x => x.includeAllowed(include))
               }
             }
-          """
-        )
+          """)
       } else {
         (camelToDashes(fieldName), q"implicitly[_root_.com.qvantel.jsonapi.Includes[$containedType]]")
       }
@@ -460,14 +483,13 @@ trait JsonApiWriters extends JsonApiCommon {
     q"${relTypes.toMap}"
   }
 
-  private[this] def sumTypeIncludesMap(t: c.Type): c.Tree = {
+  private[this] def sumTypeIncludesMap(t: c.Type): c.Tree =
     q"Map.empty"
-  }
 
   def includeAllowed(t: c.Type, includeParam: TermName, incMap: TermName): c.Tree = {
     val ts = t.typeSymbol
 
-    if(!ts.isClass) {
+    if (!ts.isClass) {
       c.abort(c.enclosingPosition, "Can only handle case classes")
     }
 
@@ -512,8 +534,11 @@ trait JsonApiWriters extends JsonApiCommon {
     val rootParamName = TermName(c.freshName())
     q"""new _root_.com.qvantel.jsonapi.JsonApiWriter[$t] {
           import _root_.com.qvantel.jsonapi.PathJsonFormat
-          override final def write($rootParamName: $t): _root_.spray.json.JsValue = ${primaryDataWriter(t, rootParamName)}
-          override final def included($rootParamName: $t): _root_.scala.collection.immutable.Set[_root_.spray.json.JsObject] = ${includedWriter(t, rootParamName)}
+          override final def write($rootParamName: $t): _root_.spray.json.JsValue = ${primaryDataWriter(t,
+                                                                                                        rootParamName)}
+          override final def included($rootParamName: $t): _root_.scala.collection.immutable.Set[_root_.spray.json.JsObject] = ${includedWriter(
+      t,
+      rootParamName)}
         }"""
   }
 }

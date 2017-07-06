@@ -34,7 +34,7 @@ class ApiRootSpec extends org.specs2.mutable.Specification {
 
   "ApiRoot" should {
     "take effect when proof for it exists" in {
-      implicit val apiRoot = ApiRoot(Some(Path("/api")))
+      implicit val apiRoot: com.qvantel.jsonapi.ApiRoot = ApiRoot(Some(Path("/api")))
       @jsonApiResource case class Test(id: String, rel: ToOne[Child])
       @jsonApiResource case class Child(id: String)
 

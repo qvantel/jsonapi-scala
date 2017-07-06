@@ -28,14 +28,13 @@ package com.qvantel.jsonapi
 
 import org.specs2.mutable.Specification
 import shapeless.{:+:, CNil, Coproduct, Poly1}
-import _root_.spray.http.Uri.Path
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
 
 final class PolyToOneSpec extends Specification {
   sequential
 
-  implicit val apiRoot = ApiRoot(None)
+  implicit val apiRoot: com.qvantel.jsonapi.ApiRoot = ApiRoot(None)
 
   @jsonApiResource final case class Person(id: String, name: String)
   @jsonApiResource final case class Company(id: String, name: String)
@@ -89,49 +88,6 @@ final class PolyToOneSpec extends Specification {
 
     "return None for Reference" in {
       PolyToOne.reference[Author, Person]("id").get must beNone
-    }
-  }
-
-  "renderRelation" should {
-    "render a to-one reference relation" in {
-      val article = Article("1", "boom", PolyToOne.reference[Author, Person]("john"))
-      val expected = JsObject(
-        "links" -> JsObject("self" -> (Path("/articles/1") / "relationships" / "author").toJson,
-                            "related" -> (Path("/articles/1") / "author").toJson),
-        "data" -> JsObject("type" -> "people".toJson, "id" -> "john".toJson)
-      )
-
-      PolyToOne.renderRelation(article, "author", article.author) should be equalTo expected
-
-      val loop = Loop("1", PolyToOne.reference[Looped, Person]("john"))
-      val expected2 = JsObject(
-        "links" -> JsObject("self" -> (Path("/loops/1") / "relationships" / "looped").toJson,
-                            "related" -> (Path("/loops/1") / "looped").toJson),
-        "data" -> JsObject("type" -> "people".toJson, "id" -> "john".toJson)
-      )
-
-      PolyToOne.renderRelation(loop, "looped", loop.looped) should be equalTo expected2
-    }
-
-    "render a to-one loaded relation" in {
-      val article = Article("1", "boom", PolyToOne.loaded[Author, Person](Person("john", "doe")))
-      val expected = JsObject(
-        "links" -> JsObject("self" -> (Path("/articles/1") / "relationships" / "author").toJson,
-                            "related" -> (Path("/articles/1") / "author").toJson),
-        "data" -> JsObject("type" -> "people".toJson, "id" -> "john".toJson)
-      )
-
-      PolyToOne.renderRelation(article, "author", article.author) should be equalTo expected
-
-      val loop =
-        Loop("1", PolyToOne.loaded[Looped, Loop](Loop("2", PolyToOne.loaded[Looped, Person](Person("john", "doe")))))
-      val expected2 = JsObject(
-        "links" -> JsObject("self" -> (Path("/loops/1") / "relationships" / "looped").toJson,
-                            "related" -> (Path("/loops/1") / "looped").toJson),
-        "data" -> JsObject("type" -> "loops".toJson, "id" -> "2".toJson)
-      )
-
-      PolyToOne.renderRelation(loop, "looped", loop.looped) should be equalTo expected2
     }
   }
 

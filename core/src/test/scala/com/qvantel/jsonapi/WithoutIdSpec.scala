@@ -31,7 +31,7 @@ import _root_.spray.json._
 import _root_.spray.json.DefaultJsonProtocol._
 
 class WithoutIdSpec extends Specification {
-  implicit val apiRoot = ApiRoot(None)
+  implicit val apiRoot: com.qvantel.jsonapi.ApiRoot = ApiRoot(None)
   @jsonApiResource("normal", "no-id") case class Test(name: String, child: ToOne[Child])
 
   @jsonApiResource case class Child(id: String, name: String)

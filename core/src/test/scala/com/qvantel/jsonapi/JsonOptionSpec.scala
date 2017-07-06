@@ -103,7 +103,7 @@ class JsonOptionSpec extends Specification {
   }
 
   "macro support" should {
-    implicit val apiRoot = ApiRoot.empty
+    implicit val apiRoot: com.qvantel.jsonapi.ApiRoot = ApiRoot.empty
 
     @jsonApiResource final case class Test(id: String, test: Boolean, t: JsonOption[Int], number: Int)
     val tSome = Test("t", true, JsonSome(1), 1)
@@ -360,7 +360,7 @@ class JsonOptionSpec extends Specification {
   }
 
   "json option to one relation read and write" in {
-    implicit val apiRoot = ApiRoot.empty
+    implicit val apiRoot: com.qvantel.jsonapi.ApiRoot = ApiRoot.empty
 
     @jsonApiResource final case class Author(id: String, name: String)
     @jsonApiResource final case class JsonMaybe(id: String, author: JsonOption[ToOne[Author]])
@@ -452,7 +452,7 @@ class JsonOptionSpec extends Specification {
   }
 
   "json option poly to one relation read and write" in {
-    implicit val apiRoot = ApiRoot.empty
+    implicit val apiRoot: com.qvantel.jsonapi.ApiRoot = ApiRoot.empty
 
     @jsonApiResource final case class Person(id: String, name: String)
     @jsonApiResource final case class Company(id: String, name: String)
