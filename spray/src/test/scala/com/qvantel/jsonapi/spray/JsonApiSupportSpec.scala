@@ -43,7 +43,7 @@ import com.qvantel.jsonapi.spray.JsonApiSupport._
 final class JsonApiSupportSpec extends Specification with Specs2RouteTest with HttpService {
   val ct = ContentType(MediaTypes.`application/vnd.api+json`, None)
 
-  implicit val apiRoot = ApiRoot(None)
+  implicit val apiRoot: com.qvantel.jsonapi.ApiRoot = ApiRoot(None)
 
   final case class Root(id: String,
                         nameMangling: String,
@@ -466,13 +466,15 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest with H
 
     "handle UTF-8 correctly" in {
       val utf = "Ð²ÑÅÄÖåäöæøå"
-      val root = Root("foo",
-                      utf,
-                      ToOne.reference("foo"),
-                      ToOne.reference("foo"),
-                      ToMany.reference,
-                      ToMany.reference,
-                      ToOne.reference("foo"))
+      val root = Root(
+        "foo",
+        utf,
+        ToOne.reference("foo"),
+        ToOne.reference("foo"),
+        ToMany.reference(Path("/roots/foo/many")),
+        ToMany.reference(Path("/roots/foo/many-referenced")),
+        ToOne.reference("foo")
+      )
       Post("/single", root) ~> route ~> check {
         contentType must_== ct
 

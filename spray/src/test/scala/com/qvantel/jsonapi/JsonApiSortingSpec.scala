@@ -31,7 +31,6 @@ import _root_.spray.http.Uri.Path
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
 
-import com.qvantel.jsonapi._
 import spray.JsonApiSupport._
 import _root_.spray.httpx.marshalling._
 import _root_.spray.routing.HttpService
@@ -40,15 +39,18 @@ import _root_.spray.testkit.Specs2RouteTest
 final class JsonApiSortingSpec extends Specification with Specs2RouteTest with HttpService {
   def actorRefFactory = system
 
-  implicit val apiRoot = ApiRoot(Some(Path("/api")))
+  implicit val apiRoot: com.qvantel.jsonapi.ApiRoot = ApiRoot(Some(Path("/api")))
 
   @jsonApiResource final case class Res(id: String, rel: ToMany[Res])
 
-  val one = Res("1", ToMany.loaded(Seq(Res("3", ToMany.reference), Res("2", ToMany.reference))))
+  val one = Res(
+    "1",
+    ToMany.loaded(
+      Seq(Res("3", ToMany.reference(Path("/api/res/3/rel"))), Res("2", ToMany.reference(Path("/api/res/2/rel"))))))
   val many = Seq(
-    Res("1", ToMany.reference),
-    Res("3", ToMany.reference),
-    Res("2", ToMany.reference)
+    Res("1", ToMany.reference(Path("/api/res/1/rel"))),
+    Res("3", ToMany.reference(Path("/api/res/3/rel"))),
+    Res("2", ToMany.reference(Path("/api/res/2/rel")))
   )
 
   val manualOne =

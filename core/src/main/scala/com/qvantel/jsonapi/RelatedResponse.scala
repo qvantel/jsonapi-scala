@@ -100,7 +100,8 @@ object RelatedResponse {
 
   implicit def relatedResponseMarshaller[A](implicit writer: JsonApiWriter[A],
                                             printer: JsonPrinter = PrettyPrinter,
-                                            sorting: JsonApiSorting = JsonApiSorting.Unsorted) =
+                                            sorting: JsonApiSorting = JsonApiSorting.Unsorted)
+    : spray.httpx.marshalling.Marshaller[com.qvantel.jsonapi.RelatedResponse[A]] =
     Marshaller.of[RelatedResponse[A]](ct) { (value, _, ctx) =>
       ctx.marshalTo(HttpEntity(ct, HttpData(printer.apply(value.toResponse), HttpCharsets.`UTF-8`)))
     }

@@ -115,21 +115,20 @@ object Link {
                                                              pathToParent: PathTo[P],
                                                              apiRoot: ApiRoot): JsValue =
     relation match {
-      case ToMany.Reference(ids) =>
+      case ToMany.IdsReference(ids) =>
         val linksTuple: (String, JsValue) = "links" -> links(parent, name)
-        if (ids.isEmpty) {
-          JsObject(linksTuple)
-        } else {
-          val resourceLinkage = ids.map { id =>
-            JsObject(
-              "type" -> implicitly[ResourceType[A]].resourceType.toJson,
-              "id"   -> id.toJson
-            )
-          }
-          val data: (String, JsValue) = "data" -> JsArray(resourceLinkage.toVector)
-          JsObject(Map(linksTuple, data))
+        val resourceLinkage = ids.map { id =>
+          JsObject(
+            "type" -> implicitly[ResourceType[A]].resourceType.toJson,
+            "id"   -> id.toJson
+          )
         }
-
+        val data: (String, JsValue) = "data" -> JsArray(resourceLinkage.toVector)
+        JsObject(Map(linksTuple, data))
+      case ToMany.PathReference(Some(path)) =>
+        JsObject("links" -> JsObject("related" -> implicitly[JsonWriter[Path]].write(path)))
+      case ToMany.PathReference(None) =>
+        JsObject("links" -> links(parent, name))
       case ToMany.Loaded(entities) =>
         val resourceLinkage = entities map { entity =>
           JsObject("type" -> implicitly[ResourceType[A]].resourceType.toJson,
@@ -200,20 +199,23 @@ object Link {
       pathToParent: PathTo[P],
       apiRoot: ApiRoot): JsValue =
     relation match {
-      case PolyToMany.Reference(rels) =>
+      case PolyToMany.IdsReference(rels) =>
         val linksTuple: (String, JsValue) = "links" -> links(parent, name)
-        if (rels.isEmpty) {
-          JsObject(linksTuple)
-        } else {
-          val resourceLinkage = rels.map { rel =>
-            JsObject(
-              "type" -> rel.resourceType.toJson,
-              "id"   -> rel.id.toJson
-            )
-          }
-          val data: (String, JsValue) = "data" -> JsArray(resourceLinkage.toVector)
-          JsObject(Map(linksTuple, data))
+        val resourceLinkage = rels.map { rel =>
+          JsObject(
+            "type" -> rel.resourceType.toJson,
+            "id"   -> rel.id.toJson
+          )
         }
+        val data: (String, JsValue) = "data" -> JsArray(resourceLinkage.toVector)
+        JsObject(Map(linksTuple, data))
+
+      case PolyToMany.PathReference(Some(path)) =>
+        JsObject("links" -> JsObject("related" -> implicitly[JsonWriter[Path]].write(path)))
+
+      case PolyToMany.PathReference(None) =>
+        // not 100% sure what to do in this case
+        JsObject("data" -> JsArray.empty)
 
       case PolyToMany.Loaded(entities) =>
         val resourceLinkage = entities map { entity =>
@@ -269,20 +271,24 @@ object Link {
 
   def toNoParentPath[A, P](parent: P, relation: ToMany[A], name: String)(implicit identifiable: Identifiable[A],
                                                                          rt: ResourceType[A],
-                                                                         pathTo: PathTo[A]): JsValue =
+                                                                         pathTo: PathTo[A],
+                                                                         apiRoot: ApiRoot): JsValue =
     relation match {
-      case ToMany.Reference(ids) =>
-        if (ids.isEmpty) {
-          JsObject("data" -> JsArray.empty)
-        } else {
-          val resourceLinkage = ids.map { id =>
-            JsObject(
-              "type" -> implicitly[ResourceType[A]].resourceType.toJson,
-              "id"   -> id.toJson
-            )
-          }
-          JsObject(Map("data" -> JsArray(resourceLinkage.toVector)))
+      case ToMany.IdsReference(ids) =>
+        val resourceLinkage = ids.map { id =>
+          JsObject(
+            "type" -> implicitly[ResourceType[A]].resourceType.toJson,
+            "id"   -> id.toJson
+          )
         }
+        JsObject("data" -> JsArray(resourceLinkage.toVector))
+
+      case ToMany.PathReference(Some(path)) =>
+        JsObject("links" -> JsObject("related" -> implicitly[JsonWriter[Path]].write(path)))
+
+      case ToMany.PathReference(None) =>
+        // not 100% sure what to do in this case
+        JsObject("data" -> JsArray.empty)
 
       case ToMany.Loaded(entities) =>
         val resourceLinkage = entities map { entity =>
@@ -346,18 +352,21 @@ object Link {
   def toNoParentPath[A <: Coproduct, P](parent: P, relation: PolyToMany[A], name: String)(
       implicit identifiable: PolyIdentifiable[A]): JsValue =
     relation match {
-      case PolyToMany.Reference(rels) =>
-        if (rels.isEmpty) {
-          JsObject("data" -> JsArray.empty)
-        } else {
-          val resourceLinkage = rels.map { rel =>
-            JsObject(
-              "type" -> rel.resourceType.toJson,
-              "id"   -> rel.id.toJson
-            )
-          }
-          JsObject(Map("data" -> JsArray(resourceLinkage.toVector)))
+      case PolyToMany.IdsReference(rels) =>
+        val resourceLinkage = rels.map { rel =>
+          JsObject(
+            "type" -> rel.resourceType.toJson,
+            "id"   -> rel.id.toJson
+          )
         }
+        JsObject("data" -> JsArray(resourceLinkage.toVector))
+
+      case PolyToMany.PathReference(Some(path)) =>
+        JsObject("links" -> JsObject("related" -> implicitly[JsonWriter[Path]].write(path)))
+
+      case PolyToMany.PathReference(None) =>
+        // not 100% sure what to do in this case
+        JsObject("data" -> JsArray.empty)
 
       case PolyToMany.Loaded(entities) =>
         val resourceLinkage = entities map { entity =>

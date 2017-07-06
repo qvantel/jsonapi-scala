@@ -26,52 +26,28 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.qvantel.jsonapi
 
+import scala.language.experimental.macros
+
 import org.specs2.mutable.Specification
-import _root_.spray.http.Uri.Path
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
+import _root_.spray.http.Uri
+import org.specs2.matcher.MatcherMacros
 
-final class ToManySpec extends Specification {
-  implicit val apiRoot = ApiRoot(None)
+final class ToManySpec extends Specification with MatcherMacros {
+  implicit val apiRoot: com.qvantel.jsonapi.ApiRoot = ApiRoot(None)
 
   @jsonApiResource final case class Comment(id: String, content: String)
   @jsonApiResource final case class Article(id: String, title: String, comments: ToMany[Comment])
 
   "get" should {
     "return Some for Loaded" in {
-      val comments = Seq(Comment("1", "1"), Comment("2", "2"))
+      val comments = List(Comment("1", "1"), Comment("2", "2"))
       ToMany.loaded(comments).get must be equalTo (comments)
     }
 
     "return None for Reference" in {
       ToMany.reference(Set("1", "2")).get must be empty
-    }
-  }
-
-  "renderRelation" should {
-    "render a to-many reference relation" in {
-      val article = Article("1", "boom", ToMany.reference)
-      val expected = JsObject(
-        "links" -> JsObject("self" -> (Path("/articles/1") / "relationships" / "comments").toJson,
-                            "related" -> (Path("/articles/1") / "comments").toJson),
-        "data" -> JsArray.empty
-      )
-
-      ToMany.renderRelation(article, "comments", article.comments) should be equalTo expected
-    }
-
-    "render a to-many loaded relation" in {
-      val article = Article("1", "boom", ToMany.loaded(Seq(Comment("2", "hello"), Comment("3", "world"))))
-      val expected = JsObject(
-        "links" -> JsObject("self" -> (Path("/articles/1") / "relationships" / "comments").toJson,
-                            "related" -> (Path("/articles/1") / "comments").toJson),
-        "data" -> JsArray(
-          JsObject("type" -> implicitly[ResourceType[Comment]].resourceType.toJson, "id" -> "2".toJson),
-          JsObject("type" -> implicitly[ResourceType[Comment]].resourceType.toJson, "id" -> "3".toJson)
-        )
-      )
-
-      ToMany.renderRelation(article, "comments", article.comments) should be equalTo expected
     }
   }
 
@@ -223,6 +199,31 @@ final class ToManySpec extends Specification {
       implicitly[JsonApiFormat[Article]].read(json, Set.empty) must be equalTo Article("test",
                                                                                        "boom",
                                                                                        ToMany.reference)
+    }
+
+    "parse into path reference when only related links in relationship" in {
+      val json =
+        """
+          |{
+          |  "id": "test",
+          |  "type": "articles",
+          |  "attributes": {
+          |    "title": "boom"
+          |  },
+          |  "relationships": {
+          |    "comments": {
+          |      "links": {
+          |        "related": "/articles/test/comments"
+          |      }
+          |    }
+          |  }
+          |}
+        """.stripMargin.parseJson
+
+      println(implicitly[JsonApiFormat[Article]].read(json, Set.empty))
+
+      implicitly[JsonApiFormat[Article]].read(json, Set.empty) must matchA[Article].comments(
+        ToMany.reference[Comment](Uri.Path("/articles/test/comments")))
     }
 
     "fail with deserialization exception when one or more of the entities in relationship is of wrong type" in {

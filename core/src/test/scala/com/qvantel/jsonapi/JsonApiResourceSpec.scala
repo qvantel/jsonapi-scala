@@ -35,7 +35,7 @@ import _root_.spray.json._
 import com.qvantel.jsonapi.Helpers._
 
 final class JsonApiResourceSpec extends Specification with ScalaCheck {
-  implicit val apiRoot = ApiRoot(None)
+  implicit val apiRoot: com.qvantel.jsonapi.ApiRoot = ApiRoot(None)
 
   @jsonApiResource final case class Simple(id: String, n: Int)
   @jsonApiResource final case class Relations(id: String,

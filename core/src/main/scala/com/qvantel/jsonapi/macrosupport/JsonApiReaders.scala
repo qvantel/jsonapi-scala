@@ -4,12 +4,12 @@ All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
-    * Redistributions of source code must retain the above copyright
+ * Redistributions of source code must retain the above copyright
       notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
+ * Redistributions in binary form must reproduce the above copyright
       notice, this list of conditions and the following disclaimer in the
       documentation and/or other materials provided with the distribution.
-    * Neither the name of the Qvantel nor the
+ * Neither the name of the Qvantel nor the
       names of its contributors may be used to endorse or promote products
       derived from this software without specific prior written permission.
 
@@ -23,7 +23,7 @@ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
 ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ */
 package com.qvantel.jsonapi.macrosupport
 
 import scala.annotation.compileTimeOnly
@@ -31,7 +31,11 @@ import scala.annotation.compileTimeOnly
 @compileTimeOnly("Macros can only be used at compile-time")
 trait JsonApiReaders extends JsonApiCommon {
   import c.universe._
-  def reader(t: c.Type, primaryJsonTerm: TermName, includedJsonTerm: TermName, includePaths: TermName, includePath: TermName): c.Tree = {
+  def reader(t: c.Type,
+             primaryJsonTerm: TermName,
+             includedJsonTerm: TermName,
+             includePaths: TermName,
+             includePath: TermName): c.Tree = {
     val ts = t.typeSymbol
 
     if (!ts.isClass) {
@@ -43,35 +47,40 @@ trait JsonApiReaders extends JsonApiCommon {
     }
   }
 
-  private[this] def simpleCaseClass(t: c.Type, primaryJsonTerm: TermName, includedByIdTypeTerm: TermName, includePaths: TermName, includePath: TermName): c.Tree = {
+  private[this] def simpleCaseClass(t: c.Type,
+                                    primaryJsonTerm: TermName,
+                                    includedByIdTypeTerm: TermName,
+                                    includePaths: TermName,
+                                    includePath: TermName): c.Tree = {
     val (relationships, attributes) = partitionedCaseClassFields(t)
 
     // term names
-    val primaryJsObj = TermName(c.freshName("primaryJsObj"))
-    val attributesObj = TermName(c.freshName("attributesObj"))
+    val primaryJsObj     = TermName(c.freshName("primaryJsObj"))
+    val attributesObj    = TermName(c.freshName("attributesObj"))
     val relationshipsObj = TermName(c.freshName("relationshipsObj"))
 
     val attributeBits = attributes.filterNot(_.name.toString == "meta").map { field =>
-      val name = field.name
-      val jsonName = camelToDashes(field.name.toString)
+      val name      = field.name
+      val jsonName  = camelToDashes(field.name.toString)
       val fieldType = field.infoIn(t)
 
       // id is not in attributes but on the json object root
-      if(name.toString == "id") {
+      if (name.toString == "id") {
         q"""$name = $primaryJsObj.fields.get($jsonName).getOrElse(throw new _root_.spray.json.DeserializationException("expected field '" + $jsonName + "' in json: " + $primaryJsObj.compactPrint)).convertTo[$fieldType]"""
       } else {
-        if(fieldType <:< jsonOptionType) {
+        if (fieldType <:< jsonOptionType) {
           val containedType = resolveContainedAttributeType(fieldType)
           q"""$name = $attributesObj.fields.get($jsonName).map {
                case _root_.spray.json.JsNull => _root_.com.qvantel.jsonapi.JsonNull
                case v => v.convertTo[_root_.com.qvantel.jsonapi.JsonOption[$containedType]]
              }.getOrElse(_root_.com.qvantel.jsonapi.JsonAbsent)
            """
-        } else if(fieldType <:< optionType) {
+        } else if (fieldType <:< optionType) {
           val containedType = resolveContainedAttributeType(fieldType)
           q"""$name = $attributesObj.fields.get($jsonName).filterNot(_.isInstanceOf[_root_.spray.json.JsNull.type]).map(_.convertTo[$containedType])"""
-        } else if(fieldType <:< typeOf[Iterable[_]]) {
-          q"""$name = $attributesObj.fields.get($jsonName).filterNot(_.isInstanceOf[_root_.spray.json.JsNull.type]).map(_.convertTo[$fieldType]).getOrElse(${emptyForIterableType(fieldType)})"""
+        } else if (fieldType <:< typeOf[Iterable[_]]) {
+          q"""$name = $attributesObj.fields.get($jsonName).filterNot(_.isInstanceOf[_root_.spray.json.JsNull.type]).map(_.convertTo[$fieldType]).getOrElse(${emptyForIterableType(
+            fieldType)})"""
         } else {
           q"""$name = $attributesObj.fields.get($jsonName).getOrElse(throw new _root_.spray.json.DeserializationException("expected field '" + $jsonName + "' in attributes json: " + $attributesObj.compactPrint)).convertTo[$fieldType]"""
         }
@@ -80,14 +89,14 @@ trait JsonApiReaders extends JsonApiCommon {
 
     // relationships
     val relationBits = relationships.filterNot(_.name.toString == "meta").map { field =>
-      val name = field.name
-      val jsonName = camelToDashes(field.name.toString)
+      val name      = field.name
+      val jsonName  = camelToDashes(field.name.toString)
       val fieldType = field.infoIn(t)
 
       val containedType = resolveContainedType(fieldType)
 
-      val relIdTerm = TermName(c.freshName("relationshipId"))
-      val relTypeTerm = TermName(c.freshName("relationshipType"))
+      val relIdTerm    = TermName(c.freshName("relationshipId"))
+      val relTypeTerm  = TermName(c.freshName("relationshipType"))
       val jsObjectTerm = TermName(c.freshName("jsObject"))
 
       def loadInclude = q""" $includePaths.contains($newIncludePath) """
@@ -98,20 +107,6 @@ trait JsonApiReaders extends JsonApiCommon {
              case "" => $jsonName
              case x => x + "." + $jsonName
            } """
-
-      def relationshipIdTypePairs =
-        q"""
-           $relationshipsObj.flatMap(_.fields.get($jsonName).filterNot(_.isInstanceOf[_root_.spray.json.JsNull.type]).map { rel =>
-             rel.asJsObject.fields.get("data").filterNot(_.isInstanceOf[_root_.spray.json.JsNull.type]).map(_.convertTo[Seq[_root_.spray.json.JsObject]]
-               .map { x =>
-                 val id = x.fields.get("id").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'id' not found in " + x.compactPrint))
-                 if (id == "") { throw new _root_.spray.json.DeserializationException("illegal id 'empty string' found in: " + x.compactPrint) }
-                 (id,
-                 x.fields.get("type").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'type' not found in " + x.compactPrint)))
-               }
-             ).getOrElse(Seq.empty)
-           }).getOrElse(Seq.empty)
-         """
 
       def errorHandledToOneFields =
         q"""
@@ -156,7 +151,8 @@ trait JsonApiReaders extends JsonApiCommon {
           })
         """
       def toOneCases =
-        List(cq"""Seq(_root_.spray.json.JsString($relIdTerm), _root_.spray.json.JsString($relTypeTerm)) =>
+        List(
+          cq"""Seq(_root_.spray.json.JsString($relIdTerm), _root_.spray.json.JsString($relTypeTerm)) =>
           if ($relIdTerm == "") {
             throw new _root_.spray.json.DeserializationException("illegal id 'empty string' found in Resource Identifier Object")
           } else {
@@ -166,9 +162,11 @@ trait JsonApiReaders extends JsonApiCommon {
               case _ => _root_.com.qvantel.jsonapi.ToOne.reference[$containedType]($relIdTerm)
             }
           }
-        """, cq"""_ => throw new _root_.spray.json.DeserializationException("id and type expected")""")
+        """,
+          cq"""_ => throw new _root_.spray.json.DeserializationException("id and type expected")"""
+        )
 
-      def polyToOneCases = {
+      def polyToOneCases =
         coproductTypes(containedType).map { cType =>
           cq"""
             Seq(_root_.spray.json.JsString($relIdTerm), _root_.spray.json.JsString($relTypeTerm)) if $relTypeTerm == implicitly[_root_.com.qvantel.jsonapi.ResourceType[$cType]].resourceType =>
@@ -184,105 +182,161 @@ trait JsonApiReaders extends JsonApiCommon {
               }
           """
         } :+ cq"""Seq(_root_.spray.json.JsString($relIdTerm), _root_.spray.json.JsString($relTypeTerm)) => throw new _root_.spray.json.DeserializationException("relationship of type '" + $relTypeTerm + "' is not part of coproduct '" + ${containedType.toString} + "'")"""
-      }
 
-      def toManyRelationshipToEntities(idTypeToEntity: List[c.Tree]) = {
-        q"""
-           $relationshipsObj.flatMap(_.fields.get($jsonName).filterNot(_.isInstanceOf[_root_.spray.json.JsNull.type]).map { rel =>
-             rel.asJsObject.fields.get("data").filterNot(_.isInstanceOf[_root_.spray.json.JsNull.type]).map(_.convertTo[Seq[_root_.spray.json.JsObject]]
-               .map(x =>
-                 (x.fields.get("id").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'id' not found in " + x.compactPrint)),
-                 x.fields.get("type").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'type' not found in " + x.compactPrint)))
-               )
-               .flatMap(x =>
-                 $includedByIdTypeTerm.get(x).map { y =>
-                   (x, y)
-                 }
-               )
-               .map(_ match { case ..$idTypeToEntity })
-               .toSeq
-             ).getOrElse(Seq.empty)
-           }).getOrElse(Seq.empty)
-         """
-      }
 
       // to one types
       if (fieldType <:< toOneType) {
         q""" $name = $errorHandledToOneFields match { case ..$toOneCases } """
-      } else if(fieldType <:< polyToOneType) {
+      } else if (fieldType <:< polyToOneType) {
         q""" $name = $errorHandledToOneFields match { case ..$polyToOneCases } """
-      } /* optional to one types  */ else if(fieldType <:< optionalToOneType) {
+      } /* optional to one types  */
+      else if (fieldType <:< optionalToOneType) {
         q""" $name = $errorHandledOptionToOneFields.map(_ match { case ..$toOneCases }) """
-      }  /* json optional to one types  */ else if(fieldType <:< jsonOptionalToOneType) {
+      } /* json optional to one types  */
+      else if (fieldType <:< jsonOptionalToOneType) {
         q""" $name = $errorHandledJsonOptionToOneFields.map(_ match { case ..$toOneCases }) """
-      } else if(fieldType <:< optionalPolyToOneType) {
+      } else if (fieldType <:< optionalPolyToOneType) {
         q""" $name = $errorHandledOptionToOneFields.map(_ match { case ..$polyToOneCases }) """
-      } else if(fieldType <:< jsonOptionalPolyToOneType) {
+      } else if (fieldType <:< jsonOptionalPolyToOneType) {
         q""" $name = $errorHandledJsonOptionToOneFields.map(_ match { case ..$polyToOneCases }) """
-      } /* to many types */ else if(fieldType <:< toManyType) {
+      } else if (fieldType <:< toManyType) {
         val relationship =
           q"""
-            val entities = ${toManyRelationshipToEntities(
-              List(
-                cq"""(($relIdTerm, $relTypeTerm), $jsObjectTerm) if $loadInclude =>
-                  if($relIdTerm == "") {
-                    throw new _root_.spray.json.DeserializationException("illegal id 'empty string' found in Resource Identifier Object")
-                  } else {
-                    Some(implicitly[_root_.com.qvantel.jsonapi.JsonApiFormat[$containedType]].read($jsObjectTerm, $includedByIdTypeTerm, $includePaths, $newIncludePath))
-                  }
-                  """,
-                cq"_ => None"
-              )
-            )}.flatten
+             $relationshipsObj.flatMap(_.fields.get($jsonName).filterNot(_.isInstanceOf[_root_.spray.json.JsNull.type]).map { rel =>
+                val fields = rel.asJsObject.fields
+                (fields.get("data"), fields.get("links")) match {
+                  case (Some(_root_.spray.json.JsNull), _) => _root_.com.qvantel.jsonapi.ToMany.reference[$containedType]
+                  case (Some(dataJson), _ ) =>
+                    val data = dataJson.convertTo[Seq[_root_.spray.json.JsObject]]
+                    if ($loadInclude) {
+                     val entities = data.map { x =>
+                       val id = x.fields.get("id").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'id' not found in " + x.compactPrint))
 
-            if(entities.isEmpty) {
-              _root_.com.qvantel.jsonapi.ToMany.reference[$containedType](
-                $relationshipIdTypePairs.filter(_._2 == implicitly[_root_.com.qvantel.jsonapi.ResourceType[$containedType]].resourceType).map(_._1).toSet
-              )
-            } else {
-              _root_.com.qvantel.jsonapi.ToMany.loaded[$containedType](entities)
-            }
+                       if (id == "") {
+                         throw new _root_.spray.json.DeserializationException("illegal id 'empty string' found in Resource Identifier Object: " + x.compactPrint)
+                       }
+
+                       val tpe = x.fields.get("type").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'type' not found in " + x.compactPrint))
+
+                       val item = $includedByIdTypeTerm.getOrElse((id, tpe), throw new _root_.spray.json.DeserializationException("expected entity to be found in include list for id and tpe"))
+
+                       implicitly[_root_.com.qvantel.jsonapi.JsonApiFormat[$containedType]].read(item, $includedByIdTypeTerm, $includePaths, $newIncludePath)
+                     }
+
+                     _root_.com.qvantel.jsonapi.ToMany.loaded[$containedType](entities)
+                   } else {
+                     _root_.com.qvantel.jsonapi.ToMany.reference[$containedType](data.map { x =>
+                       val tpe = x.fields.get("type").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'type' not found in " + x.compactPrint))
+                       if (tpe != implicitly[_root_.com.qvantel.jsonapi.ResourceType[$containedType]].resourceType) {
+                         throw new _root_.spray.json.DeserializationException("wrong type")
+                       }
+                       val id = x.fields.get("id").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'id' not found in " + x.compactPrint))
+
+                       if (id == "") {
+                         throw new _root_.spray.json.DeserializationException("illegal id 'empty string' found in Resource Identifier Object: " + x.compactPrint)
+                       }
+
+                       id
+                     }.toSet)
+                   }
+                  case (_, Some(links)) =>
+                    val related = links.asJsObject.fields.get("related")
+
+                    related match {
+                      case Some(_root_.spray.json.JsString(r)) => _root_.com.qvantel.jsonapi.ToMany.reference[$containedType](_root_.spray.http.Uri.Path(r))
+                      case None => throw new _root_.spray.json.DeserializationException("related link expected in: " + links.compactPrint)
+                    }
+                  case _ =>
+                    throw new _root_.spray.json.DeserializationException("invalid resource object: " + rel.compactPrint)
+                }
+              }).getOrElse(_root_.com.qvantel.jsonapi.ToMany.reference[$containedType])
+
           """
         q""" $name = $relationship """
-      } else if(fieldType <:< polyToManyType) {
-        val cases =
-          coproductTypes(containedType).flatMap { cType =>
-            List(
-              cq"""
-                (($relIdTerm, $relTypeTerm), $jsObjectTerm) if $loadInclude && $relTypeTerm == implicitly[_root_.com.qvantel.jsonapi.ResourceType[$cType]].resourceType =>
-                  if($relIdTerm == "") {
-                    throw new _root_.spray.json.DeserializationException("illegal id 'empty string' found in Resource Identifier Object")
-                  } else {
-                    Some(_root_.shapeless.Coproduct[$containedType](implicitly[_root_.com.qvantel.jsonapi.JsonApiFormat[$cType]].read($jsObjectTerm, $includedByIdTypeTerm, $includePaths, $newIncludePath)))
-                  }
-              """,
-              cq"""((_, $relTypeTerm), _) if $relTypeTerm == implicitly[_root_.com.qvantel.jsonapi.ResourceType[$cType]].resourceType => None"""
-            )
-          } :+ cq"""(($relIdTerm, $relTypeTerm), thing) => throw new _root_.spray.json.DeserializationException(thing.compactPrint + " is of type '" + $relTypeTerm + "' which is not part of the coproduct '" + ${containedType.toString} + "'")"""
+      } else if (fieldType <:< polyToManyType) {
+        val coproductTypeList = coproductTypes(containedType).map { cType =>
+          q""" implicitly[_root_.com.qvantel.jsonapi.ResourceType[$cType]].resourceType """
+        }
 
+        val coproductLoader =
+          coproductTypes(containedType).map { cType =>
+            cq"""
+              tpe if tpe == implicitly[_root_.com.qvantel.jsonapi.ResourceType[$cType]].resourceType =>
+                _root_.shapeless.Coproduct[$containedType](implicitly[_root_.com.qvantel.jsonapi.JsonApiFormat[$cType]].read($jsObjectTerm, $includedByIdTypeTerm, $includePaths, $newIncludePath))
+            """
+          } :+ cq"""tpe => throw new _root_.spray.json.DeserializationException("relationship of type '" + tpe + "' is not one of [" + $coproductTypeList.mkString(",") + "]")"""
+
+        val coproductTypeChecker =
+          coproductTypes(containedType).map { cType =>
+            cq"""
+              tpe if tpe == implicitly[_root_.com.qvantel.jsonapi.ResourceType[$cType]].resourceType => Unit
+            """
+          } :+ cq"""tpe => throw new _root_.spray.json.DeserializationException("relationship of type '" + tpe + "' is not one of [" + $coproductTypeList.mkString(",") + "]")"""
 
         val relationship =
           q"""
-             val entities = ${toManyRelationshipToEntities(cases)}.flatten
+             $relationshipsObj.flatMap(_.fields.get($jsonName).filterNot(_.isInstanceOf[_root_.spray.json.JsNull.type]).map { rel =>
+                val fields = rel.asJsObject.fields
+                (fields.get("data"), fields.get("links")) match {
+                  case (Some(_root_.spray.json.JsNull), _) => _root_.com.qvantel.jsonapi.PolyToMany.reference[$containedType]
+                  case (Some(dataJson), _ ) =>
+                    val data = dataJson.convertTo[Seq[_root_.spray.json.JsObject]]
+                    if ($loadInclude) {
+                     val entities = data.map { x =>
+                       val id = x.fields.get("id").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'id' not found in " + x.compactPrint))
 
-             if(entities.isEmpty) {
-               _root_.com.qvantel.jsonapi.PolyToMany.reference[$containedType]($relationshipIdTypePairs.toMap)
-             } else {
-               _root_.com.qvantel.jsonapi.PolyToMany.loaded[$containedType](entities)
-             }
+                       if (id == "") {
+                         throw new _root_.spray.json.DeserializationException("illegal id 'empty string' found in Resource Identifier Object: " + x.compactPrint)
+                       }
+
+                       val tpe = x.fields.get("type").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'type' not found in " + x.compactPrint))
+
+                       val $jsObjectTerm = $includedByIdTypeTerm.getOrElse((id, tpe), throw new _root_.spray.json.DeserializationException("expected entity to be found in include list for id and tpe"))
+
+
+                       tpe match { case ..$coproductLoader }
+                     }
+
+                     _root_.com.qvantel.jsonapi.PolyToMany.loaded[$containedType](entities)
+                   } else {
+                     _root_.com.qvantel.jsonapi.PolyToMany.reference[$containedType](data.map { x =>
+                       val tpe = x.fields.get("type").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'type' not found in " + x.compactPrint))
+                       val id = x.fields.get("id").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'id' not found in " + x.compactPrint))
+
+                       if (id == "") {
+                         throw new _root_.spray.json.DeserializationException("illegal id 'empty string' found in Resource Identifier Object: " + x.compactPrint)
+                       }
+
+                       tpe match { case ..$coproductTypeChecker }
+
+                       (id, tpe)
+                     }.toMap)
+                   }
+                  case (_, Some(links)) =>
+                    val related = links.asJsObject.fields.get("related")
+
+                    related match {
+                      case Some(_root_.spray.json.JsString(r)) => _root_.com.qvantel.jsonapi.PolyToMany.reference[$containedType](_root_.spray.http.Uri.Path(r))
+                      case None => throw new _root_.spray.json.DeserializationException("related link expected in: " + links.compactPrint)
+                    }
+                  case _ =>
+                    throw new _root_.spray.json.DeserializationException("invalid resource object: " + rel.compactPrint)
+                }
+              }).getOrElse(_root_.com.qvantel.jsonapi.PolyToMany.reference[$containedType])
+
           """
-
         q""" $name = $relationship """
       } else {
         c.abort(c.enclosingPosition, s"cannot handle $fieldType type of relationship yet")
       }
     }
 
-    val attributesObjVal = if (attributeBits.isEmpty || (attributes.size == 1 && attributes.exists(_.name.toString == "id"))) {
-      q""
-    } else {
-      q""" val $attributesObj = $primaryJsObj.fields.get("attributes").filterNot(_.isInstanceOf[_root_.spray.json.JsNull.type]).map(x => x.asJsObject("json object expected but got: " + x.compactPrint)).getOrElse(_root_.spray.json.JsObject.empty) """
-    }
+    val attributesObjVal =
+      if (attributeBits.isEmpty || (attributes.size == 1 && attributes.exists(_.name.toString == "id"))) {
+        q""
+      } else {
+        q""" val $attributesObj = $primaryJsObj.fields.get("attributes").filterNot(_.isInstanceOf[_root_.spray.json.JsNull.type]).map(x => x.asJsObject("json object expected but got: " + x.compactPrint)).getOrElse(_root_.spray.json.JsObject.empty) """
+      }
 
     val relationshipsObjVal = if (relationBits.isEmpty) {
       q""
@@ -302,7 +356,6 @@ trait JsonApiReaders extends JsonApiCommon {
       case _ =>
         List.empty
     }
-
 
     // check type if true set terms and generate new instance
     q"""

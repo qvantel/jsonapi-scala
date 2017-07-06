@@ -34,8 +34,8 @@ import _root_.spray.routing.HttpService
 import _root_.spray.http.{ContentType, MediaTypes}
 
 class RelatedResponseSpec extends Specification with Specs2RouteTest with HttpService {
-  def actorRefFactory  = system
-  implicit val apiRoot = ApiRoot(None)
+  def actorRefFactory                               = system
+  implicit val apiRoot: com.qvantel.jsonapi.ApiRoot = ApiRoot(None)
   @jsonApiResource final case class Test(id: String)
 
   val test: Option[Test]      = Some(Test("teståöä•Ωé®")) // test UTF-8

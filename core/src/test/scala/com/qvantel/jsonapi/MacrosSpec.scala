@@ -35,14 +35,14 @@ import _root_.spray.json.{JsObject, JsonParser}
 import com.qvantel.jsonapi.Helpers._
 
 final class MacrosSpec extends Specification with ScalaCheck {
-  implicit val apiRoot = ApiRoot(None)
+  implicit val apiRoot: com.qvantel.jsonapi.ApiRoot = ApiRoot(None)
 
   "jsonapi.org macros" should {
     "correctly generate single level ToOne includes" in {
       final case class Root(id: String, child: ToOne[Child])
       final case class Child(id: String)
 
-      implicit lazy val childIncludes = includes[Child]
+      implicit lazy val childIncludes: com.qvantel.jsonapi.Includes[Child] = includes[Child]
 
       includes[Root].includeAllowed("child") must beTrue
 
@@ -55,7 +55,7 @@ final class MacrosSpec extends Specification with ScalaCheck {
       final case class Root(id: String, maybeChild: Option[ToOne[Child]])
       final case class Child(id: String)
 
-      implicit lazy val childIncludes = includes[Child]
+      implicit lazy val childIncludes: com.qvantel.jsonapi.Includes[Child] = includes[Child]
 
       includes[Root].includeAllowed("test") must beFalse
       includes[Root].includeAllowed("maybe-child") must beTrue
@@ -69,7 +69,7 @@ final class MacrosSpec extends Specification with ScalaCheck {
       final case class Root(id: String, children: ToMany[Child])
       final case class Child(id: String)
 
-      implicit lazy val childIncludes = includes[Child]
+      implicit lazy val childIncludes: com.qvantel.jsonapi.Includes[Child] = includes[Child]
 
       includes[Root].includeAllowed("test") must beFalse
       includes[Root].includeAllowed("children") must beTrue
@@ -84,9 +84,9 @@ final class MacrosSpec extends Specification with ScalaCheck {
       final case class Child1(id: String, child: ToOne[Child2])
       final case class Child2(id: String)
 
-      implicit lazy val child2Includes = includes[Child2]
-      implicit lazy val child1Includes = includes[Child1]
-      implicit lazy val rootIncludes   = includes[Root]
+      implicit lazy val child2Includes: com.qvantel.jsonapi.Includes[Child2] = includes[Child2]
+      implicit lazy val child1Includes: com.qvantel.jsonapi.Includes[Child1] = includes[Child1]
+      implicit lazy val rootIncludes: com.qvantel.jsonapi.Includes[Root]     = includes[Root]
 
       rootIncludes.includeAllowed("test") must beFalse
       rootIncludes.includeAllowed("child") must beTrue
@@ -154,7 +154,7 @@ final class MacrosSpec extends Specification with ScalaCheck {
                             cField: BigDecimal)
           extends HasId
 
-      implicit val resourceType = ResourceType[Root]("root")
+      implicit val resourceType: com.qvantel.jsonapi.ResourceType[Root] = ResourceType[Root]("root")
 
       implicit val pathTo: PathTo[Root] = new PathTo[Root] {
         private[this] val root                    = Path("/roots")
@@ -182,43 +182,43 @@ final class MacrosSpec extends Specification with ScalaCheck {
       final case class End(id: String)                                                       extends HasId
 
       object End {
-        implicit lazy val endResourceType = ResourceType[End]("end")
+        implicit lazy val endResourceType: com.qvantel.jsonapi.ResourceType[End] = ResourceType[End]("end")
         implicit lazy val endPathTo: PathTo[End] = new PathTo[End] {
           private[this] val root                    = Path("/end")
           override final def self(id: String): Path = root / id
         }
-        implicit lazy val endFormat                  = jsonApiFormat[End]
-        implicit lazy val endIncludes: Includes[End] = includes[End]
+        implicit lazy val endFormat: com.qvantel.jsonapi.JsonApiFormat[End] = jsonApiFormat[End]
+        implicit lazy val endIncludes: Includes[End]                        = includes[End]
       }
 
       object Leaf {
-        implicit lazy val leafResourceType = ResourceType[Leaf]("leaves")
+        implicit lazy val leafResourceType: com.qvantel.jsonapi.ResourceType[Leaf] = ResourceType[Leaf]("leaves")
         implicit lazy val leafPathTo: PathTo[Leaf] = new PathTo[Leaf] {
           private[this] val root                    = Path("/leaves")
           override final def self(id: String): Path = root / id
         }
-        implicit lazy val leafFormat                   = jsonApiFormat[Leaf]
-        implicit lazy val leafIncludes: Includes[Leaf] = includes[Leaf]
+        implicit lazy val leafFormat: com.qvantel.jsonapi.JsonApiFormat[Leaf] = jsonApiFormat[Leaf]
+        implicit lazy val leafIncludes: Includes[Leaf]                        = includes[Leaf]
       }
 
       object Child {
-        implicit lazy val childResourceType = ResourceType[Child]("children")
+        implicit lazy val childResourceType: com.qvantel.jsonapi.ResourceType[Child] = ResourceType[Child]("children")
         implicit lazy val childPathTo: PathTo[Child] = new PathTo[Child] {
           private[this] val root                    = Path("/children")
           override final def self(id: String): Path = root / id
         }
-        implicit lazy val childFormat                    = jsonApiFormat[Child]
-        implicit lazy val childIncludes: Includes[Child] = includes[Child]
+        implicit lazy val childFormat: com.qvantel.jsonapi.JsonApiFormat[Child] = jsonApiFormat[Child]
+        implicit lazy val childIncludes: Includes[Child]                        = includes[Child]
       }
 
       object Root {
-        implicit lazy val rootResourceType = ResourceType[Root]("roots")
+        implicit lazy val rootResourceType: com.qvantel.jsonapi.ResourceType[Root] = ResourceType[Root]("roots")
         implicit lazy val rootPathTo: PathTo[Root] = new PathTo[Root] {
           private[this] val root                    = Path("/roots")
           override final def self(id: String): Path = root / id
         }
-        implicit lazy val rootFormat                   = jsonApiFormat[Root]
-        implicit lazy val rootIncludes: Includes[Root] = includes[Root]
+        implicit lazy val rootFormat: com.qvantel.jsonapi.JsonApiFormat[Root] = jsonApiFormat[Root]
+        implicit lazy val rootIncludes: Includes[Root]                        = includes[Root]
       }
 
       val end  = End("666")

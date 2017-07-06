@@ -27,12 +27,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.qvantel.jsonapi
 
 import org.specs2.mutable.Specification
-import _root_.spray.http.Uri.Path
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
 
 final class ToOneSpec extends Specification {
-  implicit val apiRoot = ApiRoot(None)
+  implicit val apiRoot: com.qvantel.jsonapi.ApiRoot = ApiRoot(None)
 
   @jsonApiResource final case class Author(id: String, name: String)
   @jsonApiResource final case class Article(id: String, title: String, author: ToOne[Author])
@@ -46,30 +45,6 @@ final class ToOneSpec extends Specification {
 
     "return None for Reference" in {
       ToOne.reference("id").get must beNone
-    }
-  }
-
-  "renderRelation" should {
-    "render a to-one reference relation" in {
-      val article = Article("1", "boom", ToOne.reference("john"))
-      val expected = JsObject(
-        "links" -> JsObject("self" -> (Path("/articles/1") / "relationships" / "author").toJson,
-                            "related" -> (Path("/articles/1") / "author").toJson),
-        "data" -> JsObject("type" -> implicitly[ResourceType[Author]].resourceType.toJson, "id" -> "john".toJson)
-      )
-
-      ToOne.renderRelation(article, "author", article.author) should be equalTo (expected)
-    }
-
-    "render a to-one loaded relation" in {
-      val article = Article("1", "boom", ToOne.loaded(Author("john", "doe")))
-      val expected = JsObject(
-        "links" -> JsObject("self" -> (Path("/articles/1") / "relationships" / "author").toJson,
-                            "related" -> (Path("/articles/1") / "author").toJson),
-        "data" -> JsObject("type" -> implicitly[ResourceType[Author]].resourceType.toJson, "id" -> "john".toJson)
-      )
-
-      ToOne.renderRelation(article, "author", article.author) should be equalTo (expected)
     }
   }
 

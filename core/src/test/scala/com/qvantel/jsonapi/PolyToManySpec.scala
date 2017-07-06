@@ -28,14 +28,14 @@ package com.qvantel.jsonapi
 
 import org.specs2.mutable.Specification
 import shapeless.{:+:, CNil, Coproduct, Poly1}
-import _root_.spray.http.Uri.Path
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
+import _root_.spray.http.Uri.Path
 
 import com.qvantel.jsonapi.PolyToMany.PolyWrongTypeException
 
 final class PolyToManySpec extends Specification {
-  implicit val apiRoot = ApiRoot(None)
+  implicit val apiRoot: com.qvantel.jsonapi.ApiRoot = ApiRoot(None)
 
   @jsonApiResource final case class Person(id: String, name: String)
   @jsonApiResource final case class Company(id: String, name: String)
@@ -90,58 +90,9 @@ final class PolyToManySpec extends Specification {
     }
   }
 
-  "renderRelation" should {
-    "render a to-many reference relation" in {
-      val article = Article("1", "boom", PolyToMany.reference[Author])
-      val expected = JsObject(
-        "links" -> JsObject("self" -> (Path("/articles/1") / "relationships" / "authors").toJson,
-                            "related" -> (Path("/articles/1") / "authors").toJson),
-        "data" -> JsArray.empty
-      )
-
-      PolyToMany.renderRelation(article, "authors", article.authors) should be equalTo expected
-
-      val loop = Loop("2", PolyToMany.reference[Looped])
-      val expected2 = JsObject("links" -> JsObject("self" -> (Path("/loops/2") / "relationships" / "looped").toJson,
-                                                   "related" -> (Path("/loops/2") / "looped").toJson),
-                               "data" -> JsArray.empty)
-
-      PolyToMany.renderRelation(loop, "looped", loop.looped) should be equalTo expected2
-    }
-
-    "render a to-many loaded relation" in {
-      val article =
-        Article("1",
-                "boom",
-                PolyToMany.loaded[Author](
-                  Seq(Coproduct[Author](Person("john", "doe")), Coproduct[Author](Company("evil", "business")))))
-      val expected = JsObject(
-        "links" -> JsObject("self" -> (Path("/articles/1") / "relationships" / "authors").toJson,
-                            "related" -> (Path("/articles/1") / "authors").toJson),
-        "data" -> JsArray(JsObject("type" -> "people".toJson, "id" -> "john".toJson),
-                          JsObject("type" -> "companies".toJson, "id" -> "evil".toJson))
-      )
-
-      PolyToMany.renderRelation(article, "authors", article.authors) should be equalTo expected
-
-      val loop =
-        Loop("root",
-             PolyToMany.loaded[Looped](
-               Seq(Coproduct[Looped](Person("john", "doe")), Coproduct[Looped](Loop("test", PolyToMany.reference)))))
-      val expected2 = JsObject(
-        "links" -> JsObject("self" -> (Path("/loops/root") / "relationships" / "looped").toJson,
-                            "related" -> (Path("/loops/root") / "looped").toJson),
-        "data" -> JsArray(JsObject("type" -> "people".toJson, "id" -> "john".toJson),
-                          JsObject("type" -> "loops".toJson, "id" -> "test".toJson))
-      )
-
-      PolyToMany.renderRelation(loop, "looped", loop.looped) should be equalTo expected2
-    }
-  }
-
   "read" should {
     "properly read to-many reference" in {
-      val article     = Article("1", "boom", PolyToMany.reference[Author])
+      val article     = Article("1", "boom", PolyToMany.reference[Author](Path("/articles/1")))
       val articleJson = implicitly[JsonApiFormat[Article]].write(article)
 
       implicitly[JsonApiFormat[Article]].read(articleJson, Set.empty) must be equalTo article
@@ -259,7 +210,7 @@ final class PolyToManySpec extends Specification {
       val modifiedIncludes = articleIncludesJson.map(_.update('type ! set[String]("wrong-type"))).map(_.asJsObject)
 
       implicitly[JsonApiFormat[Article]].read(modifiedJson, modifiedIncludes) must throwA[DeserializationException](
-        message = "is of type 'wrong-type' which is not part of the coproduct 'PolyToManySpec.this.Author'")
+        message = "relationship of type 'wrong-type' is not one of \\[people,companies\\]")
     }
 
     "throw exception when giving wrong type for reference ids" in {

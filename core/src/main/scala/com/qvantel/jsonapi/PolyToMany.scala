@@ -28,14 +28,15 @@ package com.qvantel.jsonapi
 
 import shapeless.Coproduct
 import shapeless.ops.coproduct.Inject
-import _root_.spray.json.DefaultJsonProtocol._
-import _root_.spray.json._
+import _root_.spray.http.Uri.Path
 
 import com.qvantel.jsonapi.PolyIdentifiable.CoproductResourceType
 import com.qvantel.jsonapi.PolyToMany.Rel
 
 sealed trait PolyToMany[A <: Coproduct] {
   def relationships: Set[Rel]
+
+  def ids: Set[String]
 
   /** Loaded biased get method as a helper when you don't want to pattern match like crazy */
   def get: Seq[A]
@@ -51,19 +52,33 @@ object PolyToMany {
       Rel(id, implicitly[ResourceType[A]].resourceType)
   }
 
-  final case class Reference[A <: Coproduct](relationships: Set[Rel]) extends PolyToMany[A] {
+  final case class IdsReference[A <: Coproduct](relationships: Set[Rel]) extends PolyToMany[A] {
     override def get: Seq[A] = Seq.empty
+
+    override def ids: Set[String] = relationships.map(_.id)
+  }
+
+  final case class PathReference[A <: Coproduct](path: Option[Path]) extends PolyToMany[A] {
+    override def relationships: Set[Rel] = Set.empty
+
+    /** Loaded biased get method as a helper when you don't want to pattern match like crazy */
+    override def get: Seq[A] = Seq.empty
+
+    override def ids: Set[String] = Set.empty
   }
 
   final case class Loaded[A <: Coproduct: PolyIdentifiable](entities: Seq[A]) extends PolyToMany[A] {
     override lazy val relationships = entities
-      .map(x => Rel(implicitly[PolyIdentifiable[A]].identify(x), implicitly[PolyIdentifiable[A]].resourceType(x)))
+      .map(x => Rel(PolyIdentifiable[A].identify(x), PolyIdentifiable[A].resourceType(x)))
       .toSet
 
     override def get: Seq[A] = entities
+
+    override def ids: Set[String] = entities.map(PolyIdentifiable[A].identify(_)).toSet
   }
 
-  def reference[A <: Coproduct]: PolyToMany[A] = Reference[A](Set.empty)
+  def reference[A <: Coproduct]: PolyToMany[A]            = PathReference[A](None)
+  def reference[A <: Coproduct](uri: Path): PolyToMany[A] = PathReference[A](Some(uri))
   def reference[A <: Coproduct](rels: Map[String, String])(implicit crt: CoproductResourceType[A]): PolyToMany[A] = {
     val relationships = {
       val types = crt.apply
@@ -78,31 +93,15 @@ object PolyToMany {
 
     }
 
-    Reference[A](relationships.toSet)
+    IdsReference[A](relationships.toSet)
   }
+  def reference[A <: Coproduct](rels: Set[Rel]): PolyToMany[A] = IdsReference[A](rels)
 
   def loaded[A <: Coproduct: PolyIdentifiable, E](entities: Seq[E])(implicit inj: Inject[A, E]): PolyToMany[A] =
     Loaded(entities map inj.apply)
 
   def loaded[A <: Coproduct: PolyIdentifiable](entities: Seq[A]): PolyToMany[A] =
     Loaded(entities)
-
-  def renderRelation[P, A <: Coproduct](parent: P, name: String, relation: PolyToMany[A])(
-      implicit pt: PathTo[P],
-      pi: PolyIdentifiable[A]): JsObject = {
-    def json(entities: Seq[A]): JsObject =
-      JsObject(
-        "links" -> JsObject("self" -> (pt.entity(parent) / "relationships" / name).toJson,
-                            "related" -> (pt.entity(parent) / name).toJson),
-        "data" -> JsArray(entities map { entity =>
-          JsObject("type" -> pi.resourceType(entity).toJson, "id" -> pi.identify(entity).toJson)
-        }: _*)
-      )
-    relation match {
-      case Reference(_)     => json(Seq.empty)
-      case Loaded(entities) => json(entities)
-    }
-  }
 
   final class PolyWrongTypeException(message: String = null, cause: Throwable = null) extends Exception(message, cause)
 }

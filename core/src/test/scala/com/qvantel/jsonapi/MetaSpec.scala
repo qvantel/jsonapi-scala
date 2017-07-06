@@ -32,7 +32,7 @@ import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
 
 class MetaSpec extends Specification {
-  implicit val apiRoot = ApiRoot(None)
+  implicit val apiRoot: com.qvantel.jsonapi.ApiRoot = ApiRoot(None)
 
   @jsonApiResource final case class Test(id: String, meta: Map[String, Meta])
 

@@ -26,12 +26,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.qvantel.jsonapi
 
-import _root_.spray.json.DefaultJsonProtocol._
-import _root_.spray.json._
+import _root_.spray.http.Uri.Path
 
 /**
   * Represents a relationship to zero or more objects of type A
-  * [[com.qvantel.jsonapi.ToMany.Reference]] case class is used to represent a ToMany relationship where
+  * [[com.qvantel.jsonapi.ToMany.IdsReference]] case class is used to represent a ToMany relationship where
   * the objects have not been loaded
   * [[com.qvantel.jsonapi.ToMany.Loaded]] case class is used to represent a ToMany relationship where
   * the objects have been loaded
@@ -41,38 +40,29 @@ sealed trait ToMany[A] {
   def ids: Set[String]
 
   /** Loaded biased get method as a helper when you don't want to pattern match like crazy */
-  def get: Seq[A]
+  def get: List[A]
 }
 
 object ToMany {
-  final case class Reference[A](ids: Set[String]) extends ToMany[A] {
-    override def get: Seq[A] = Seq.empty
+  final case class IdsReference[A](ids: Set[String]) extends ToMany[A] {
+    override def get: List[A] = List.empty
   }
 
-  final case class Loaded[A: Identifiable](entities: Seq[A]) extends ToMany[A] {
+  final case class PathReference[A](path: Option[Path]) extends ToMany[A] {
+    override def ids: Set[String] = Set.empty
+
+    /** Loaded biased get method as a helper when you don't want to pattern match like crazy */
+    override def get: List[A] = List.empty
+  }
+
+  final case class Loaded[A: Identifiable](entities: Iterable[A]) extends ToMany[A] {
     val ids = entities.map(implicitly[Identifiable[A]].identify).toSet
 
-    override def get: Seq[A] = entities
+    override def get: List[A] = entities.toList
   }
 
-  def reference[A]: ToMany[A]                              = Reference[A](Set.empty)
-  def reference[A](ids: Set[String]): ToMany[A]            = Reference[A](ids)
-  def loaded[A: Identifiable](entities: Seq[A]): ToMany[A] = Loaded[A](entities)
-
-  def renderRelation[P, A](parent: P, name: String, relation: ToMany[A])(implicit pt: PathTo[P],
-                                                                         rt: ResourceType[A],
-                                                                         ident: Identifiable[A]): JsObject = {
-    def json(entities: Seq[A]): JsObject =
-      JsObject(
-        "links" -> JsObject("self" -> (pt.entity(parent) / "relationships" / name).toJson,
-                            "related" -> (pt.entity(parent) / name).toJson),
-        "data" -> JsArray(entities map { entity =>
-          JsObject("type" -> rt.resourceType.toJson, "id" -> ident.identify(entity).toJson)
-        }: _*)
-      )
-    relation match {
-      case Reference(_)     => json(Seq.empty)
-      case Loaded(entities) => json(entities)
-    }
-  }
+  def reference[A]: ToMany[A]                                   = PathReference[A](None)
+  def reference[A](ids: Set[String]): ToMany[A]                 = IdsReference[A](ids)
+  def reference[A](uri: Path): ToMany[A]                        = PathReference[A](Some(uri))
+  def loaded[A: Identifiable](entities: Iterable[A]): ToMany[A] = Loaded[A](entities)
 }
