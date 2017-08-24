@@ -42,7 +42,7 @@ import com.qvantel.jsonapi.macrosupport.{JsonApiReaders, JsonApiWriters}
   * implicit val individualResourceType: ResourceType[Individual] = "individuals"
   * implicit val individualPathTo: PathTo[Individual] = new PathTo[Individual] {
   *   private[this] val root = Path("/individuals")
-  *   override final def self(id: String): Path = root / id
+  *   override final def self(id: String): Uri = root / id
   * }
   * // After these you can generate the format like this
   * implicit val individualJsonFormat: JsonApiFormat[Individual] = jsonApiFormat[Individual]

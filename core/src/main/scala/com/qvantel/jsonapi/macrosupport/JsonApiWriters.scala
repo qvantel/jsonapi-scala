@@ -43,8 +43,10 @@ trait JsonApiWriters extends JsonApiCommon {
 
     q"""
        implicitly[_root_.com.qvantel.jsonapi.ApiRoot].apiRoot match {
-         case Some($root) => implicitly[_root_.spray.json.JsonWriter[_root_.spray.http.Uri.Path]].write($root.++(implicitly[_root_.com.qvantel.jsonapi.PathTo[$t]].entity($objName)))
-         case None => implicitly[_root_.spray.json.JsonWriter[_root_.spray.http.Uri.Path]].write(implicitly[_root_.com.qvantel.jsonapi.PathTo[$t]].entity($objName))
+         case Some($root) =>
+           import _root_.com.netaporter.uri.dsl._
+           implicitly[_root_.spray.json.JsonWriter[_root_.com.netaporter.uri.Uri]].write($root / implicitly[_root_.com.qvantel.jsonapi.PathTo[$t]].entity($objName))
+         case None => implicitly[_root_.spray.json.JsonWriter[_root_.com.netaporter.uri.Uri]].write(implicitly[_root_.com.qvantel.jsonapi.PathTo[$t]].entity($objName))
        }
       """
   }
@@ -416,7 +418,6 @@ trait JsonApiWriters extends JsonApiCommon {
                 case _ => $emptyJsObjectSet
               }"""
       } else {
-        println("FOOBAR INCLUDE")
         c.abort(c.enclosingPosition, s"Unexpected relation type $fieldType")
       }
     }

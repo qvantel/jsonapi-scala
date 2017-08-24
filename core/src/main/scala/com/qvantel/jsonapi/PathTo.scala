@@ -26,11 +26,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.qvantel.jsonapi
 
-import _root_.spray.http.Uri.Path
+import com.netaporter.uri.Uri
 
 abstract class PathTo[A: Identifiable] {
-  def self(id: String): Path
-  def entity(a: A): Path = self(implicitly[Identifiable[A]].identify(a))
+  def self(id: String): Uri
+  def entity(a: A): Uri = self(implicitly[Identifiable[A]].identify(a))
 }
 
 object PathTo {}

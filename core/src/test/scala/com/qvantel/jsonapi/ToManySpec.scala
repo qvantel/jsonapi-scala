@@ -31,7 +31,6 @@ import scala.language.experimental.macros
 import org.specs2.mutable.Specification
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
-import _root_.spray.http.Uri
 import org.specs2.matcher.MatcherMacros
 
 final class ToManySpec extends Specification with MatcherMacros {
@@ -220,10 +219,8 @@ final class ToManySpec extends Specification with MatcherMacros {
           |}
         """.stripMargin.parseJson
 
-      println(implicitly[JsonApiFormat[Article]].read(json, Set.empty))
-
       implicitly[JsonApiFormat[Article]].read(json, Set.empty) must matchA[Article].comments(
-        ToMany.reference[Comment](Uri.Path("/articles/test/comments")))
+        ToMany.reference[Comment]("/articles/test/comments"))
     }
 
     "fail with deserialization exception when one or more of the entities in relationship is of wrong type" in {

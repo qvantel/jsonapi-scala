@@ -31,6 +31,7 @@ import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json.JsonParser
 
 import com.qvantel.jsonapi.model.Link.Url
+import com.netaporter.uri.dsl._
 
 final class TopLevelSpec extends Specification {
   "JsonFormat" should {

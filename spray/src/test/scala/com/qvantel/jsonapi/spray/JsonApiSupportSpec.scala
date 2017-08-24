@@ -29,13 +29,14 @@ package com.qvantel.jsonapi.spray
 import org.specs2.mutable.Specification
 import shapeless._
 import _root_.spray.http.MediaTypes
-import _root_.spray.http.Uri.Path
 import _root_.spray.http.ContentType
 import _root_.spray.http.HttpCharsets
 import _root_.spray.json._
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.routing.HttpService
 import _root_.spray.testkit.Specs2RouteTest
+import com.netaporter.uri.Uri
+import com.netaporter.uri.dsl._
 
 import com.qvantel.jsonapi._
 import com.qvantel.jsonapi.spray.JsonApiSupport._
@@ -57,8 +58,7 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest with H
     implicit val resourceType: ResourceType[Root] = ResourceType[Root]("root")
     implicit val identifiable: Identifiable[Root] = Identifiable.by(_.id)
     implicit val pathTo: PathTo[Root] = new PathTo[Root] {
-      private[this] val root                    = Path("/roots")
-      override final def self(id: String): Path = root / id
+      override final def self(id: String): Uri = "/roots" / id
     }
     implicit val format: JsonApiFormat[Root] = jsonApiFormat[Root]
   }
@@ -69,8 +69,7 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest with H
     implicit val resourceType: ResourceType[Child] = ResourceType[Child]("child")
     implicit val identifiable: Identifiable[Child] = Identifiable.by(_.id)
     implicit val pathTo: PathTo[Child] = new PathTo[Child] {
-      private[this] val root                    = Path("/children")
-      override final def self(id: String): Path = root / id
+      override final def self(id: String): Uri = "/children" / id
     }
     implicit val format: JsonApiFormat[Child] = jsonApiFormat[Child]
   }
@@ -81,8 +80,7 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest with H
     implicit val resourceType: ResourceType[Article] = ResourceType[Article]("article")
     implicit val identifiable: Identifiable[Article] = Identifiable.by(_.id)
     implicit val pathTo: PathTo[Article] = new PathTo[Article] {
-      private[this] val root                    = Path("/articles")
-      override final def self(id: String): Path = root / id
+      override final def self(id: String): Uri = "/articles" / id
     }
     implicit val format: JsonApiFormat[Article] = jsonApiFormat[Article]
   }
@@ -471,8 +469,8 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest with H
         utf,
         ToOne.reference("foo"),
         ToOne.reference("foo"),
-        ToMany.reference(Path("/roots/foo/many")),
-        ToMany.reference(Path("/roots/foo/many-referenced")),
+        ToMany.reference("/roots/foo/many"),
+        ToMany.reference("/roots/foo/many-referenced"),
         ToOne.reference("foo")
       )
       Post("/single", root) ~> route ~> check {

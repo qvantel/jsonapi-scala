@@ -26,9 +26,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.qvantel.jsonapi
 
-import _root_.spray.http.Uri.Path
+import com.netaporter.uri.Uri
 
-final case class ApiRoot(apiRoot: Option[Path])
+final case class ApiRoot(apiRoot: Option[Uri])
 
 object ApiRoot {
   def empty = ApiRoot(None)

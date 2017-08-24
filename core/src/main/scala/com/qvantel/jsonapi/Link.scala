@@ -27,26 +27,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.qvantel.jsonapi
 
 import shapeless.Coproduct
-import _root_.spray.http.Uri.Path
+import com.netaporter.uri.Uri
+import com.netaporter.uri.dsl._
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
 
 object Link {
-  implicit object PathJsonFormat extends JsonFormat[Path] {
-    override def write(obj: Path): JsValue = JsString(obj.toString())
-
-    override def read(json: JsValue): Path = json match {
-      case JsString(s) => Path(s)
-      case other       => deserializationError(s"Expected Path as JsString but got ‘$other’")
-    }
-  }
-
   private[this] def links[P](parent: P, name: String)(implicit pathToParent: PathTo[P], apiRoot: ApiRoot): JsObject =
     apiRoot match {
       case ApiRoot(Some(root)) =>
-        JsObject("related" -> implicitly[JsonWriter[Path]].write(root ++ pathToParent.entity(parent) / name))
+        JsObject("related" -> implicitly[JsonWriter[Uri]].write(root / pathToParent.entity(parent) / name))
       case ApiRoot(None) =>
-        JsObject("related" -> implicitly[JsonWriter[Path]].write(pathToParent.entity(parent) / name))
+        JsObject("related" -> implicitly[JsonWriter[Uri]].write(pathToParent.entity(parent) / name))
     }
 
   def to[A, P](parent: P, relation: ToOne[A], name: String)(implicit identifiable: Identifiable[A],
@@ -126,7 +118,7 @@ object Link {
         val data: (String, JsValue) = "data" -> JsArray(resourceLinkage.toVector)
         JsObject(Map(linksTuple, data))
       case ToMany.PathReference(Some(path)) =>
-        JsObject("links" -> JsObject("related" -> implicitly[JsonWriter[Path]].write(path)))
+        JsObject("links" -> JsObject("related" -> path.toJson))
       case ToMany.PathReference(None) =>
         JsObject("links" -> links(parent, name))
       case ToMany.Loaded(entities) =>
@@ -211,7 +203,7 @@ object Link {
         JsObject(Map(linksTuple, data))
 
       case PolyToMany.PathReference(Some(path)) =>
-        JsObject("links" -> JsObject("related" -> implicitly[JsonWriter[Path]].write(path)))
+        JsObject("links" -> JsObject("related" -> path.toJson))
 
       case PolyToMany.PathReference(None) =>
         // not 100% sure what to do in this case
@@ -284,7 +276,7 @@ object Link {
         JsObject("data" -> JsArray(resourceLinkage.toVector))
 
       case ToMany.PathReference(Some(path)) =>
-        JsObject("links" -> JsObject("related" -> implicitly[JsonWriter[Path]].write(path)))
+        JsObject("links" -> JsObject("related" -> path.toJson))
 
       case ToMany.PathReference(None) =>
         // not 100% sure what to do in this case
@@ -362,7 +354,7 @@ object Link {
         JsObject("data" -> JsArray(resourceLinkage.toVector))
 
       case PolyToMany.PathReference(Some(path)) =>
-        JsObject("links" -> JsObject("related" -> implicitly[JsonWriter[Path]].write(path)))
+        JsObject("links" -> JsObject("related" -> path.toJson))
 
       case PolyToMany.PathReference(None) =>
         // not 100% sure what to do in this case

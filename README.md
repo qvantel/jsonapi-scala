@@ -16,7 +16,7 @@
 val acme = Company("1", "acme", ToMany.loaded(Employee("1", "number one 1")))
 
 val json = JsonApiSupport.rawOne(acme)
-val parsed = JsonApiSupport.readOne(json)
+val parsed = JsonApiSupport.readOne(json, Set("employees"))
 
 json == parsed // true
 

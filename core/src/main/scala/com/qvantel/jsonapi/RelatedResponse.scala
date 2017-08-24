@@ -26,8 +26,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.qvantel.jsonapi
 
-import _root_.spray.http.{ContentType, HttpEntity, MediaTypes, HttpData, HttpCharsets}
-import _root_.spray.httpx.marshalling.Marshaller
 import _root_.spray.json.{JsArray, JsNull, JsObject, JsValue, JsonPrinter, PrettyPrinter}
 
 /** Used render proper related link response as specified by jsonapi spec
@@ -95,14 +93,4 @@ object RelatedResponse {
   def apply[A](a: Iterable[A]): RelatedResponse[A] = ToMany(a.toList)
   def apply[A](a: Seq[A]): RelatedResponse[A]      = ToMany(a.toList)
   def apply[A](a: Set[A]): RelatedResponse[A]      = ToMany(a.toList)
-
-  private[this] val ct = ContentType(MediaTypes.`application/vnd.api+json`, None)
-
-  implicit def relatedResponseMarshaller[A](implicit writer: JsonApiWriter[A],
-                                            printer: JsonPrinter = PrettyPrinter,
-                                            sorting: JsonApiSorting = JsonApiSorting.Unsorted)
-    : spray.httpx.marshalling.Marshaller[com.qvantel.jsonapi.RelatedResponse[A]] =
-    Marshaller.of[RelatedResponse[A]](ct) { (value, _, ctx) =>
-      ctx.marshalTo(HttpEntity(ct, HttpData(printer.apply(value.toResponse), HttpCharsets.`UTF-8`)))
-    }
 }

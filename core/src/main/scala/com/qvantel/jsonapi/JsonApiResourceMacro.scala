@@ -46,7 +46,8 @@ final class JsonApiResourceMacro(val c: WhiteboxContext) extends JsonApiCommon {
   private[this] def createPathTo(name: TypeName, resourceTypeName: String): c.Tree = {
     val path = s"/$resourceTypeName"
     q"""implicit final val ${TermName(s"${name}PathTo")}: _root_.com.qvantel.jsonapi.PathTo[$name] = new _root_.com.qvantel.jsonapi.PathTo[$name] {
-          override final def self(id: String): _root_.spray.http.Uri.Path = _root_.spray.http.Uri.Path($path) / id
+          import _root_.com.netaporter.uri.dsl._
+          override final def self(id: String): _root_.com.netaporter.uri.Uri = $path / id
         }"""
   }
 
