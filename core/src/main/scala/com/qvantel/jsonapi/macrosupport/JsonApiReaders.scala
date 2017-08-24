@@ -244,7 +244,7 @@ trait JsonApiReaders extends JsonApiCommon {
 
                     related match {
                       case Some(_root_.spray.json.JsString(r)) => _root_.com.qvantel.jsonapi.ToMany.reference[$containedType](r)
-                      case None => throw new _root_.spray.json.DeserializationException("related link expected in: " + links.compactPrint)
+                      case _ => throw new _root_.spray.json.DeserializationException("related link expected in: " + links.compactPrint)
                     }
                   case _ =>
                     throw new _root_.spray.json.DeserializationException("invalid resource object: " + rel.compactPrint)
@@ -317,7 +317,7 @@ trait JsonApiReaders extends JsonApiCommon {
 
                     related match {
                       case Some(_root_.spray.json.JsString(r)) => _root_.com.qvantel.jsonapi.PolyToMany.reference[$containedType](r)
-                      case None => throw new _root_.spray.json.DeserializationException("related link expected in: " + links.compactPrint)
+                      case _ => throw new _root_.spray.json.DeserializationException("related link expected in: " + links.compactPrint)
                     }
                   case _ =>
                     throw new _root_.spray.json.DeserializationException("invalid resource object: " + rel.compactPrint)
