@@ -26,9 +26,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.qvantel.jsonapi
 
+import _root_.com.netaporter.uri.dsl._
 import org.specs2.ScalaCheck
 import org.specs2.mutable.Specification
-import _root_.spray.http.Uri.Path
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
 
@@ -78,7 +78,7 @@ final class JsonApiResourceSpec extends Specification with ScalaCheck {
     }
 
     "fill in PathTo in a case class" in {
-      implicitly[PathTo[Simple]].self("1") must be equalTo Path("/simples/1")
+      implicitly[PathTo[Simple]].self("1") must be equalTo "/simples/1"
     }
 
     "fill in Includes in a simple case class" in {

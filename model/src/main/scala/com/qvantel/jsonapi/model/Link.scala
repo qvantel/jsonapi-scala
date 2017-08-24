@@ -28,7 +28,8 @@ package com.qvantel.jsonapi.model
 
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
-import _root_.spray.http.Uri
+import com.netaporter.uri.Uri
+import com.netaporter.uri.dsl._
 
 sealed abstract class Link {
   def href: Uri

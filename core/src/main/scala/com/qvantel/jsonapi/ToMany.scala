@@ -26,7 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.qvantel.jsonapi
 
-import _root_.spray.http.Uri.Path
+import com.netaporter.uri.Uri
 
 /**
   * Represents a relationship to zero or more objects of type A
@@ -34,6 +34,7 @@ import _root_.spray.http.Uri.Path
   * the objects have not been loaded
   * [[com.qvantel.jsonapi.ToMany.Loaded]] case class is used to represent a ToMany relationship where
   * the objects have been loaded
+  *
   * @tparam A Type of the object the relationships point to
   */
 sealed trait ToMany[A] {
@@ -48,7 +49,7 @@ object ToMany {
     override def get: List[A] = List.empty
   }
 
-  final case class PathReference[A](path: Option[Path]) extends ToMany[A] {
+  final case class PathReference[A](path: Option[Uri]) extends ToMany[A] {
     override def ids: Set[String] = Set.empty
 
     /** Loaded biased get method as a helper when you don't want to pattern match like crazy */
@@ -63,6 +64,7 @@ object ToMany {
 
   def reference[A]: ToMany[A]                                   = PathReference[A](None)
   def reference[A](ids: Set[String]): ToMany[A]                 = IdsReference[A](ids)
-  def reference[A](uri: Path): ToMany[A]                        = PathReference[A](Some(uri))
+  def reference[A](uri: Uri): ToMany[A]                         = PathReference[A](Some(uri))
+  def reference[A](uri: String): ToMany[A]                      = PathReference[A](Some(Uri.parse(uri)))
   def loaded[A: Identifiable](entities: Iterable[A]): ToMany[A] = Loaded[A](entities)
 }

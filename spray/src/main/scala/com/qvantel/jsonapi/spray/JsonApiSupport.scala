@@ -97,6 +97,14 @@ trait JsonApiSupport extends JsonApiSupport0 {
 trait JsonApiSupport0 {
   val ct = ContentType(MediaTypes.`application/vnd.api+json`, None).withoutDefinedCharset
 
+  implicit def relatedResponseMarshaller[A](
+      implicit writer: JsonApiWriter[A],
+      printer: JsonPrinter = PrettyPrinter,
+      sorting: JsonApiSorting = JsonApiSorting.Unsorted): Marshaller[com.qvantel.jsonapi.RelatedResponse[A]] =
+    Marshaller.of[RelatedResponse[A]](ct) { (value, _, ctx) =>
+      ctx.marshalTo(HttpEntity(ct, HttpData(printer.apply(value.toResponse), HttpCharsets.`UTF-8`)))
+    }
+
   implicit def jsonApiOneMarshaller[T](implicit writer: JsonApiWriter[T],
                                        printer: JsonPrinter = PrettyPrinter,
                                        metaProfiles: Set[MetaProfile] = Set.empty,

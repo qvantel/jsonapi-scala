@@ -1,10 +1,10 @@
 language: scala
 scala:
-  - 2.11.8
+  - 2.11.11
 jdk:
   - oraclejdk8
 script:
-  - sbt scalafmt::test test:scalafmt::test sbt:scalafmt::test clean coverage test coverageReport &&
+  - sbt scalafmt::test test:scalafmt::test sbt:scalafmt::test clean coverage "such test" coverageReport &&
     sbt coverageAggregate
 after_success:
   - sbt coveralls

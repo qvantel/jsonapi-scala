@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.qvantel.jsonapi
 
-import _root_.spray.http.Uri
 import _root_.spray.json.{JsObject, JsValue}
+import com.netaporter.uri.Uri
 
 trait Meta {
   def asJson: JsObject

@@ -32,6 +32,7 @@ import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.testkit.Specs2RouteTest
 import _root_.spray.routing.HttpService
 import _root_.spray.http.{ContentType, MediaTypes}
+import com.qvantel.jsonapi.spray.JsonApiSupport._
 
 class RelatedResponseSpec extends Specification with Specs2RouteTest with HttpService {
   def actorRefFactory                               = system

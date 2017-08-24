@@ -26,8 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.qvantel.jsonapi
 
+import _root_.com.netaporter.uri.dsl._
 import org.specs2.mutable._
-import _root_.spray.http.Uri
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
 
@@ -38,7 +38,7 @@ class MetaSpec extends Specification {
 
   val versioned = new MetaProfile {
     override def alias = "versioned"
-    override def link  = Uri("/versioned.html")
+    override def link  = "/versioned.html"
   }
 
   "meta parsing and writing" >> {

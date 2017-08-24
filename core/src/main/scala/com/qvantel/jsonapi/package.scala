@@ -30,17 +30,17 @@ import scala.language.experimental.macros
 
 import scala.annotation.compileTimeOnly
 import shapeless.{:+:, CNil, Inl, Inr, Coproduct}
-import _root_.spray.http.Uri.Path
+import com.netaporter.uri.Uri
 import _root_.spray.json._
 import _root_.spray.json.DefaultJsonProtocol._
 
 package object jsonapi {
   type NameMangler = String => String
 
-  implicit object PathJsonFormat extends JsonFormat[Path] {
-    override def write(obj: Path): JsValue = JsString(obj.toString())
-    override def read(json: JsValue): Path = json match {
-      case JsString(s) => Path(s)
+  implicit object PathJsonFormat extends JsonFormat[Uri] {
+    override def write(obj: Uri): JsValue = JsString(obj.toString())
+    override def read(json: JsValue): Uri = json match {
+      case JsString(s) => Uri.parse(s)
       case other       => deserializationError(s"Expected Path as JsString but got ‘$other’")
     }
   }

@@ -26,7 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.qvantel.jsonapi
 
-import _root_.spray.http.Uri.Path
+import com.netaporter.uri.Uri
+import com.netaporter.uri.dsl._
 import _root_.spray.json._
 import _root_.spray.json.DefaultJsonProtocol._
 
@@ -34,7 +35,7 @@ class ApiRootSpec extends org.specs2.mutable.Specification {
 
   "ApiRoot" should {
     "take effect when proof for it exists" in {
-      implicit val apiRoot: com.qvantel.jsonapi.ApiRoot = ApiRoot(Some(Path("/api")))
+      implicit val apiRoot: com.qvantel.jsonapi.ApiRoot = ApiRoot(Some("/api"))
       @jsonApiResource case class Test(id: String, rel: ToOne[Child])
       @jsonApiResource case class Child(id: String)
 

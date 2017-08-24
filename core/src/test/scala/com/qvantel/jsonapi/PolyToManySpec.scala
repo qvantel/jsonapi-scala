@@ -30,7 +30,6 @@ import org.specs2.mutable.Specification
 import shapeless.{:+:, CNil, Coproduct, Poly1}
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
-import _root_.spray.http.Uri.Path
 
 import com.qvantel.jsonapi.PolyToMany.PolyWrongTypeException
 
@@ -92,7 +91,7 @@ final class PolyToManySpec extends Specification {
 
   "read" should {
     "properly read to-many reference" in {
-      val article     = Article("1", "boom", PolyToMany.reference[Author](Path("/articles/1")))
+      val article     = Article("1", "boom", PolyToMany.reference[Author]("/articles/1"))
       val articleJson = implicitly[JsonApiFormat[Article]].write(article)
 
       implicitly[JsonApiFormat[Article]].read(articleJson, Set.empty) must be equalTo article
