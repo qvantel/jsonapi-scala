@@ -206,8 +206,7 @@ object Link {
         JsObject("links" -> JsObject("related" -> path.toJson))
 
       case PolyToMany.PathReference(None) =>
-        // not 100% sure what to do in this case
-        JsObject("data" -> JsArray.empty)
+        JsObject("links" -> links(parent, name))
 
       case PolyToMany.Loaded(entities) =>
         val resourceLinkage = entities map { entity =>

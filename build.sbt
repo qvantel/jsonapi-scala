@@ -122,7 +122,7 @@ val sprayTestDeps = Seq(
 
 description in ThisBuild := "jsonapi.org scala implementation"
 
-version in ThisBuild := "5.0.1"
+version in ThisBuild := "5.0.2"
 
 startYear in ThisBuild := Some(2015)
 
