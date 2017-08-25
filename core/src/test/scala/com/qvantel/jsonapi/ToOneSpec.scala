@@ -213,6 +213,31 @@ final class ToOneSpec extends Specification {
           |}
         """.stripMargin.parseJson
 
+      val authorNullJsonOptional =
+        """
+          |{
+          |  "id": "test",
+          |  "type": "maybes",
+          |  "relationships": {
+          |    "author": null
+          |  }
+          |}
+        """.stripMargin.parseJson
+
+      val authorNullArticle =
+        """
+          |{
+          |  "id": "test",
+          |  "type": "articles",
+          |  "attributes": {
+          |    "title": "boom"
+          |  },
+          |  "relationships": {
+          |    "author": null
+          |  }
+          |}
+        """.stripMargin.parseJson
+
       implicitly[JsonApiFormat[Article]].read(properJson, Set.empty) must be equalTo Article("test",
                                                                                              "boom",
                                                                                              ToOne.reference("test"))
@@ -226,6 +251,8 @@ final class ToOneSpec extends Specification {
       implicitly[JsonApiFormat[Maybe]].read(missingDataJsonOptional, Set.empty) must throwA[DeserializationException](
         message = "expected 'data', 'links' or 'meta' in 'author' in relationships json")
       implicitly[JsonApiFormat[Maybe]].read(dataNullJsonOptional, Set.empty) must be equalTo Maybe("test", None)
+      implicitly[JsonApiFormat[Maybe]].read(authorNullJsonOptional, Set.empty) must be equalTo Maybe("test", None)
+      implicitly[JsonApiFormat[Article]].read(authorNullArticle, Set.empty) must throwA[DeserializationException]
     }
 
     "fail with deserialization exception when the entity in the relationship is of wrong type" in {
