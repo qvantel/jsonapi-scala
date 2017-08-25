@@ -117,7 +117,7 @@ trait JsonApiReaders extends JsonApiCommon {
         """
       def errorHandledOptionToOneFields =
         q"""
-          $relationshipsObj.flatMap(_.fields.get($jsonName).flatMap { rel =>
+          $relationshipsObj.flatMap(_.fields.get($jsonName).filterNot(_.isInstanceOf[_root_.spray.json.JsNull.type]).flatMap { rel =>
             // A "relationship object" must contain at least one of following: "data", "links" or "meta"
             val fields = rel.asJsObject.fields
             val x = fields.get("data")
