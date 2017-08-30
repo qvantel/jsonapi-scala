@@ -29,16 +29,19 @@ package com.qvantel
 import scala.language.experimental.macros
 
 import scala.annotation.compileTimeOnly
-import shapeless.{:+:, CNil, Inl, Inr, Coproduct}
+import shapeless.{:+:, CNil, Coproduct, Inl, Inr}
 import com.netaporter.uri.Uri
 import _root_.spray.json._
 import _root_.spray.json.DefaultJsonProtocol._
+import com.netaporter.uri.config.UriConfig
 
 package object jsonapi {
   type NameMangler = String => String
 
   implicit object PathJsonFormat extends JsonFormat[Uri] {
-    override def write(obj: Uri): JsValue = JsString(obj.toString())
+    import com.netaporter.uri.encoding._
+    private[this] val uriConfig           = UriConfig(encoder = percentEncode ++ '/')
+    override def write(obj: Uri): JsValue = JsString(obj.toString(uriConfig))
     override def read(json: JsValue): Uri = json match {
       case JsString(s) => Uri.parse(s)
       case other       => deserializationError(s"Expected Path as JsString but got ‘$other’")
