@@ -399,4 +399,19 @@ final class JsonApiResourceSpec extends Specification with ScalaCheck {
 
     }
   }
+
+  "'/' in id should be escaped correctly in the urls" >> {
+    @jsonApiResource final case class Test(id: String, many: Option[ToOne[Test]], one: ToMany[Test])
+
+    val t = Test("foo/bar", None, ToMany.reference)
+
+    val json = rawOne[Test](t)
+
+    import _root_.spray.json.lenses.JsonLenses._
+    import _root_.spray.json.DefaultJsonProtocol._
+
+    json.extract[String]('data / 'links / 'self) must be equalTo "/tests/foo%2Fbar"
+    json.extract[String]('data / 'relationships / 'one / 'links / 'related) must be equalTo "/tests/foo%2Fbar/one"
+    json.extract[String]('data / 'relationships / 'many / 'links / 'related) must be equalTo "/tests/foo%2Fbar/many"
+  }
 }
