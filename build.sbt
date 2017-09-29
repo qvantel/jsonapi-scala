@@ -114,15 +114,9 @@ val scala211 = Seq(
   ""
 )
 
-val sprayTestDeps = Seq(
-  "io.spray"          %% "spray-testkit"             % "1.3.4"  % "test",
-  "com.typesafe.akka" %% "akka-testkit"              % "2.4.14" % "test",
-  "io.spray"          %% "spray-routing-shapeless23" % "1.3.4"  % "test"
-)
-
 description in ThisBuild := "jsonapi.org scala implementation"
 
-version in ThisBuild := "5.0.7"
+version in ThisBuild := "5.1.0"
 
 startYear in ThisBuild := Some(2015)
 
@@ -202,15 +196,13 @@ lazy val core = (project in file("core"))
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
       compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
-      "com.chuusai"       %% "shapeless"       % "2.3.2",
-      "com.qvantel"       %% "scala-inflector" % "1.3.6",
-      "com.typesafe.akka" %% "akka-actor"      % "2.4.14" excludeAll (ExclusionRule(
-        organization = "com.typesafe.akka",
-        name = "akka-cluster_2.11"), ExclusionRule(organization = "com.typesafe.akka", name = "akka-remote_2.11")),
-      "io.spray"         %% "spray-json"  % "1.3.2",
-      "io.lemonlabs"     %% "scala-uri"   % "0.5.0",
-      "net.virtual-void" %% "json-lenses" % "0.6.2" excludeAll ExclusionRule(organization = "org.parboiled",
-                                                                             name = "parboiled-scala_2.11")
+      "com.chuusai"      %% "shapeless"       % "2.3.2",
+      "com.qvantel"      %% "scala-inflector" % "1.3.6",
+      "io.spray"         %% "spray-json"      % "1.3.2",
+      "io.lemonlabs"     %% "scala-uri"       % "0.5.0",
+      "net.virtual-void" %% "json-lenses"     % "0.6.2" excludeAll ExclusionRule(organization = "org.parboiled",
+                                                                             name = "parboiled-scala_2.11"),
+      "io.monix" %% "monix" % "3.0.0-M1" // pulls in cats 1.0.0-MF and cats-effect 0.4
     ) ++ testDeps
   )
 
@@ -243,12 +235,40 @@ lazy val spray = (project in file("spray"))
       "io.spray" %% "spray-client" % "1.3.4" excludeAll ExclusionRule(organization = "com.typesafe.akka",
                                                                       name = "akka-actor_2.11"),
       "io.spray" %% "spray-routing-shapeless23" % "1.3.4" excludeAll ExclusionRule(organization = "com.chuusai",
-                                                                                   name = "shapeless_2.11")
-    ) ++ sprayTestDeps ++ testDeps
+                                                                                   name = "shapeless_2.11"),
+      "com.typesafe.akka" %% "akka-actor" % "2.4.20" excludeAll (ExclusionRule(
+        organization = "com.typesafe.akka",
+        name = "akka-cluster_2.11"), ExclusionRule(organization = "com.typesafe.akka", name = "akka-remote_2.11")),
+      "io.spray"          %% "spray-testkit"             % "1.3.4"  % "test",
+      "com.typesafe.akka" %% "akka-testkit"              % "2.4.20" % "test",
+      "io.spray"          %% "spray-routing-shapeless23" % "1.3.4"  % "test"
+    ) ++ testDeps
+  )
+
+lazy val akkaClient = (project in file("akka-client"))
+  .dependsOn(core)
+  .settings(
+    name := "jsonapi-scala-akka-client",
+    scalaVersion := "2.11.11",
+    crossScalaVersions := Seq("2.12.3", "2.11.11"),
+    scalacOptions ++= {
+      if (scalaVersion.value startsWith "2.11.") {
+        scala211
+      } else {
+        scala212
+      }
+    },
+    libraryDependencies ++= Seq(
+      compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
+      "com.typesafe.akka" %% "akka-stream"          % "2.5.4",
+      "com.typesafe.akka" %% "akka-actor"           % "2.5.4",
+      "com.typesafe.akka" %% "akka-http"            % "10.0.10",
+      "com.typesafe.akka" %% "akka-http-spray-json" % "10.0.10"
+    ) ++ testDeps
   )
 
 lazy val root = (project in file("."))
-  .aggregate(core, model, spray)
+  .aggregate(core, model, spray, akkaClient)
   .settings(
     publishArtifact := false,
     name := "jsonapi-scala",
