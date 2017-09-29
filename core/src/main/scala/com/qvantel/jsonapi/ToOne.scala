@@ -26,11 +26,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.qvantel.jsonapi
 
+import scala.concurrent.Future
+import com.qvantel
+import monix.eval.Task
+
+import com.qvantel.jsonapi
+
 /**
   * Represents a relationship to object A
   * [[com.qvantel.jsonapi.ToOne.Reference]] case class is used when A is not loaded but we know it's id.
   * In case we do not know the id of the other end of the relationship wrap the relation in option and fill it with None
   * [[com.qvantel.jsonapi.ToOne.Loaded]] case class is used when A is loaded
+  *
   * @tparam A Type of the object the relationship points to
   */
 sealed trait ToOne[A] {
@@ -39,6 +46,8 @@ sealed trait ToOne[A] {
 
   /** Loaded biased get method as a helper when you don't want to pattern match like crazy */
   def get: Option[A]
+
+  def load(implicit jac: JsonApiClient[A], rt: ResourceType[A]): Task[A]
 }
 
 object ToOne {
@@ -47,6 +56,9 @@ object ToOne {
       ToOne.reference(fId(id))
 
     override def get: Option[A] = None
+
+    override def load(implicit jac: JsonApiClient[A], rt: ResourceType[A]): Task[A] =
+      jac.one(id).map(_.getOrElse(throw ApiError.NoEntityForId("id", rt)))
   }
 
   final case class Loaded[A: Identifiable](entity: A) extends ToOne[A] {
@@ -55,6 +67,8 @@ object ToOne {
       ToOne.loaded(fEntity(entity))
 
     override def get: Option[A] = Some(entity)
+
+    override def load(implicit jac: JsonApiClient[A], rt: ResourceType[A]): Task[A] = Task.now(entity)
   }
 
   def reference[A](id: String): ToOne[A]           = Reference(id)

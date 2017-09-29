@@ -27,6 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.qvantel.jsonapi
 
 import com.netaporter.uri.Uri
+import monix.eval.Task
 
 /**
   * Represents a relationship to zero or more objects of type A
@@ -42,11 +43,20 @@ sealed trait ToMany[A] {
 
   /** Loaded biased get method as a helper when you don't want to pattern match like crazy */
   def get: List[A]
+
+  def load(implicit jac: JsonApiClient[A], rt: ResourceType[A]): Task[List[A]]
 }
 
 object ToMany {
   final case class IdsReference[A](ids: Set[String]) extends ToMany[A] {
     override def get: List[A] = List.empty
+
+    def load(implicit jac: JsonApiClient[A], rt: ResourceType[A]): Task[List[A]] = jac.many(ids).map { entities =>
+      entities.map {
+        case Left(id)      => throw ApiError.NoEntityForId(id, rt)
+        case Right(entity) => entity
+      }
+    }
   }
 
   final case class PathReference[A](path: Option[Uri]) extends ToMany[A] {
@@ -54,12 +64,19 @@ object ToMany {
 
     /** Loaded biased get method as a helper when you don't want to pattern match like crazy */
     override def get: List[A] = List.empty
+
+    def load(implicit jac: JsonApiClient[A], rt: ResourceType[A]): Task[List[A]] = path match {
+      case Some(uri) => jac.pathMany(uri)
+      case None      => Task.now(List.empty)
+    }
   }
 
   final case class Loaded[A: Identifiable](entities: Iterable[A]) extends ToMany[A] {
     val ids = entities.map(implicitly[Identifiable[A]].identify).toSet
 
     override def get: List[A] = entities.toList
+
+    def load(implicit jac: JsonApiClient[A], rt: ResourceType[A]): Task[List[A]] = Task.now(entities.toList)
   }
 
   def reference[A]: ToMany[A]                                   = PathReference[A](None)
