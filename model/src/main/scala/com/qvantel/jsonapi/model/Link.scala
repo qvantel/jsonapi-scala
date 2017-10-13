@@ -29,7 +29,9 @@ package com.qvantel.jsonapi.model
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
 import com.netaporter.uri.Uri
-import com.netaporter.uri.dsl._
+import com.netaporter.uri.Uri.parse
+import com.netaporter.uri.decoding.NoopDecoder
+import com.netaporter.uri.encoding.NoopEncoder
 
 sealed abstract class Link {
   def href: Uri
@@ -39,22 +41,26 @@ object Link {
   final case class Url(href: Uri)                          extends Link
   final case class LinkObject(href: Uri, meta: MetaObject) extends Link
 
+  val uriConfig = com.qvantel.jsonapi.uriConfig.copy(pathDecoder = NoopDecoder, pathEncoder = NoopEncoder)
+
   implicit object LinkJsonFormat extends JsonFormat[Link] {
     override def write(obj: Link): JsValue = obj match {
-      case Url(href) => JsString(href.toString)
+      case Url(href) => JsString(href.toString(uriConfig))
       case LinkObject(href, meta) =>
         if (meta.nonEmpty) {
-          JsObject("href" -> href.toString.toJson, "meta" -> meta.toJson)
+          JsObject("href" -> href.toString(uriConfig).toJson, "meta" -> meta.toJson)
         } else {
-          JsObject("href" -> href.toString.toJson)
+          JsObject("href" -> href.toString(uriConfig).toJson)
         }
     }
 
     override def read(json: JsValue): Link = json match {
-      case JsString(href) => Url(href)
+      case JsString(href) => Url(parse(href)(uriConfig))
       case JsObject(fields) =>
         LinkObject(
-          href = fields.get("href").map(_.convertTo[String]).getOrElse(deserializationError("Expected ‘href’ in Link")),
+          href = parse(
+            fields.get("href").map(_.convertTo[String]).getOrElse(deserializationError("Expected ‘href’ in Link")))(
+            uriConfig),
           meta = fields.get("meta").map(_.convertTo[MetaObject]).getOrElse(Map.empty)
         )
       case invalid => deserializationError(s"Expected Link as JsString or JsObject, got ‘$invalid’")
