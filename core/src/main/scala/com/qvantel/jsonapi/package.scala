@@ -34,13 +34,15 @@ import com.netaporter.uri.Uri
 import _root_.spray.json._
 import _root_.spray.json.DefaultJsonProtocol._
 import com.netaporter.uri.config.UriConfig
+import com.netaporter.uri.encoding.percentEncode
+import com.netaporter.uri.decoding.NoopDecoder
 
 package object jsonapi {
   type NameMangler = String => String
 
+  val uriConfig = UriConfig(encoder = percentEncode ++ '/')
+
   implicit object PathJsonFormat extends JsonFormat[Uri] {
-    import com.netaporter.uri.encoding._
-    private[this] val uriConfig           = UriConfig(encoder = percentEncode ++ '/')
     override def write(obj: Uri): JsValue = JsString(obj.toString(uriConfig))
     override def read(json: JsValue): Uri = json match {
       case JsString(s) => Uri.parse(s)
