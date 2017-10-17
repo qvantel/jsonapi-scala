@@ -280,6 +280,28 @@ final class ToOneSpec extends Specification {
 
       implicitly[JsonApiFormat[Maybe]].read(modifiedMaybeJson, modifiedMaybeIncludes, Set("author"), "") must throwA[
         DeserializationException](message = "wrong type 'authors' expected but got 'wrong-type'")
+
+      val wrongToOneTypeJson =
+        """
+          |{
+          |  "id": "test",
+          |  "type": "articles",
+          |  "attributes": {
+          |    "title": "boom"
+          |  },
+          |  "relationships": {
+          |    "author": {
+          |      "data": {
+          |        "id": "test",
+          |        "type": "foobar"
+          |      }
+          |    }
+          |  }
+          |}
+        """.stripMargin.parseJson
+
+      implicitly[JsonApiFormat[Article]].read(wrongToOneTypeJson, Set.empty) must throwA[DeserializationException](
+        message = "wrong type 'authors' expected but got 'foobar'")
     }
 
     "handle nested structures" in {
