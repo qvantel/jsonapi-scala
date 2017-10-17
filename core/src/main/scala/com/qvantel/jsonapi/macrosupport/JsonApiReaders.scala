@@ -153,9 +153,12 @@ trait JsonApiReaders extends JsonApiCommon {
       def toOneCases =
         List(
           cq"""Seq(_root_.spray.json.JsString($relIdTerm), _root_.spray.json.JsString($relTypeTerm)) =>
+          val expectedType = implicitly[_root_.com.qvantel.jsonapi.ResourceType[$containedType]].resourceType
           if ($relIdTerm == "") {
             throw new _root_.spray.json.DeserializationException("illegal id 'empty string' found in Resource Identifier Object")
-          } else {
+         } else if (expectedType != $relTypeTerm) {
+            throw new _root_.spray.json.DeserializationException("wrong type '" + expectedType + "' expected but got '" + $relTypeTerm + "'")
+         } else {
             $includedByIdTypeTerm.get(($relIdTerm, $relTypeTerm)) match {
               case Some($jsObjectTerm) if $loadInclude =>
                 _root_.com.qvantel.jsonapi.ToOne.loaded[$containedType](implicitly[_root_.com.qvantel.jsonapi.JsonApiFormat[$containedType]].read($jsObjectTerm, $includedByIdTypeTerm, $includePaths, $newIncludePath))
