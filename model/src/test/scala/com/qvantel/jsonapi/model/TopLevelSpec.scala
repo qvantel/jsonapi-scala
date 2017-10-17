@@ -28,7 +28,7 @@ package com.qvantel.jsonapi.model
 
 import org.specs2.mutable.Specification
 import _root_.spray.json.DefaultJsonProtocol._
-import _root_.spray.json.JsonParser
+import _root_.spray.json._
 
 import com.qvantel.jsonapi.model.Link.Url
 import com.netaporter.uri.dsl._
@@ -175,21 +175,21 @@ final class TopLevelSpec extends Specification {
         """{
           |  "data": {
           |    "type": "articles",
-          |    "id": "1",
+          |    "id": "1:1/1",
           |    "attributes": {
           |      "title": "JSON API paints my bikeshed!"
           |    },
           |    "relationships": {
           |      "author": {
           |        "links": {
-          |          "self": "http://example.com/articles/1/relationships/author",
-          |          "related": "http://example.com/articles/1/author"
+          |          "self": "http://example.com/articles/1%3A1%251/relationships/author",
+          |          "related": "http://example.com/articles/1%3A1%251/author"
           |        }
           |      },
           |      "comments": {
           |        "links": {
-          |          "self": "http://example.com/articles/1/relationships/comments",
-          |          "related": "http://example.com/articles/1/comments"
+          |          "self": "http://example.com/articles/1%3A1%251/relationships/comments",
+          |          "related": "http://example.com/articles/1%3A1%251/comments"
           |        },
           |        "data": [
           |          { "type": "comments", "id": "5" },
@@ -198,7 +198,7 @@ final class TopLevelSpec extends Specification {
           |      }
           |    },
           |    "links": {
-          |      "self": "http://example.com/articles/1"
+          |      "self": "http://example.com/articles/1%3A1%251"
           |    }
           |  },
           |  "included": [{
@@ -244,11 +244,20 @@ final class TopLevelSpec extends Specification {
       val data = single.data.get._2
 
       data.`type` must be equalTo "articles"
-      data.id must beSome("1")
+      data.id must beSome("1:1/1")
       data.attributes.getAs[String]('title) must beSome("JSON API paints my bikeshed!")
       data.relationships must have size 2
       data.relationships must haveKey("author")
       data.relationships must haveKey("comments")
+      // check that id handling in links goes correctly
+      data.relationships.get("author").map(_.links.values.map(_.href.toString())).getOrElse(List.empty) must contain(
+        "http://example.com/articles/1:1%251/relationships/author",
+        "http://example.com/articles/1:1%251/author"
+      )
+      // and looping it through its own parser results in the same thing
+      data.relationships.get("author").map(_.links.values.toList) must be equalTo data.relationships
+        .get("author")
+        .map(_.links.values.map(_.toJson.convertTo[Link]).toList)
     }
     "successfully deserialize single JSON-API example where relationships are not loaded" in {
       val exampleStr =

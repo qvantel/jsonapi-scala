@@ -30,8 +30,6 @@ import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
 import com.netaporter.uri.Uri
 import com.netaporter.uri.Uri.parse
-import com.netaporter.uri.decoding.NoopDecoder
-import com.netaporter.uri.encoding.NoopEncoder
 
 sealed abstract class Link {
   def href: Uri
@@ -41,7 +39,7 @@ object Link {
   final case class Url(href: Uri)                          extends Link
   final case class LinkObject(href: Uri, meta: MetaObject) extends Link
 
-  val uriConfig = com.qvantel.jsonapi.uriConfig.copy(pathDecoder = NoopDecoder, pathEncoder = NoopEncoder)
+  val uriConfig = com.qvantel.jsonapi.uriConfig
 
   implicit object LinkJsonFormat extends JsonFormat[Link] {
     override def write(obj: Link): JsValue = obj match {
