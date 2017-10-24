@@ -10,16 +10,20 @@
 
 ### Example
 ```
-@jsonApiResource final case class Company(id: String, name: String, employees: ToMany[Employee])
+import _root_.spray.json.DefaultJsonProtocol._
+import com.qvantel.jsonapi._
+
+implicit val apiRoot: ApiRoot = ApiRoot(None)
+
 @jsonApiResource final case class Employee(id: String, name: String)
+@jsonApiResource final case class Company(id: String, name: String, employees: ToMany[Employee])
 
-val acme = Company("1", "acme", ToMany.loaded(Employee("1", "number one 1")))
+val acme = Company("1", "acme", ToMany.loaded(Seq(Employee("1", "number one 1"))))
 
-val json = JsonApiSupport.rawOne(acme)
-val parsed = JsonApiSupport.readOne(json, Set("employees"))
+val json = rawOne(acme)
+val parsed = readOne[Company](json, Set("employees"))
 
-json == parsed // true
-
+acme == parsed // true
 ```
 
 ### Known issues
