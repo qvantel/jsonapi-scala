@@ -237,5 +237,57 @@ final class ToManySpec extends Specification with MatcherMacros {
       implicitly[JsonApiFormat[Article]].read(modifiedJson, modifiedIncludes, Set("comments"), "") must throwA[
         DeserializationException](message = "wrong type 'comments' expected but got 'wrong-type'")
     }
+
+    "all ids in data are references (not to be loaded)" >> {
+      val article = Article("1", "boom", ToMany.reference(Set("1", "2")))
+      val json    = rawOne(article)
+      val parsed  = readOne[Article](json, Set("comments"))
+
+      article must be equalTo parsed
+    }
+
+    "throw error when trying to load mixed to-many collection" >> {
+      val json =
+        """
+          |{
+          |  "data": {
+          |    "attributes": {
+          |      "title": "boom"
+          |    },
+          |    "relationships": {
+          |      "comments": {
+          |        "data": [{
+          |          "type": "comments",
+          |          "id": "2"
+          |        }, {
+          |          "type": "comments",
+          |          "id": "3"
+          |        }],
+          |        "links": {
+          |          "related": "/articles/1/comments"
+          |        }
+          |      }
+          |    },
+          |    "links": {
+          |      "self": "/articles/1"
+          |    },
+          |    "id": "1",
+          |    "type": "articles"
+          |  },
+          |  "included": [{
+          |    "type": "comments",
+          |    "attributes": {
+          |      "content": "hello"
+          |    },
+          |    "id": "2",
+          |    "links": {
+          |      "self": "/comments/2"
+          |    }
+          |  }]
+          |}
+        """.stripMargin.parseJson.asJsObject
+      readOne[Article](json, Set("comments")) must throwA[DeserializationException](
+        "mixed reference and loaded types found")
+    }
   }
 }

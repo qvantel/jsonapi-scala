@@ -80,7 +80,7 @@ object PolyToMany {
   def reference[A <: Coproduct]: PolyToMany[A]              = PathReference[A](None)
   def reference[A <: Coproduct](uri: Uri): PolyToMany[A]    = PathReference[A](Some(uri))
   def reference[A <: Coproduct](uri: String): PolyToMany[A] = PathReference[A](Some(Uri.parse(uri)))
-  def reference[A <: Coproduct](rels: Map[String, String])(implicit crt: CoproductResourceType[A]): PolyToMany[A] = {
+  def reference[A <: Coproduct](rels: Set[(String, String)])(implicit crt: CoproductResourceType[A]): PolyToMany[A] = {
     val relationships = {
       val types = crt.apply
 
@@ -89,7 +89,7 @@ object PolyToMany {
           Rel(x._1, x._2)
         }
       } else {
-        throw new PolyWrongTypeException(s"types ${rels.values.toSet} given when only $types are allowed")
+        throw new PolyWrongTypeException(s"types ${rels.map(_._2)} given when only $types are allowed")
       }
 
     }
