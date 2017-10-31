@@ -85,7 +85,7 @@ final class PolyToManySpec extends Specification {
 
     "return None for Reference" in {
       val rt = implicitly[ResourceType[Person]].resourceType
-      PolyToMany.reference[Author](Map("1" -> rt, "2" -> rt)).get must be empty
+      PolyToMany.reference[Author](Set("1" -> rt, "2" -> rt)).get must be empty
     }
   }
 
@@ -98,7 +98,7 @@ final class PolyToManySpec extends Specification {
     }
 
     "properly read to-many reference ids" in {
-      val article     = Article("1", "boom", PolyToMany.reference[Author](Map("test" -> "people")))
+      val article     = Article("1", "boom", PolyToMany.reference[Author](Set("test" -> "people")))
       val articleJson = implicitly[JsonApiFormat[Article]].write(article)
 
       implicitly[JsonApiFormat[Article]].read(articleJson, Set.empty) must be equalTo article
@@ -213,7 +213,59 @@ final class PolyToManySpec extends Specification {
     }
 
     "throw exception when giving wrong type for reference ids" in {
-      Article("1", "boom", PolyToMany.reference[Author](Map("test" -> "authors"))) must throwA[PolyWrongTypeException]
+      Article("1", "boom", PolyToMany.reference[Author](Set("test" -> "authors"))) must throwA[PolyWrongTypeException]
+    }
+
+    "all ids in data are references (not to be loaded)" >> {
+      val article = Article("1", "boom", PolyToMany.reference[Author](Set("test" -> "people")))
+      val json    = rawOne(article)
+      val parsed  = readOne[Article](json, Set("authors"))
+
+      parsed must be equalTo article
+    }
+
+    "throw error when trying to load mixed to-many collection" >> {
+      val json =
+        """
+          |{
+          |  "data": {
+          |    "attributes": {
+          |      "title": "boom"
+          |    },
+          |    "relationships": {
+          |      "authors": {
+          |        "data": [{
+          |          "type": "people",
+          |          "id": "john"
+          |        }, {
+          |          "type": "companies",
+          |          "id": "evil"
+          |        }],
+          |        "links": {
+          |          "related": "/articles/1/authors"
+          |        }
+          |      }
+          |    },
+          |    "links": {
+          |      "self": "/articles/1"
+          |    },
+          |    "id": "1",
+          |    "type": "articles"
+          |  },
+          |  "included": [{
+          |    "type": "people",
+          |    "attributes": {
+          |      "name": "doe"
+          |    },
+          |    "id": "john",
+          |    "links": {
+          |      "self": "/people/john"
+          |    }
+          |  }]
+          |}
+        """.stripMargin.parseJson.asJsObject
+      readOne[Article](json, Set("authors")) must throwA[DeserializationException](
+        "mixed reference and loaded types found")
     }
   }
 

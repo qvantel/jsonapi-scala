@@ -221,12 +221,20 @@ trait JsonApiReaders extends JsonApiCommon {
 
                        val tpe = x.fields.get("type").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'type' not found in " + x.compactPrint))
 
-                       val item = $includedByIdTypeTerm.getOrElse((id, tpe), throw new _root_.spray.json.DeserializationException("expected entity to be found in include list for id and tpe"))
+                       val item = $includedByIdTypeTerm.get((id, tpe))
 
-                       implicitly[_root_.com.qvantel.jsonapi.JsonApiFormat[$containedType]].read(item, $includedByIdTypeTerm, $includePaths, $newIncludePath)
+                       item.map { x =>
+                         implicitly[_root_.com.qvantel.jsonapi.JsonApiFormat[$containedType]].read(x, $includedByIdTypeTerm, $includePaths, $newIncludePath)
+                       }
                      }
 
-                     _root_.com.qvantel.jsonapi.ToMany.loaded[$containedType](entities)
+                     if (entities.forall(_.isDefined)) {
+                       _root_.com.qvantel.jsonapi.ToMany.loaded[$containedType](entities.flatten)
+                     } else if (entities.forall(_.isEmpty)) {
+                       _root_.com.qvantel.jsonapi.ToMany.reference[$containedType](data.map { x => x.fields.get("id").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'id' not found in " + x.compactPrint)) }.toSet)
+                     } else {
+                       throw new _root_.spray.json.DeserializationException("mixed reference and loaded types found")
+                     }
                    } else {
                      _root_.com.qvantel.jsonapi.ToMany.reference[$containedType](data.map { x =>
                        val tpe = x.fields.get("type").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'type' not found in " + x.compactPrint))
@@ -265,7 +273,9 @@ trait JsonApiReaders extends JsonApiCommon {
           coproductTypes(containedType).map { cType =>
             cq"""
               tpe if tpe == implicitly[_root_.com.qvantel.jsonapi.ResourceType[$cType]].resourceType =>
-                _root_.shapeless.Coproduct[$containedType](implicitly[_root_.com.qvantel.jsonapi.JsonApiFormat[$cType]].read($jsObjectTerm, $includedByIdTypeTerm, $includePaths, $newIncludePath))
+                $jsObjectTerm.map { json =>
+                  _root_.shapeless.Coproduct[$containedType](implicitly[_root_.com.qvantel.jsonapi.JsonApiFormat[$cType]].read(json, $includedByIdTypeTerm, $includePaths, $newIncludePath))
+                }
             """
           } :+ cq"""tpe => throw new _root_.spray.json.DeserializationException("relationship of type '" + tpe + "' is not one of [" + $coproductTypeList.mkString(",") + "]")"""
 
@@ -294,13 +304,24 @@ trait JsonApiReaders extends JsonApiCommon {
 
                        val tpe = x.fields.get("type").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'type' not found in " + x.compactPrint))
 
-                       val $jsObjectTerm = $includedByIdTypeTerm.getOrElse((id, tpe), throw new _root_.spray.json.DeserializationException("expected entity to be found in include list for id and tpe"))
+                       val $jsObjectTerm = $includedByIdTypeTerm.get((id, tpe))
 
 
                        tpe match { case ..$coproductLoader }
                      }
 
-                     _root_.com.qvantel.jsonapi.PolyToMany.loaded[$containedType](entities)
+                     if (entities.forall(_.isDefined)) {
+                       _root_.com.qvantel.jsonapi.PolyToMany.loaded[$containedType](entities.flatten)
+                     } else if (entities.forall(_.isEmpty)) {
+                       _root_.com.qvantel.jsonapi.PolyToMany.reference[$containedType](data.map { x =>
+                         val tpe = x.fields.get("type").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'type' not found in " + x.compactPrint))
+                         val id = x.fields.get("id").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'id' not found in " + x.compactPrint))
+
+                         (id, tpe)
+                       }.toSet)
+                     } else {
+                       throw new _root_.spray.json.DeserializationException("mixed reference and loaded types found")
+                     }
                    } else {
                      _root_.com.qvantel.jsonapi.PolyToMany.reference[$containedType](data.map { x =>
                        val tpe = x.fields.get("type").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'type' not found in " + x.compactPrint))
@@ -313,7 +334,7 @@ trait JsonApiReaders extends JsonApiCommon {
                        tpe match { case ..$coproductTypeChecker }
 
                        (id, tpe)
-                     }.toMap)
+                     }.toSet)
                    }
                   case (_, Some(links)) =>
                     val related = links.asJsObject.fields.get("related")
