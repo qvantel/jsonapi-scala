@@ -2,7 +2,6 @@ package com.qvantel.jsonapi.client.akka
 
 import com.qvantel.jsonapi.{ToMany, ToOne, jsonApiResource}
 import spray.json.DefaultJsonProtocol._
-import spray.json._
 
 @jsonApiResource final case class BillingAccount(id: String,
                                                  accountId: String,

@@ -99,9 +99,7 @@ trait SprayExceptionHandler {
       completeJsonApiError(BadRequest, "Missing Header", s"Request is missing required HTTP header '$headerName'")
 
     case MissingQueryParamRejection(paramName) :: _ =>
-      completeJsonApiError(NotFound,
-                           "Missing Query Param",
-                           s"Request is missing required query parameter '$paramName'")
+      completeJsonApiError(NotFound, "Missing Query Param", s"Request is missing required query parameter '$paramName'")
 
     case RequestEntityExpectedRejection :: _ =>
       completeJsonApiError(BadRequest, "Request Entity Expected", "Request entity expected but not supplied")

@@ -35,7 +35,6 @@ import _root_.spray.json._
 import _root_.spray.json.DefaultJsonProtocol._
 import com.netaporter.uri.config.UriConfig
 import com.netaporter.uri.encoding.percentEncode
-import com.netaporter.uri.decoding.NoopDecoder
 
 package object jsonapi {
   type NameMangler = String => String

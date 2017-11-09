@@ -91,7 +91,6 @@ val scala211 = Seq(
   "130",
   "-Xverify",
   // private
-  "-Ybackend:GenBCode",
   "-Ybreak-cycles",
   "-Yclosure-elim",
   "-Yconst-opt",
@@ -110,13 +109,14 @@ val scala211 = Seq(
   "-Ywarn-unused",
   "-Ywarn-unused-import",
   "-Ywarn-value-discard",
+  "-Ypartial-unification",
   //  "-Ymacro-debug-lite",
   ""
 )
 
 description in ThisBuild := "jsonapi.org scala implementation"
 
-version in ThisBuild := "5.1.1"
+version in ThisBuild := "5.1.2"
 
 startYear in ThisBuild := Some(2015)
 
@@ -168,10 +168,10 @@ javacOptions in ThisBuild ++= Seq("-deprecation", "-g", "-source", "8", "-target
 
 val testDeps = Seq(
   // testing related
-  "org.specs2" %% "specs2-core"          % "3.9.1" % "test",
-  "org.specs2" %% "specs2-junit"         % "3.9.1" % "test",
-  "org.specs2" %% "specs2-scalacheck"    % "3.9.1" % "test",
-  "org.specs2" %% "specs2-matcher-extra" % "3.9.1" % "test"
+  "org.specs2" %% "specs2-core"          % "4.0.0" % "test",
+  "org.specs2" %% "specs2-junit"         % "4.0.0" % "test",
+  "org.specs2" %% "specs2-scalacheck"    % "4.0.0" % "test",
+  "org.specs2" %% "specs2-matcher-extra" % "4.0.0" % "test"
 )
 
 wartremoverErrors in (Compile, compile) ++= (Warts.unsafe.toSet -- Set(Wart.Any,
@@ -202,7 +202,7 @@ lazy val core = (project in file("core"))
       "io.lemonlabs"     %% "scala-uri"       % "0.5.0",
       "net.virtual-void" %% "json-lenses"     % "0.6.2" excludeAll ExclusionRule(organization = "org.parboiled",
                                                                              name = "parboiled-scala_2.11"),
-      "io.monix" %% "monix" % "3.0.0-M1" // pulls in cats 1.0.0-MF and cats-effect 0.4
+      "io.monix" %% "monix" % "3.0.0-M2" // pulls in cats 1.0.0-RC1 and cats-effect 0.5
     ) ++ testDeps
   )
 
@@ -260,8 +260,8 @@ lazy val akkaClient = (project in file("akka-client"))
     },
     libraryDependencies ++= Seq(
       compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
-      "com.typesafe.akka" %% "akka-stream"          % "2.5.4",
-      "com.typesafe.akka" %% "akka-actor"           % "2.5.4",
+      "com.typesafe.akka" %% "akka-stream"          % "2.5.6",
+      "com.typesafe.akka" %% "akka-actor"           % "2.5.6",
       "com.typesafe.akka" %% "akka-http"            % "10.0.10",
       "com.typesafe.akka" %% "akka-http-spray-json" % "10.0.10"
     ) ++ testDeps

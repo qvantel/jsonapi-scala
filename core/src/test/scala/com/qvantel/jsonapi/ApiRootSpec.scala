@@ -26,7 +26,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.qvantel.jsonapi
 
-import com.netaporter.uri.Uri
 import com.netaporter.uri.dsl._
 import _root_.spray.json._
 import _root_.spray.json.DefaultJsonProtocol._

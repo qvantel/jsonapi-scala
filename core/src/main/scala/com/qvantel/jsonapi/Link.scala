@@ -129,10 +129,9 @@ object Link {
         JsObject("data" -> JsArray(resourceLinkage.toVector), "links" -> links(parent, name))
     }
 
-  def to[A <: Coproduct, P](parent: P, relation: PolyToOne[A], name: String)(
-      implicit identifiable: PolyIdentifiable[A],
-      pathToParent: PathTo[P],
-      apiRoot: ApiRoot): JsValue = {
+  def to[A <: Coproduct, P](parent: P, relation: PolyToOne[A], name: String)(implicit identifiable: PolyIdentifiable[A],
+                                                                             pathToParent: PathTo[P],
+                                                                             apiRoot: ApiRoot): JsValue = {
     def resourceLinkage(tpe: String, id: String): JsObject =
       JsObject("type" -> tpe.toJson, "id" -> id.toJson)
 

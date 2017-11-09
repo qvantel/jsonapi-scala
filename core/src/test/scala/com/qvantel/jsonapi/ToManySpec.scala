@@ -157,9 +157,7 @@ final class ToManySpec extends Specification with MatcherMacros {
           |}
         """.stripMargin.parseJson
 
-      implicitly[JsonApiFormat[Article]].read(json, Set.empty) must be equalTo Article("test",
-                                                                                       "boom",
-                                                                                       ToMany.reference)
+      implicitly[JsonApiFormat[Article]].read(json, Set.empty) must be equalTo Article("test", "boom", ToMany.reference)
     }
 
     "parse into reference when a relationships content is null" in {
@@ -177,9 +175,7 @@ final class ToManySpec extends Specification with MatcherMacros {
           |}
         """.stripMargin.parseJson
 
-      implicitly[JsonApiFormat[Article]].read(json, Set.empty) must be equalTo Article("test",
-                                                                                       "boom",
-                                                                                       ToMany.reference)
+      implicitly[JsonApiFormat[Article]].read(json, Set.empty) must be equalTo Article("test", "boom", ToMany.reference)
     }
 
     "parse into reference when relationships is null" in {
@@ -195,9 +191,7 @@ final class ToManySpec extends Specification with MatcherMacros {
           |}
         """.stripMargin.parseJson
 
-      implicitly[JsonApiFormat[Article]].read(json, Set.empty) must be equalTo Article("test",
-                                                                                       "boom",
-                                                                                       ToMany.reference)
+      implicitly[JsonApiFormat[Article]].read(json, Set.empty) must be equalTo Article("test", "boom", ToMany.reference)
     }
 
     "parse into path reference when only related links in relationship" in {

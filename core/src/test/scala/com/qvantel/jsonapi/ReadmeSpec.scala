@@ -29,7 +29,6 @@ package com.qvantel.jsonapi
 
 import org.specs2.mutable.Specification
 import _root_.spray.json.DefaultJsonProtocol._
-import _root_.spray.json._
 
 class ReadmeSpec extends Specification {
   implicit val apiRoot: ApiRoot = ApiRoot(None)

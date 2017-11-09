@@ -26,11 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.qvantel.jsonapi
 
-import scala.concurrent.Future
-import com.qvantel
 import monix.eval.Task
-
-import com.qvantel.jsonapi
 
 /**
   * Represents a relationship to object A
