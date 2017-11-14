@@ -7,6 +7,9 @@
 ## Features
 * Automatic generation of jsonapi json writers with relationship handling for case classes
 
+## Requirements
+* Tested to work on Scala 2.11.11 or 2.12.3
+* Macro paradise plugin. Add `addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)` into your build.sbt somewhere
 
 ### Example
 ```scala
@@ -25,6 +28,8 @@ val parsed = readOne[Company](json, Set("employees"))
 
 acme == parsed // true
 ```
+
+or see https://github.com/Doikor/jsonapi-scala-example
 
 ### Known issues
   * loop handing on reader side (relationship path has to be given manually)
