@@ -218,6 +218,38 @@ final class PolyToOneSpec extends Specification {
     }
   }
 
+  "write" >> {
+    "print out data as null for None case of Option[PolyToOne[X]]" >> {
+      val t = Maybe("id", None)
+
+      val rawJson =
+        """
+          |{
+          |  "data": {
+          |    "attributes": {
+          |
+          |    },
+          |    "relationships": {
+          |      "maybe": {
+          |        "data": null,
+          |        "links": {
+          |          "related": "/maybes/id/maybe"
+          |        }
+          |      }
+          |    },
+          |    "links": {
+          |      "self": "/maybes/id"
+          |    },
+          |    "id": "id",
+          |    "type": "maybes"
+          |  }
+          |}
+        """.stripMargin.parseJson.asJsObject
+
+      rawOne(t) must be equalTo rawJson
+    }
+  }
+
   "properly generate Includes type class for poly to one relationship" in {
     val includes = implicitly[Includes[Loop]]
 

@@ -108,7 +108,7 @@ final class JsonApiResourceSpec extends Specification with ScalaCheck {
                           "links" -> JsObject("related" -> "/relations/1/a".toJson)),
           "b" -> JsObject("data" -> JsArray(JsObject("type" -> "simples".toJson, "id" -> "2".toJson)),
                           "links" -> JsObject("related" -> "/relations/1/b".toJson)),
-          "c" -> JsObject("links" -> JsObject("related" -> "/relations/1/c".toJson))
+          "c" -> JsObject("data" -> JsNull, "links" -> JsObject("related" -> "/relations/1/c".toJson))
         ),
         "links" -> JsObject("self" -> "/relations/1".toJson)
       )

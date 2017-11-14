@@ -318,6 +318,40 @@ final class ToOneSpec extends Specification {
     }
   }
 
+  "write" >> {
+    "print out data as null for None case of Option[ToOne[X]]" >> {
+      @jsonApiResource final case class Test(id: String, opt: Option[ToOne[Test]])
+
+      val t = Test("id", None)
+
+      val rawJson =
+        """
+          |{
+          |  "data": {
+          |    "attributes": {
+          |
+          |    },
+          |    "relationships": {
+          |      "opt": {
+          |        "links": {
+          |          "related": "/tests/id/opt"
+          |        },
+          |        "data": null
+          |      }
+          |    },
+          |    "links": {
+          |      "self": "/tests/id"
+          |    },
+          |    "id": "id",
+          |    "type": "tests"
+          |  }
+          |}
+        """.stripMargin.parseJson.asJsObject
+
+      rawOne(t) must be equalTo rawJson
+    }
+  }
+
   "read and write JsonOption relationship" in {
     @jsonApiResource("test", "no-id") final case class Test(name: String, x: JsonOption[ToOne[Author]])
 
