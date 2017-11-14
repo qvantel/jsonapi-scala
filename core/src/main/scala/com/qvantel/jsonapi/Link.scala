@@ -74,7 +74,7 @@ object Link {
         JsObject("data" -> resourceLinkage(identifiable.identify(entity)), "links" -> links(parent, name))
 
       case _ =>
-        JsObject("links" -> links(parent, name))
+        JsObject("data" -> JsNull, "links" -> links(parent, name))
     }
   }
 
@@ -159,7 +159,7 @@ object Link {
         JsObject("data" -> resourceLinkage(rt, id), "links" -> links(parent, name))
 
       case _ =>
-        JsObject("links" -> links(parent, name))
+        JsObject("data" -> JsNull, "links" -> links(parent, name))
     }
   }
 
