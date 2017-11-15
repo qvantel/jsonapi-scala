@@ -350,6 +350,69 @@ final class ToOneSpec extends Specification {
 
       rawOne(t) must be equalTo rawJson
     }
+
+    "print out data as null for JsonAbsent case of JsonOption[ToOne[X]]" >> {
+      @jsonApiResource final case class Test(id: String, opt: JsonOption[ToOne[Test]])
+
+      val t = Test("id", JsonAbsent)
+
+      val rawJson =
+        """
+          |{
+          |  "data": {
+          |    "attributes": {
+          |
+          |    },
+          |    "relationships": {
+          |      "opt": {
+          |        "links": {
+          |          "related": "/tests/id/opt"
+          |        }
+          |      }
+          |    },
+          |    "links": {
+          |      "self": "/tests/id"
+          |    },
+          |    "id": "id",
+          |    "type": "tests"
+          |  }
+          |}
+        """.stripMargin.parseJson.asJsObject
+
+      rawOne(t) must be equalTo rawJson
+    }
+
+    "print out data as null for JsonAbsent case of JsonOption[ToOne[X]]" >> {
+      @jsonApiResource final case class Test(id: String, opt: JsonOption[ToOne[Test]])
+
+      val t = Test("id", JsonNull)
+
+      val rawJson =
+        """
+          |{
+          |  "data": {
+          |    "attributes": {
+          |
+          |    },
+          |    "relationships": {
+          |      "opt": {
+          |        "links": {
+          |          "related": "/tests/id/opt"
+          |        },
+          |        "data": null
+          |      }
+          |    },
+          |    "links": {
+          |      "self": "/tests/id"
+          |    },
+          |    "id": "id",
+          |    "type": "tests"
+          |  }
+          |}
+        """.stripMargin.parseJson.asJsObject
+
+      rawOne(t) must be equalTo rawJson
+    }
   }
 
   "read and write JsonOption relationship" in {
