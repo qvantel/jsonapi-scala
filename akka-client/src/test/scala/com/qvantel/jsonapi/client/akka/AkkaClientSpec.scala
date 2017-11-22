@@ -6,7 +6,10 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
+import cats.Applicative
+import cats.instances.list._
 import cats.data.OptionT
+import cats.effect.IO
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.matcher.MatcherMacros
 import org.specs2.mutable.Specification
@@ -15,13 +18,11 @@ import org.specs2.specification.AfterAll
 import com.qvantel.jsonapi._
 import AkkaClient._
 import com.netaporter.uri.dsl._
-import monix.eval.Task
-import monix.execution.Scheduler.Implicits.global
 
 class AkkaClientSpec(implicit ee: ExecutionEnv) extends Specification with MatcherMacros with AfterAll {
   // TODO: make tests run/work without external service
   // to run these tests uncomment this and start a jsonapi.org compatible server in the url specified for the endpoint
-  skipAll
+  // skipAll
 
   implicit val system: ActorSystem   = ActorSystem()
   implicit val m: ActorMaterializer  = ActorMaterializer()
@@ -29,41 +30,46 @@ class AkkaClientSpec(implicit ee: ExecutionEnv) extends Specification with Match
 
   "AkkaClient" >> {
     "one" >> {
-      val req = JsonApiClient[BillingAccount].one("lindberg-ab-billingaccount1").runAsync
+      val req = JsonApiClient[BillingAccount].one("lindberg-ab-billingaccount1").unsafeRunSync()
 
-      req must beSome(matchA[BillingAccount].id("lindberg-ab-billingaccount1")).await
+      req must beSome(matchA[BillingAccount].id("lindberg-ab-billingaccount1"))
+    }
+
+    "make sure weird characters in id work correctly" >> {
+      val req = JsonApiClient[BillingAccount].one("""foo & bar / baz""").unsafeRunSync()
+
+      req must beSome(matchA[BillingAccount].id("foo & bar / baz"))
     }
 
     "one with include" >> {
       val req = OptionT(JsonApiClient[BillingAccount].one("lindberg-ab-billingaccount1", Set("customer-account")))
+      val res = req.subflatMap(_.customerAccount.get).value.unsafeRunSync()
 
-      req.subflatMap(_.customerAccount.get).value.runAsync must beSome(
-        matchA[CustomerAccount].id("lindberg-ab-customeraccount1")).await
+      res must beSome(matchA[CustomerAccount].id("lindberg-ab-customeraccount1"))
     }
 
     "many" >> {
-      val req = JsonApiClient[BillingAccount].many(Set("lindberg-ab-billingaccount1", "qvantel-billingaccount1"))
+      val req = JsonApiClient[BillingAccount]
+        .many(Set("lindberg-ab-billingaccount1", "qvantel-billingaccount1"))
+        .unsafeRunSync()
 
-      val right = req.map(_.flatMap(_.right.toOption))
-
-      right.runAsync must contain(
+      req must contain(
         matchA[BillingAccount].id("lindberg-ab-billingaccount1"),
         matchA[BillingAccount].id("qvantel-billingaccount1")
-      ).await
+      )
     }
 
     "many with include" >> {
       val req = JsonApiClient[BillingAccount].many(Set("lindberg-ab-billingaccount1", "qvantel-billingaccount1"),
                                                    Set("customer-account"))
+      val mapped = req.flatMap(x => Applicative[IO].sequence(x.map(_.customerAccount.load)))
 
-      val right = req.map(_.flatMap(_.right.toOption))
+      val res = mapped.unsafeRunSync()
 
-      val mapped = right.flatMap(x => Task.gatherUnordered(x.map(_.customerAccount.load)))
-
-      mapped.runAsync must contain(
+      res must contain(
         matchA[CustomerAccount].id("lindberg-ab-customeraccount1"),
         matchA[CustomerAccount].id("qvantel-customeraccount1")
-      ).await
+      )
     }
 
     "load ToOne" >> {
@@ -71,7 +77,9 @@ class AkkaClientSpec(implicit ee: ExecutionEnv) extends Specification with Match
 
       val ca = ba.semiflatMap(_.customerAccount.load)
 
-      ca.value.runAsync must beSome(matchA[CustomerAccount].id("lindberg-ab-customeraccount1")).await
+      val res = ca.value.unsafeRunSync()
+
+      res must beSome(matchA[CustomerAccount].id("lindberg-ab-customeraccount1"))
     }
 
     "load ToMany" >> {
@@ -79,13 +87,20 @@ class AkkaClientSpec(implicit ee: ExecutionEnv) extends Specification with Match
 
       val ba = ca.semiflatMap(_.billingAccounts.load)
 
-      ba.value.runAsync must beSome(contain(matchA[BillingAccount].id("lindberg-ab-billingaccount1"))).await
+      val res = ba.value.unsafeRunSync()
+
+      res must beSome(contain(matchA[BillingAccount].id("lindberg-ab-billingaccount1")))
     }
 
     "filter" >> {
-      val req = JsonApiClient[BillingAccount].filter("""(EQ id "lindberg-ab-billingaccount1")""").runAsync
+      val req = JsonApiClient[BillingAccount]
+        .filter("""(OR (EQ id "lindberg-ab-billingaccount1") (EQ id "foo & bar / baz") )""")
+        .unsafeRunSync()
 
-      req must contain(matchA[BillingAccount].id("lindberg-ab-billingaccount1")).await
+      req must contain(
+        matchA[BillingAccount].id("lindberg-ab-billingaccount1"),
+        matchA[BillingAccount].id("foo & bar / baz")
+      )
     }
   }
 

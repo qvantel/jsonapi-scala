@@ -184,8 +184,8 @@ wartremoverErrors in (Compile, compile) ++= (Warts.unsafe.toSet -- Set(Wart.Any,
 lazy val core = (project in file("core"))
   .settings(
     name := "jsonapi-scala-core",
-    scalaVersion := "2.11.11",
-    crossScalaVersions := Seq("2.12.3", "2.11.11"),
+    scalaVersion := "2.11.12",
+    crossScalaVersions := Seq("2.12.4", "2.11.12"),
     scalacOptions ++= {
       if (scalaVersion.value startsWith "2.11.") {
         scala211
@@ -202,7 +202,7 @@ lazy val core = (project in file("core"))
       "io.lemonlabs"     %% "scala-uri"       % "0.5.0",
       "net.virtual-void" %% "json-lenses"     % "0.6.2" excludeAll ExclusionRule(organization = "org.parboiled",
                                                                              name = "parboiled-scala_2.11"),
-      "io.monix" %% "monix" % "3.0.0-M2" // pulls in cats 1.0.0-RC1 and cats-effect 0.5
+      "org.typelevel" %% "cats-effect" % "0.5"
     ) ++ testDeps
   )
 
@@ -210,8 +210,8 @@ lazy val model = (project in file("model"))
   .dependsOn(core)
   .settings(
     name := "jsonapi-scala-model",
-    scalaVersion := "2.11.11",
-    crossScalaVersions := Seq("2.12.3", "2.11.11"),
+    scalaVersion := "2.11.12",
+    crossScalaVersions := Seq("2.12.4", "2.11.12"),
     scalacOptions ++= {
       if (scalaVersion.value startsWith "2.11.") {
         scala211
@@ -226,8 +226,8 @@ lazy val spray = (project in file("spray"))
   .dependsOn(core, model)
   .settings(
     name := "jsonapi-scala-spray",
-    scalaVersion := "2.11.11",
-    crossScalaVersions := Seq("2.11.11"),
+    scalaVersion := "2.11.12",
+    crossScalaVersions := Seq("2.11.12"),
     scalacOptions ++= scala211,
     libraryDependencies ++= Seq(
       compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
@@ -249,8 +249,8 @@ lazy val akkaClient = (project in file("akka-client"))
   .dependsOn(core)
   .settings(
     name := "jsonapi-scala-akka-client",
-    scalaVersion := "2.11.11",
-    crossScalaVersions := Seq("2.12.3", "2.11.11"),
+    scalaVersion := "2.11.12",
+    crossScalaVersions := Seq("2.12.4", "2.11.12"),
     scalacOptions ++= {
       if (scalaVersion.value startsWith "2.11.") {
         scala211
@@ -272,5 +272,8 @@ lazy val root = (project in file("."))
   .settings(
     publishArtifact := false,
     name := "jsonapi-scala",
-    scalaVersion := "2.11.11"
+    scalaVersion := "2.11.12"
   )
+
+scalafixSemanticdbVersion in ThisBuild := "2.1.2" // once we scalafix 0.5.4 this can be removed
+scalafixSettings
