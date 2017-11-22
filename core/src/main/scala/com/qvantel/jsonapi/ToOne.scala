@@ -26,7 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.qvantel.jsonapi
 
-import monix.eval.Task
+import cats.effect.IO
 
 /**
   * Represents a relationship to object A
@@ -43,7 +43,7 @@ sealed trait ToOne[A] {
   /** Loaded biased get method as a helper when you don't want to pattern match like crazy */
   def get: Option[A]
 
-  def load(implicit jac: JsonApiClient[A], rt: ResourceType[A]): Task[A]
+  def load(implicit jac: JsonApiClient[A], rt: ResourceType[A]): IO[A]
 }
 
 object ToOne {
@@ -53,8 +53,10 @@ object ToOne {
 
     override def get: Option[A] = None
 
-    override def load(implicit jac: JsonApiClient[A], rt: ResourceType[A]): Task[A] =
-      jac.one(id).map(_.getOrElse(throw ApiError.NoEntityForId("id", rt)))
+    override def load(implicit jac: JsonApiClient[A], rt: ResourceType[A]): IO[A] = jac.one(id).flatMap {
+      case Some(x) => IO.pure(x)
+      case None    => IO.raiseError(ApiError.NoEntityForId("id", rt.resourceType))
+    }
   }
 
   final case class Loaded[A: Identifiable](entity: A) extends ToOne[A] {
@@ -64,7 +66,7 @@ object ToOne {
 
     override def get: Option[A] = Some(entity)
 
-    override def load(implicit jac: JsonApiClient[A], rt: ResourceType[A]): Task[A] = Task.now(entity)
+    override def load(implicit jac: JsonApiClient[A], rt: ResourceType[A]): IO[A] = IO.pure(entity)
   }
 
   def reference[A](id: String): ToOne[A]           = Reference(id)

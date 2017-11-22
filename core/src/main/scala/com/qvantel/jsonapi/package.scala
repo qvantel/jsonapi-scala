@@ -39,7 +39,7 @@ import com.netaporter.uri.encoding.percentEncode
 package object jsonapi {
   type NameMangler = String => String
 
-  val uriConfig = UriConfig(encoder = percentEncode ++ '/')
+  val uriConfig = UriConfig(encoder = percentEncode ++ '/' ++ '"')
 
   implicit object PathJsonFormat extends JsonFormat[Uri] {
     override def write(obj: Uri): JsValue = JsString(obj.toString(uriConfig))

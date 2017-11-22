@@ -26,6 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.qvantel.jsonapi
 
+import cats.effect.IO
 import shapeless.Coproduct
 import shapeless.ops.coproduct.Inject
 
@@ -35,14 +36,24 @@ sealed trait PolyToOne[A <: Coproduct] {
 
   /** Loaded biased get method as a helper when you don't want to pattern match like crazy */
   def get: Option[A]
+
+  def load(implicit jac: JsonApiClient[A], rt: ResourceType[A]): IO[A]
 }
 
 object PolyToOne {
   final case class Reference[A <: Coproduct](id: String, resourceType: String) extends PolyToOne[A] {
     override def get: Option[A] = None
+
+    override def load(implicit jac: JsonApiClient[A], rt: ResourceType[A]): IO[A] = jac.one(id).flatMap {
+      case Some(x) => IO.pure(x)
+      case None    => IO.raiseError(ApiError.NoEntityForId("id", rt.resourceType))
+    }
   }
+
   final case class Loaded[A <: Coproduct](entity: A, id: String, resourceType: String) extends PolyToOne[A] {
     override def get: Option[A] = Some(entity)
+
+    override def load(implicit jac: JsonApiClient[A], rt: ResourceType[A]): IO[A] = IO.pure(entity)
   }
 
   def reference[A <: Coproduct, E: ResourceType](id: String): PolyToOne[A] =
