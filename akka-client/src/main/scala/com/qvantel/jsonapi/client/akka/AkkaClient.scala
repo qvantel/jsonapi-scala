@@ -13,7 +13,6 @@ import akka.stream.ActorMaterializer
 import cats.{Applicative, Eval}
 import cats.effect.IO
 import com.netaporter.uri
-import com.netaporter.uri.QueryString
 import com.netaporter.uri.config.UriConfig
 import com.netaporter.uri.dsl._
 
@@ -72,16 +71,14 @@ object AkkaClient {
         }
 
       override def many(ids: Set[String], include: Set[String]) = {
-        val requests = ids.map { id =>
+        import cats.instances.list._
+
+        Applicative[IO].traverse(ids.toList) { id =>
           one(id, include).flatMap {
             case Some(entity) => IO.pure(entity)
             case None         => IO.raiseError(ApiError.NoEntityForId(id, rt.resourceType))
           }
-        }.toList
-
-        import cats.instances.list._
-
-        Applicative[IO].sequence(requests)
+        }
       }
 
       override def pathOne(path: uri.Uri, include: Set[String]) =

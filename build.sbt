@@ -116,7 +116,7 @@ val scala211 = Seq(
 
 description in ThisBuild := "jsonapi.org scala implementation"
 
-version in ThisBuild := "5.1.3"
+version in ThisBuild := "6.0.0"
 
 startYear in ThisBuild := Some(2015)
 
@@ -185,7 +185,7 @@ lazy val core = (project in file("core"))
   .settings(
     name := "jsonapi-scala-core",
     scalaVersion := "2.11.12",
-    crossScalaVersions := Seq("2.12.4", "2.11.12"),
+    crossScalaVersions := Seq("2.11.12", "2.12.4"),
     scalacOptions ++= {
       if (scalaVersion.value startsWith "2.11.") {
         scala211
@@ -211,7 +211,7 @@ lazy val model = (project in file("model"))
   .settings(
     name := "jsonapi-scala-model",
     scalaVersion := "2.11.12",
-    crossScalaVersions := Seq("2.12.4", "2.11.12"),
+    crossScalaVersions := Seq("2.11.12", "2.12.4"),
     scalacOptions ++= {
       if (scalaVersion.value startsWith "2.11.") {
         scala211
@@ -250,7 +250,7 @@ lazy val akkaClient = (project in file("akka-client"))
   .settings(
     name := "jsonapi-scala-akka-client",
     scalaVersion := "2.11.12",
-    crossScalaVersions := Seq("2.12.4", "2.11.12"),
+    crossScalaVersions := Seq("2.11.12", "2.12.4"),
     scalacOptions ++= {
       if (scalaVersion.value startsWith "2.11.") {
         scala211
@@ -267,8 +267,31 @@ lazy val akkaClient = (project in file("akka-client"))
     ) ++ testDeps
   )
 
+val http4sVersion = "0.18.0-M5"
+
+lazy val http4sClient = (project in file("http4s-client"))
+  .dependsOn(core)
+  .settings(
+    name := "jsonapi-scala-http4s-client",
+    scalaVersion := "2.11.12",
+    crossScalaVersions := Seq("2.11.12", "2.12.4"),
+    scalacOptions ++= {
+      if (scalaVersion.value startsWith "2.11.") {
+        scala211
+      } else {
+        scala212
+      }
+    },
+    libraryDependencies ++= Seq(
+      compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
+      "org.http4s" %% "http4s-dsl"          % http4sVersion,
+      "org.http4s" %% "http4s-blaze-client" % http4sVersion,
+      "org.http4s" %% "http4s-blaze-server" % http4sVersion % "test"
+    ) ++ testDeps
+  )
+
 lazy val root = (project in file("."))
-  .aggregate(core, model, spray, akkaClient)
+  .aggregate(core, model, spray, akkaClient, http4sClient)
   .settings(
     publishArtifact := false,
     name := "jsonapi-scala",
