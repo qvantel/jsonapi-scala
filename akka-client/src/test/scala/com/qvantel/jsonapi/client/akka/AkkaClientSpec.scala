@@ -10,6 +10,8 @@ import cats.Applicative
 import cats.instances.list._
 import cats.data.OptionT
 import cats.effect.IO
+import cats.instances.list._
+import com.netaporter.uri.dsl._
 import org.specs2.concurrent.ExecutionEnv
 import org.specs2.matcher.MatcherMacros
 import org.specs2.mutable.Specification
@@ -22,7 +24,7 @@ import com.netaporter.uri.dsl._
 class AkkaClientSpec(implicit ee: ExecutionEnv) extends Specification with MatcherMacros with AfterAll {
   // TODO: make tests run/work without external service
   // to run these tests uncomment this and start a jsonapi.org compatible server in the url specified for the endpoint
-  // skipAll
+  skipAll
 
   implicit val system: ActorSystem   = ActorSystem()
   implicit val m: ActorMaterializer  = ActorMaterializer()

@@ -11,7 +11,5 @@ object ApiEndpoint {
   final case class Static(static: Uri) extends ApiEndpoint {
     override val uri: IO[Uri] = IO.pure(static)
   }
-  final class Dynamic(f: () => IO[Uri]) extends ApiEndpoint {
-    override def uri: IO[Uri] = f()
-  }
+  final case class Dynamic(uri: IO[Uri]) extends ApiEndpoint
 }
