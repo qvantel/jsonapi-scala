@@ -2,8 +2,6 @@ package com.qvantel.jsonapi.client.http4s
 
 import scala.language.experimental.macros
 
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
 import cats.Applicative
 import cats.instances.list._
 import cats.data.OptionT
@@ -57,9 +55,17 @@ class Http4sClientSpec extends Specification with MatcherMacros {
 
       Ok(loadedBa)
     case GET -> Root / "billing-accounts" / id =>
-      Ok(billingAccounts(id))
+      billingAccounts.get(id) match {
+        case Some(x) => Ok(x)
+        case None    => NotFound()
+      }
     case GET -> Root / "customer-accounts" / id =>
-      Ok(customerAccounts(id))
+      customerAccounts.get(id) match {
+        case Some(x) => Ok(x)
+        case None    => NotFound()
+      }
+    case GET -> Root / "billing-accounts" =>
+      Ok(billingAccounts.values.toList)
   }
 
   implicit val endpoint: ApiEndpoint = ApiEndpoint.Static("http://localhost:8080")
@@ -69,6 +75,12 @@ class Http4sClientSpec extends Specification with MatcherMacros {
     val req = JsonApiClient[BillingAccount].one("ba1").unsafeRunSync()
 
     req must beSome(matchA[BillingAccount].id("ba1"))
+  }
+
+  "one should return None whne backend returns 404" >> {
+    val req = JsonApiClient[BillingAccount].one("foobar").unsafeRunSync()
+
+    req must beNone
   }
 
   "make sure weird characters in id work correctly" >> {
@@ -135,5 +147,19 @@ class Http4sClientSpec extends Specification with MatcherMacros {
       matchA[BillingAccount].id("ba1"),
       matchA[BillingAccount].id("foo & bar / baz")
     )
+  }
+
+  "pathMany" >> {
+    val req = JsonApiClient[BillingAccount].pathMany("billing-accounts").unsafeRunSync()
+
+    req must contain(
+      matchA[BillingAccount].id("ba1"),
+      matchA[BillingAccount].id("ba2"),
+      matchA[BillingAccount].id("foo & bar / baz")
+    )
+  }
+
+  "pathMany 404" >> {
+    JsonApiClient[BillingAccount].pathMany("billing-accountss").unsafeRunSync() must throwA
   }
 }
