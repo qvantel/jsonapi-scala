@@ -5,13 +5,15 @@ import cats.effect._
 import com.netaporter.uri.config.UriConfig
 import com.netaporter.uri.{Uri => CoreUri}
 import com.netaporter.uri.dsl._
-import org.http4s.client.Client
+import org.http4s.Status.Successful
+import org.http4s.client.{Client, UnexpectedStatus}
+import org.http4s.client.dsl.Http4sClientDsl
 import org.http4s.dsl.io._
 
 import com.qvantel.jsonapi._
 import com.qvantel.jsonapi.client.http4s.JsonApiInstances._
 
-trait Http4sClient {
+trait Http4sClient extends Http4sClientDsl[IO] {
   def apply[A](implicit jac: JsonApiClient[A]) = implicitly[JsonApiClient[A]]
 
   private[this] def mkIncludeString(include: Set[String]): Option[String] =
@@ -61,13 +63,19 @@ trait Http4sClient {
     override def pathOne(path: CoreUri, include: Set[String]): IO[Option[A]] = {
       implicit val _include: Include = Include(include)
 
-      for {
+      val request = for {
         baseUri <- endpoint.uri
         uri <- IO.fromEither(
           org.http4s.Uri
             .fromString((baseUri.copy(pathParts = path.pathParts) ? ("include" -> mkIncludeString(include))).toString))
-        response <- client.expect[Option[A]](uri)
-      } yield response
+        request <- GET(uri)
+      } yield request
+
+      client.fetch(request) {
+        case Successful(resp) => resp.as[A].map(Some(_))
+        case NotFound(_)      => IO.pure(None)
+        case failedResponse   => IO.raiseError(UnexpectedStatus(failedResponse.status))
+      }
     }
 
     override def pathMany(path: CoreUri, include: Set[String]): IO[List[A]] = {
