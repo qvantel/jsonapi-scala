@@ -42,8 +42,31 @@ interface for handling the http query writing side of this
 
 The subproject "akka-client" has an implementation of this using akka-http
 
-Simple example:
-````scala
+The subproject "http4s-client" has an implementation of this using http4s
+
+### Usage
+
+```scala
+import cats.data.OptionT
+
+val one: IO[Option[BillingAccount]] = JsonApiClient[BillingAccount].one("ba1") 
+val many: IO[List[BillingAccount]] = JsonApiClient[BillingAccount].many(Set("ba1", "ba2"))
+
+// can also load includes at the same time
+val withIncludes = JsonApiClient[BillingAccount].one("ba1", Set("customer-account"))
+
+// includes can also be loaded on their own with a method
+val ba: OptionT[IO, BillingAccount]  = OptionT(JsonApiClient[BillingAccount].one("ba"))
+val ca: OptionT[IO, CustomerAccount] = ba.semiflatMap(_.customerAccount.load)
+
+// filtering support
+val filtered = JsonApiClient[BillingAccount].filter("some nice filter string here")
+```
+
+### Setup
+
+#### akka-http client
+```scala
 // needs ActorSystem and Materializer for akka-http
 // the ApiEndPoint is used to as the "root" where to launch queries
 import com.qvantel.jsonapi.client.akka.AkkaClient._
@@ -51,17 +74,13 @@ import com.qvantel.jsonapi.client.akka.AkkaClient._
 implicit val system: ActorSystem  = ActorSystem()
 implicit val materializer: ActorMaterializer = ActorMaterializer()
 implicit val endpoint: ApiEndpoint = ApiEndpoint.Static("http://localhost:8080/api")
+```
 
-val one: Task[Option[BillingAccount] = JsonApiClient[BillingAccount].one("ba1") 
-val many: Task[List[BillingAccount] = JsonApiClient[BillingAccount].many(Set("ba1", "ba2"))
+#### http4s client
+Setup for http4s client
+```scala
+import com.qvantel.jsonapi.client.http4s.Http4sClient._
+import com.qvantel.jsonapi.client.http4s.JsonApiInstances._
 
-// can also load includes at the same time
-val withIncludes = JsonApiClient[BillingAccount].one("ba1", Set("customer-account"))
-
-// includes can also be loaded on their own with a method
-val ba: Task[Option[BillingAccount]] = OptionT(JsonApiClient[BillingAccount].one("ba"))
-val ca: Task[Option[CustomerAccount]] = ba.semiflatMap(_.customerAccount.load)
-
-// filtering support
-val filtered = JsonApiClient[BillingAccount].filter("some nice filter string here")
-````
+implicit val endpoint: ApiEndpoint = ApiEndpoint.Static("http://localhost:8080/api")
+```
