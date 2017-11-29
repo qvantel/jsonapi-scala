@@ -55,9 +55,8 @@ object AkkaClient {
 
     def respoToEntities(resp: HttpResponse, include: Set[String]): IO[List[A]] =
       resp.status match {
-        case StatusCodes.OK       => bodyToJsObject(resp).map(x => readCollection[A](x, include).toList)
-        case StatusCodes.NotFound => IO.pure(List.empty)
-        case _                    => bodyToError(resp)
+        case StatusCodes.OK => bodyToJsObject(resp).map(x => readCollection[A](x, include).toList)
+        case _              => bodyToError(resp)
       }
 
     new JsonApiClient[A] {
