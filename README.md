@@ -1,7 +1,7 @@
 # http://jsonapi.org/ implementation in scala
 
 [![Build Status](https://travis-ci.org/qvantel/jsonapi-scala.svg?branch=master)](https://travis-ci.org/qvantel/jsonapi-scala)
-[![Coverage Status](https://coveralls.io/repos/github/qvantel/jsonapi-scala/badge.svg?branch=master)](https://coveralls.io/github/qvantel/jsonapi-scala?branch=master)
+[![codecov](https://codecov.io/gh/qvantel/jsonapi-scala/branch/master/graph/badge.svg)](https://codecov.io/gh/qvantel/jsonapi-scala)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.qvantel/jsonapi-scala-core_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.qvantel/jsonapi-scala-core_2.11)
 
 ## Features
