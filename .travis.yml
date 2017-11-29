@@ -4,7 +4,7 @@ scala:
 jdk:
   - oraclejdk8
 script:
-  - sbt +clean scalafmt::test test:scalafmt::test sbt:scalafmt::test +coverage +compile +test:compile +test coverageReport &&
+  - sbt +clean scalafmt::test test:scalafmt::test sbt:scalafmt::test coverage +compile +test:compile +test coverageReport &&
     sbt coverageAggregate
 after_success:
-  - sbt coveralls
+  - bash <(curl -s https://codecov.io/bash)
