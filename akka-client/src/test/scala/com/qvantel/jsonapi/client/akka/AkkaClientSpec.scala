@@ -22,7 +22,7 @@ import AkkaClient._
 import com.netaporter.uri.dsl._
 
 class AkkaClientSpec(implicit ee: ExecutionEnv) extends Specification with MatcherMacros with AfterAll {
-  // TODO: make tests run/work without external service
+  // this is an integration test.
   // to run these tests uncomment this and start a jsonapi.org compatible server in the url specified for the endpoint
   skipAll
 
@@ -30,80 +30,97 @@ class AkkaClientSpec(implicit ee: ExecutionEnv) extends Specification with Match
   implicit val m: ActorMaterializer  = ActorMaterializer()
   implicit val endpoint: ApiEndpoint = ApiEndpoint.Static("http://localhost:8080/api")
 
-  "AkkaClient" >> {
-    "one" >> {
-      val req = JsonApiClient[BillingAccount].one("lindberg-ab-billingaccount1").unsafeRunSync()
+  "one" >> {
+    val req = JsonApiClient[BillingAccount].one("lindberg-ab-billingaccount1").unsafeRunSync()
 
-      req must beSome(matchA[BillingAccount].id("lindberg-ab-billingaccount1"))
-    }
+    req must beSome(matchA[BillingAccount].id("lindberg-ab-billingaccount1"))
+  }
 
-    "make sure weird characters in id work correctly" >> {
-      val req = JsonApiClient[BillingAccount].one("""foo & bar / baz""").unsafeRunSync()
+  "one should return None when backend returns 404" >> {
+    val req = JsonApiClient[BillingAccount].one("foobar").unsafeRunSync()
 
-      req must beSome(matchA[BillingAccount].id("foo & bar / baz"))
-    }
+    req must beNone
+  }
 
-    "one with include" >> {
-      val req = OptionT(JsonApiClient[BillingAccount].one("lindberg-ab-billingaccount1", Set("customer-account")))
-      val res = req.subflatMap(_.customerAccount.get).value.unsafeRunSync()
+  "make sure weird characters in id work correctly" >> {
+    val req = JsonApiClient[BillingAccount].one("""foo & bar / baz""").unsafeRunSync()
 
-      res must beSome(matchA[CustomerAccount].id("lindberg-ab-customeraccount1"))
-    }
+    req must beSome(matchA[BillingAccount].id("foo & bar / baz"))
+  }
 
-    "many" >> {
-      val req = JsonApiClient[BillingAccount]
-        .many(Set("lindberg-ab-billingaccount1", "qvantel-billingaccount1"))
-        .unsafeRunSync()
+  "one with include" >> {
+    val req = OptionT(JsonApiClient[BillingAccount].one("lindberg-ab-billingaccount1", Set("customer-account")))
+    val res = req.subflatMap(_.customerAccount.get).value.unsafeRunSync()
 
-      req must contain(
-        matchA[BillingAccount].id("lindberg-ab-billingaccount1"),
-        matchA[BillingAccount].id("qvantel-billingaccount1")
-      )
-    }
+    res must beSome(matchA[CustomerAccount].id("lindberg-ab-customeraccount1"))
+  }
 
-    "many with include" >> {
-      val req = JsonApiClient[BillingAccount].many(Set("lindberg-ab-billingaccount1", "qvantel-billingaccount1"),
-                                                   Set("customer-account"))
-      val mapped = req.flatMap(x => Applicative[IO].sequence(x.map(_.customerAccount.load)))
+  "many" >> {
+    val req = JsonApiClient[BillingAccount]
+      .many(Set("lindberg-ab-billingaccount1", "qvantel-billingaccount1"))
+      .unsafeRunSync()
 
-      val res = mapped.unsafeRunSync()
+    req must contain(
+      matchA[BillingAccount].id("lindberg-ab-billingaccount1"),
+      matchA[BillingAccount].id("qvantel-billingaccount1")
+    )
+  }
 
-      res must contain(
-        matchA[CustomerAccount].id("lindberg-ab-customeraccount1"),
-        matchA[CustomerAccount].id("qvantel-customeraccount1")
-      )
-    }
+  "many with include" >> {
+    val req = JsonApiClient[BillingAccount].many(Set("lindberg-ab-billingaccount1", "qvantel-billingaccount1"),
+                                                 Set("customer-account"))
+    val mapped = req.flatMap(x => Applicative[IO].traverse(x)(_.customerAccount.load))
 
-    "load ToOne" >> {
-      val ba = OptionT(JsonApiClient[BillingAccount].one("lindberg-ab-billingaccount1"))
+    val res = mapped.unsafeRunSync()
 
-      val ca = ba.semiflatMap(_.customerAccount.load)
+    res must contain(
+      matchA[CustomerAccount].id("lindberg-ab-customeraccount1"),
+      matchA[CustomerAccount].id("qvantel-customeraccount1")
+    )
+  }
 
-      val res = ca.value.unsafeRunSync()
+  "load ToOne" >> {
+    val ba = OptionT(JsonApiClient[BillingAccount].one("lindberg-ab-billingaccount1"))
 
-      res must beSome(matchA[CustomerAccount].id("lindberg-ab-customeraccount1"))
-    }
+    val ca = ba.semiflatMap(_.customerAccount.load)
 
-    "load ToMany" >> {
-      val ca = OptionT(JsonApiClient[CustomerAccount].one("lindberg-ab-customeraccount1"))
+    val res = ca.value.unsafeRunSync()
 
-      val ba = ca.semiflatMap(_.billingAccounts.load)
+    res must beSome(matchA[CustomerAccount].id("lindberg-ab-customeraccount1"))
+  }
 
-      val res = ba.value.unsafeRunSync()
+  "load ToMany" >> {
+    val ca = OptionT(JsonApiClient[CustomerAccount].one("lindberg-ab-customeraccount1"))
 
-      res must beSome(contain(matchA[BillingAccount].id("lindberg-ab-billingaccount1")))
-    }
+    val ba = ca.semiflatMap(_.billingAccounts.load)
 
-    "filter" >> {
-      val req = JsonApiClient[BillingAccount]
-        .filter("""(OR (EQ id "lindberg-ab-billingaccount1") (EQ id "foo & bar / baz") )""")
-        .unsafeRunSync()
+    val res = ba.value.unsafeRunSync()
 
-      req must contain(
-        matchA[BillingAccount].id("lindberg-ab-billingaccount1"),
-        matchA[BillingAccount].id("foo & bar / baz")
-      )
-    }
+    res must beSome(contain(matchA[BillingAccount].id("lindberg-ab-billingaccount1")))
+  }
+
+  "filter" >> {
+    val req = JsonApiClient[BillingAccount]
+      .filter("""(OR (EQ id "lindberg-ab-billingaccount1") (EQ id "foo & bar / baz") )""")
+      .unsafeRunSync()
+
+    req must contain(
+      matchA[BillingAccount].id("lindberg-ab-billingaccount1"),
+      matchA[BillingAccount].id("foo & bar / baz")
+    )
+  }
+
+  "pathMany" >> {
+    val req = JsonApiClient[BillingAccount].pathMany("/api/billing-accounts").unsafeRunSync()
+
+    req must contain(
+      matchA[BillingAccount].id("lindberg-ab-billingaccount1"),
+      matchA[BillingAccount].id("timo-billingaccount")
+    )
+  }
+
+  "pathMany 404" >> {
+    JsonApiClient[BillingAccount].pathMany("/api/billing-accountss").unsafeRunSync() must throwA
   }
 
   def afterAll = {

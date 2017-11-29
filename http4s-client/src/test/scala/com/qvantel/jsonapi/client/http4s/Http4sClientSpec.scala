@@ -77,7 +77,7 @@ class Http4sClientSpec extends Specification with MatcherMacros {
     req must beSome(matchA[BillingAccount].id("ba1"))
   }
 
-  "one should return None whne backend returns 404" >> {
+  "one should return None when backend returns 404" >> {
     val req = JsonApiClient[BillingAccount].one("foobar").unsafeRunSync()
 
     req must beNone
@@ -109,7 +109,7 @@ class Http4sClientSpec extends Specification with MatcherMacros {
 
   "many with include" >> {
     val req    = JsonApiClient[BillingAccount].many(Set("ba1", "ba2"), Set("customer-account"))
-    val mapped = req.flatMap(x => Applicative[IO].sequence(x.map(_.customerAccount.load)))
+    val mapped = req.flatMap(x => Applicative[IO].traverse(x)(_.customerAccount.load))
 
     val res = mapped.unsafeRunSync()
 
