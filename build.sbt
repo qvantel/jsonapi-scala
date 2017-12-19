@@ -116,7 +116,7 @@ val scala211 = Seq(
 
 description in ThisBuild := "jsonapi.org scala implementation"
 
-version in ThisBuild := "6.0.0"
+version in ThisBuild := "6.0.1"
 
 startYear in ThisBuild := Some(2015)
 
@@ -267,7 +267,7 @@ lazy val akkaClient = (project in file("akka-client"))
     ) ++ testDeps
   )
 
-val http4sVersion = "0.18.0-M5"
+val http4sVersion = "0.18.0-M6"
 
 lazy val http4sClient = (project in file("http4s-client"))
   .dependsOn(core)
@@ -298,5 +298,4 @@ lazy val root = (project in file("."))
     scalaVersion := "2.11.12"
   )
 
-scalafixSemanticdbVersion in ThisBuild := "2.1.2" // once we scalafix 0.5.4 this can be removed
 scalafixSettings

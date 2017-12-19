@@ -15,7 +15,7 @@ import com.qvantel.jsonapi.{JsonApiReader, JsonApiWriter, readCollection, readOn
 final case class Include(include: Set[String])
 
 trait JsonApiInstances {
-  val mediaType: MediaType = MediaType.fromKey(("application", "vnd.api+json"))
+  val mediaType: MediaType = MediaType.`application/vnd.api+json`
 
   implicit def jsonapiJsObjectDecoder[F[_]: Effect](implicit include: Include): EntityDecoder[F, JsObject] =
     EntityDecoder.decodeBy(mediaType) { msg: Message[F] =>
