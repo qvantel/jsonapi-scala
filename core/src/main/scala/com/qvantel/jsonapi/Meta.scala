@@ -26,16 +26,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.qvantel.jsonapi
 
-import _root_.spray.json.{JsObject, JsValue}
+import _root_.spray.json.JsValue
 import com.netaporter.uri.Uri
 
 trait Meta {
-  def asJson: JsObject
+  def asJson: JsValue
 }
 
-final case class UntypedMeta(jsonBody: JsValue) extends Meta {
-  override def asJson: JsObject = jsonBody.asJsObject
-}
+final case class UntypedMeta(asJson: JsValue) extends Meta
 
 trait MetaProfile {
 
