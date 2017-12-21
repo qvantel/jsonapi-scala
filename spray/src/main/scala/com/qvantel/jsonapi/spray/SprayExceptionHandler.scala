@@ -36,6 +36,7 @@ import _root_.spray.routing.AuthenticationFailedRejection._
 import _root_.spray.routing.Directives._
 import _root_.spray.routing._
 import _root_.spray.util.LoggingContext
+import spray.http.HttpEntity.Empty
 
 import com.qvantel.jsonapi.model.ErrorObject
 import com.qvantel.jsonapi.model.ErrorObject._
@@ -185,6 +186,12 @@ trait SprayExceptionHandler {
 }
 
 object SprayExceptionHandler {
+  // turns None into proper jsonapi error message
+  val noneHandler: Directive0 = mapRouteResponsePF {
+    case HttpResponse(NotFound, Empty, _, _) =>
+      SprayExceptionHandler.jsonApiErrorResponse(NotFound, NotFound.reason, NotFound.defaultMessage)
+  }
+
   def jsonApiError(code: StatusCode, title: String, detail: String): JsValue =
     JsObject(
       "errors" -> List(

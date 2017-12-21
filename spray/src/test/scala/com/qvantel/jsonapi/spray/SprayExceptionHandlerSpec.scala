@@ -68,5 +68,23 @@ class SprayExceptionHandlerSpec extends Specification with Directives with Specs
         error.map(_.extract[String]('detail)) must beSome(InternalServerError.defaultMessage)
       }
     }
+
+    "None should return 404 with proper jsonapi.org error object" in {
+      Get() ~> wrap {
+        val x: Option[String] = None
+
+        SprayExceptionHandler.noneHandler {
+          complete(x)
+        }
+      } ~> check {
+        status must_== NotFound
+        contentType must_== JSON
+
+        val json  = JsonParser(body.asString)
+        val error = json.extract[JsArray]('errors).elements.headOption
+        error.map(_.extract[String]('detail)) must beSome(NotFound.defaultMessage)
+        error.map(_.extract[String]('title)) must beSome(NotFound.reason)
+      }
+    }
   }
 }
