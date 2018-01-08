@@ -6,10 +6,9 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import cats.Applicative
 import cats.instances.list._
+import cats.syntax.traverse._
 import cats.data.OptionT
-import cats.effect.IO
 import cats.instances.list._
 import com.netaporter.uri.dsl._
 import org.specs2.concurrent.ExecutionEnv
@@ -69,7 +68,7 @@ class AkkaClientSpec(implicit ee: ExecutionEnv) extends Specification with Match
   "many with include" >> {
     val req = JsonApiClient[BillingAccount].many(Set("lindberg-ab-billingaccount1", "qvantel-billingaccount1"),
                                                  Set("customer-account"))
-    val mapped = req.flatMap(x => Applicative[IO].traverse(x)(_.customerAccount.load))
+    val mapped = req.flatMap(_.traverse(_.customerAccount.load))
 
     val res = mapped.unsafeRunSync()
 
