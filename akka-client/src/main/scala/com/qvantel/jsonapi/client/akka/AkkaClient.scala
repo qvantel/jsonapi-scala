@@ -10,7 +10,6 @@ import akka.http.scaladsl.model.headers.HttpEncodings
 import akka.http.scaladsl.unmarshalling.Unmarshaller._
 import akka.http.scaladsl.unmarshalling._
 import akka.stream.ActorMaterializer
-import cats.{Applicative, Eval}
 import cats.effect.IO
 import com.netaporter.uri
 import com.netaporter.uri.config.UriConfig
@@ -31,16 +30,13 @@ object AkkaClient {
 
     def bodyToJsObject(resp: HttpResponse): IO[JsObject] =
       IO.fromFuture {
-        Eval.later {
-          Unmarshal(resp).to[JsObject]
-        }
+        IO(Unmarshal(resp).to[JsObject])
       }
 
     def bodyToError[T](resp: HttpResponse): IO[T] =
       IO.fromFuture {
-          Eval.later {
-            Unmarshal(resp).to[String]
-          }
+          IO(Unmarshal(resp).to[String])
+
         }
         .flatMap { body =>
           IO.raiseError(ApiError.HttpError(resp.status.toString(), body))
@@ -71,8 +67,9 @@ object AkkaClient {
 
       override def many(ids: Set[String], include: Set[String]) = {
         import cats.instances.list._
+        import cats.syntax.traverse._
 
-        Applicative[IO].traverse(ids.toList) { id =>
+        ids.toList.traverse { id =>
           one(id, include).flatMap {
             case Some(entity) => IO.pure(entity)
             case None         => IO.raiseError(ApiError.NoEntityForId(id, rt.resourceType))
@@ -115,7 +112,7 @@ object AkkaClient {
     import system.dispatcher
 
     IO.fromFuture {
-      Eval.later {
+      IO(
         Http()
           .singleRequest(
             HttpRequest(
@@ -124,7 +121,7 @@ object AkkaClient {
             )
           )
           .map(decodeResponse)
-      }
+      )
     }
   }
 

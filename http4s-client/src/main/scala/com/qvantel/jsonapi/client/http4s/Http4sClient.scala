@@ -1,7 +1,8 @@
 package com.qvantel.jsonapi.client.http4s
 
-import cats.Applicative
 import cats.effect._
+import cats.instances.list._
+import cats.syntax.traverse._
 import com.netaporter.uri.config.UriConfig
 import com.netaporter.uri.{Uri => CoreUri}
 import com.netaporter.uri.dsl._
@@ -37,16 +38,13 @@ trait Http4sClient extends Http4sClientDsl[IO] {
         response <- pathOne(baseUri / rt.resourceType / id, include)
       } yield response
 
-    override def many(ids: Set[String], include: Set[String]): IO[List[A]] = {
-      import cats.instances.list._
-
-      Applicative[IO].traverse(ids.toList) { id =>
+    override def many(ids: Set[String], include: Set[String]): IO[List[A]] =
+      ids.toList.traverse { id =>
         one(id, include).flatMap {
           case Some(entity) => IO.pure(entity)
           case None         => IO.raiseError(ApiError.NoEntityForId(id, rt.resourceType))
         }
       }
-    }
 
     override def filter(filter: String, include: Set[String]): IO[List[A]] = {
       implicit val _include: Include = Include(include)

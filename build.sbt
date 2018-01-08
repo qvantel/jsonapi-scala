@@ -202,7 +202,7 @@ lazy val core = (project in file("core"))
       "io.lemonlabs"     %% "scala-uri"       % "0.5.0",
       "net.virtual-void" %% "json-lenses"     % "0.6.2" excludeAll ExclusionRule(organization = "org.parboiled",
                                                                              name = "parboiled-scala_2.11"),
-      "org.typelevel" %% "cats-effect" % "0.5"
+      "org.typelevel" %% "cats-effect" % "0.8"
     ) ++ testDeps
   )
 
@@ -267,7 +267,7 @@ lazy val akkaClient = (project in file("akka-client"))
     ) ++ testDeps
   )
 
-val http4sVersion = "0.18.0-M6"
+val http4sVersion = "0.18.0-M8"
 
 lazy val http4sClient = (project in file("http4s-client"))
   .dependsOn(core)

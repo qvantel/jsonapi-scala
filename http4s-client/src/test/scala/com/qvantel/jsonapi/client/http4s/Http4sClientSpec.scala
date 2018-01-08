@@ -2,8 +2,8 @@ package com.qvantel.jsonapi.client.http4s
 
 import scala.language.experimental.macros
 
-import cats.Applicative
 import cats.instances.list._
+import cats.syntax.traverse._
 import cats.data.OptionT
 import cats.effect.IO
 import org.specs2.matcher.MatcherMacros
@@ -109,7 +109,7 @@ class Http4sClientSpec extends Specification with MatcherMacros {
 
   "many with include" >> {
     val req    = JsonApiClient[BillingAccount].many(Set("ba1", "ba2"), Set("customer-account"))
-    val mapped = req.flatMap(x => Applicative[IO].traverse(x)(_.customerAccount.load))
+    val mapped = req.flatMap(_.traverse(_.customerAccount.load))
 
     val res = mapped.unsafeRunSync()
 
