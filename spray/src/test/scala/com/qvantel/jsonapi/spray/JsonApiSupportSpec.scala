@@ -58,7 +58,7 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest with H
     implicit val resourceType: ResourceType[Root] = ResourceType[Root]("root")
     implicit val identifiable: Identifiable[Root] = Identifiable.by(_.id)
     implicit val pathTo: PathTo[Root] = new PathTo[Root] {
-      override final def self(id: String): Uri = "/roots" / id
+      override def root: Uri = "/roots"
     }
     implicit val format: JsonApiFormat[Root] = jsonApiFormat[Root]
   }
@@ -69,7 +69,7 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest with H
     implicit val resourceType: ResourceType[Child] = ResourceType[Child]("child")
     implicit val identifiable: Identifiable[Child] = Identifiable.by(_.id)
     implicit val pathTo: PathTo[Child] = new PathTo[Child] {
-      override final def self(id: String): Uri = "/children" / id
+      override def root: Uri = "/children"
     }
     implicit val format: JsonApiFormat[Child] = jsonApiFormat[Child]
   }
@@ -80,7 +80,7 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest with H
     implicit val resourceType: ResourceType[Article] = ResourceType[Article]("article")
     implicit val identifiable: Identifiable[Article] = Identifiable.by(_.id)
     implicit val pathTo: PathTo[Article] = new PathTo[Article] {
-      override final def self(id: String): Uri = "/articles" / id
+      override def root: Uri = "/articles"
     }
     implicit val format: JsonApiFormat[Article] = jsonApiFormat[Article]
   }

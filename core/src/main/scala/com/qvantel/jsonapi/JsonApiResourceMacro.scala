@@ -47,7 +47,12 @@ final class JsonApiResourceMacro(val c: WhiteboxContext) extends JsonApiCommon {
     val path = s"/$resourceTypeName"
     q"""implicit final val ${TermName(s"${name}PathTo")}: _root_.com.qvantel.jsonapi.PathTo[$name] = new _root_.com.qvantel.jsonapi.PathTo[$name] {
           import _root_.com.netaporter.uri.dsl._
-          override final def self(id: String): _root_.com.netaporter.uri.Uri = $path / id
+
+          override final val root: _root_.com.netaporter.uri.Uri =
+            implicitly[_root_.com.qvantel.jsonapi.ApiRoot].apiRoot match {
+              case Some(root) => root / $resourceTypeName
+              case None => $path
+            }
         }"""
   }
 

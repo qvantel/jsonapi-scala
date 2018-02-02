@@ -27,10 +27,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.qvantel.jsonapi
 
 import com.netaporter.uri.Uri
+import com.netaporter.uri.dsl._
 
 abstract class PathTo[A: Identifiable] {
-  def self(id: String): Uri
-  def entity(a: A): Uri = self(implicitly[Identifiable[A]].identify(a))
+  def self(id: String): Uri = root / id
+  def entity(a: A): Uri     = self(implicitly[Identifiable[A]].identify(a))
+  def root: Uri
 }
 
-object PathTo {}
+object PathTo {
+  def apply[A](implicit pt: PathTo[A]) = implicitly[PathTo[A]]
+}
