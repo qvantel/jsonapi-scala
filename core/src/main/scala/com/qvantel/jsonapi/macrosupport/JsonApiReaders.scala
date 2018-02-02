@@ -239,7 +239,7 @@ trait JsonApiReaders extends JsonApiCommon {
                      _root_.com.qvantel.jsonapi.ToMany.reference[$containedType](data.map { x =>
                        val tpe = x.fields.get("type").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'type' not found in " + x.compactPrint))
                        if (tpe != implicitly[_root_.com.qvantel.jsonapi.ResourceType[$containedType]].resourceType) {
-                         throw new _root_.spray.json.DeserializationException("wrong type")
+                         throw new _root_.spray.json.DeserializationException("wrong type " + tpe +" in " + x.compactPrint + ". expected type " + implicitly[_root_.com.qvantel.jsonapi.ResourceType[$containedType]].resourceType)
                        }
                        val id = x.fields.get("id").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'id' not found in " + x.compactPrint))
 
