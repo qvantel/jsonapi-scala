@@ -26,7 +26,7 @@ trait Http4sClient extends Http4sClientDsl[IO] {
 
   implicit def instance[A](implicit rt: ResourceType[A],
                            reader: JsonApiReader[A],
-                           identifiable: Identifiable[A],
+                           pt: PathTo[A],
                            endpoint: ApiEndpoint,
                            client: Client[IO]): JsonApiClient[A] = new JsonApiClient[A] {
 
@@ -35,7 +35,7 @@ trait Http4sClient extends Http4sClientDsl[IO] {
     override def one(id: String, include: Set[String]): IO[Option[A]] =
       for {
         baseUri  <- endpoint.uri
-        response <- pathOne(baseUri / rt.resourceType / id, include)
+        response <- pathOne(baseUri / pt.self(id), include)
       } yield response
 
     override def many(ids: Set[String], include: Set[String]): IO[List[A]] =
@@ -52,8 +52,8 @@ trait Http4sClient extends Http4sClientDsl[IO] {
       for {
         baseUri <- endpoint.uri
         uri <- IO.fromEither(
-          org.http4s.Uri.fromString(
-            (baseUri / rt.resourceType ? ("filter" -> filter) ? ("include" -> mkIncludeString(include))).toString))
+          org.http4s.Uri
+            .fromString((baseUri / pt.root ? ("filter" -> filter) ? ("include" -> mkIncludeString(include))).toString))
         response <- client.expect[List[A]](uri)
       } yield response
     }

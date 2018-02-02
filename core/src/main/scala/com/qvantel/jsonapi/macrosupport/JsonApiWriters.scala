@@ -39,15 +39,8 @@ trait JsonApiWriters extends JsonApiCommon {
     q"_root_.spray.json.JsString(implicitly[_root_.com.qvantel.jsonapi.Identifiable[$t]].identify($objName))"
 
   private[this] def selfPathJson(t: c.Type, objName: TermName): c.Tree = {
-    val root = TermName(c.freshName())
-
     q"""
-       implicitly[_root_.com.qvantel.jsonapi.ApiRoot].apiRoot match {
-         case Some($root) =>
-           import _root_.com.netaporter.uri.dsl._
-           implicitly[_root_.spray.json.JsonWriter[_root_.com.netaporter.uri.Uri]].write($root / implicitly[_root_.com.qvantel.jsonapi.PathTo[$t]].entity($objName))
-         case None => implicitly[_root_.spray.json.JsonWriter[_root_.com.netaporter.uri.Uri]].write(implicitly[_root_.com.qvantel.jsonapi.PathTo[$t]].entity($objName))
-       }
+       implicitly[_root_.spray.json.JsonWriter[_root_.com.netaporter.uri.Uri]].write(implicitly[_root_.com.qvantel.jsonapi.PathTo[$t]].entity($objName))
       """
   }
 

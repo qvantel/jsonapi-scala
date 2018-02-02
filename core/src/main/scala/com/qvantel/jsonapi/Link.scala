@@ -33,19 +33,13 @@ import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
 
 object Link {
-  private[this] def links[P](parent: P, name: String)(implicit pathToParent: PathTo[P], apiRoot: ApiRoot): JsObject =
-    apiRoot match {
-      case ApiRoot(Some(root)) =>
-        JsObject("related" -> implicitly[JsonWriter[Uri]].write(root / pathToParent.entity(parent) / name))
-      case ApiRoot(None) =>
-        JsObject("related" -> implicitly[JsonWriter[Uri]].write(pathToParent.entity(parent) / name))
-    }
+  private[this] def links[P](parent: P, name: String)(implicit pathToParent: PathTo[P]): JsObject =
+    JsObject("related" -> implicitly[JsonWriter[Uri]].write(pathToParent.entity(parent) / name))
 
   def to[A, P](parent: P, relation: ToOne[A], name: String)(implicit identifiable: Identifiable[A],
                                                             rt: ResourceType[A],
                                                             pathTo: PathTo[A],
-                                                            pathToParent: PathTo[P],
-                                                            apiRoot: ApiRoot): JsValue = {
+                                                            pathToParent: PathTo[P]): JsValue = {
     def resourceLinkage(id: String): JsObject =
       JsObject("type" -> implicitly[ResourceType[A]].resourceType.toJson, "id" -> id.toJson)
 
@@ -61,8 +55,7 @@ object Link {
   def to[A, P](parent: P, maybeRelation: Option[ToOne[A]], name: String)(implicit identifiable: Identifiable[A],
                                                                          rt: ResourceType[A],
                                                                          pathTo: PathTo[A],
-                                                                         pathToParent: PathTo[P],
-                                                                         apiRoot: ApiRoot): JsValue = {
+                                                                         pathToParent: PathTo[P]): JsValue = {
     def resourceLinkage(id: String): JsObject =
       JsObject("type" -> implicitly[ResourceType[A]].resourceType.toJson, "id" -> id.toJson)
 
@@ -81,8 +74,7 @@ object Link {
   def to[A, P](parent: P, maybeRelation: JsonOption[ToOne[A]], name: String)(implicit identifiable: Identifiable[A],
                                                                              rt: ResourceType[A],
                                                                              pathTo: PathTo[A],
-                                                                             pathToParent: PathTo[P],
-                                                                             apiRoot: ApiRoot): JsValue = {
+                                                                             pathToParent: PathTo[P]): JsValue = {
     def resourceLinkage(id: String): JsObject =
       JsObject("type" -> implicitly[ResourceType[A]].resourceType.toJson, "id" -> id.toJson)
 
@@ -104,8 +96,7 @@ object Link {
   def to[A, P](parent: P, relation: ToMany[A], name: String)(implicit identifiable: Identifiable[A],
                                                              rt: ResourceType[A],
                                                              pathTo: PathTo[A],
-                                                             pathToParent: PathTo[P],
-                                                             apiRoot: ApiRoot): JsValue =
+                                                             pathToParent: PathTo[P]): JsValue =
     relation match {
       case ToMany.IdsReference(ids) =>
         val linksTuple: (String, JsValue) = "links" -> links(parent, name)
@@ -130,8 +121,7 @@ object Link {
     }
 
   def to[A <: Coproduct, P](parent: P, relation: PolyToOne[A], name: String)(implicit identifiable: PolyIdentifiable[A],
-                                                                             pathToParent: PathTo[P],
-                                                                             apiRoot: ApiRoot): JsValue = {
+                                                                             pathToParent: PathTo[P]): JsValue = {
     def resourceLinkage(tpe: String, id: String): JsObject =
       JsObject("type" -> tpe.toJson, "id" -> id.toJson)
 
@@ -146,8 +136,7 @@ object Link {
 
   def to[A <: Coproduct, P](parent: P, maybeRelation: Option[PolyToOne[A]], name: String)(
       implicit identifiable: PolyIdentifiable[A],
-      pathToParent: PathTo[P],
-      apiRoot: ApiRoot): JsValue = {
+      pathToParent: PathTo[P]): JsValue = {
     def resourceLinkage(tpe: String, id: String): JsObject =
       JsObject("type" -> tpe.toJson, "id" -> id.toJson)
 
@@ -165,8 +154,7 @@ object Link {
 
   def to[A <: Coproduct, P](parent: P, maybeRelation: JsonOption[PolyToOne[A]], name: String)(
       implicit identifiable: PolyIdentifiable[A],
-      pathToParent: PathTo[P],
-      apiRoot: ApiRoot): JsValue = {
+      pathToParent: PathTo[P]): JsValue = {
     def resourceLinkage(tpe: String, id: String): JsObject =
       JsObject("type" -> tpe.toJson, "id" -> id.toJson)
 
@@ -187,8 +175,7 @@ object Link {
 
   def to[A <: Coproduct, P](parent: P, relation: PolyToMany[A], name: String)(
       implicit identifiable: PolyIdentifiable[A],
-      pathToParent: PathTo[P],
-      apiRoot: ApiRoot): JsValue =
+      pathToParent: PathTo[P]): JsValue =
     relation match {
       case PolyToMany.IdsReference(rels) =>
         val linksTuple: (String, JsValue) = "links" -> links(parent, name)
@@ -261,8 +248,7 @@ object Link {
 
   def toNoParentPath[A, P](parent: P, relation: ToMany[A], name: String)(implicit identifiable: Identifiable[A],
                                                                          rt: ResourceType[A],
-                                                                         pathTo: PathTo[A],
-                                                                         apiRoot: ApiRoot): JsValue =
+                                                                         pathTo: PathTo[A]): JsValue =
     relation match {
       case ToMany.IdsReference(ids) =>
         val resourceLinkage = ids.map { id =>

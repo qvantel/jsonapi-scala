@@ -22,7 +22,7 @@ object AkkaClient {
 
   implicit def instance[A](implicit rt: ResourceType[A],
                            reader: JsonApiReader[A],
-                           identifiable: Identifiable[A],
+                           pathTo: PathTo[A],
                            m: ActorMaterializer,
                            system: ActorSystem,
                            endpoint: ApiEndpoint): JsonApiClient[A] = {
@@ -60,7 +60,7 @@ object AkkaClient {
 
       override def one(id: String, include: Set[String] = Set.empty): IO[Option[A]] =
         endpoint.uri.flatMap { baseUri =>
-          val reqUri = baseUri / rt.resourceType / id
+          val reqUri = baseUri / pathTo.self(id)
 
           mkRequest(addInclude(reqUri, include).toString).flatMap(respToEntity(_, include))
         }
@@ -93,7 +93,7 @@ object AkkaClient {
 
       override def filter(filter: String, include: Set[String]) =
         endpoint.uri.flatMap { baseUri =>
-          val reqUri = baseUri / rt.resourceType ? ("filter" -> filter)
+          val reqUri = baseUri / pathTo.root ? ("filter" -> filter)
 
           mkRequest(addInclude(reqUri, include).toString).flatMap(respoToEntities(_, include))
         }
