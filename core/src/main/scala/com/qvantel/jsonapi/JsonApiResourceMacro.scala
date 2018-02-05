@@ -50,9 +50,9 @@ final class JsonApiResourceMacro(val c: WhiteboxContext) extends JsonApiCommon {
           import _root_.com.netaporter.uri.dsl._
 
           override final val root: _root_.com.netaporter.uri.Uri =
-            implicitly[_root_.com.qvantel.jsonapi.ApiRoot].apiRoot match {
-              case Some(root) => root / $resourceTypeName
-              case None => $path
+            _root_.scala.Predef.implicitly[_root_.com.qvantel.jsonapi.ApiRoot].apiRoot match {
+              case _root_.scala.Some(root) => root / $resourceTypeName
+              case _root_.scala.None => $path
             }
         }"""
   }
@@ -64,9 +64,9 @@ final class JsonApiResourceMacro(val c: WhiteboxContext) extends JsonApiCommon {
           import _root_.com.netaporter.uri.dsl._
 
           override final val root: _root_.com.netaporter.uri.Uri =
-            implicitly[_root_.com.qvantel.jsonapi.ApiRoot].apiRoot match {
-              case Some(root) => root / $resourceTypeName
-              case None => $path
+            _root_.scala.Predef.implicitly[_root_.com.qvantel.jsonapi.ApiRoot].apiRoot match {
+              case _root_.scala.Some(root) => root / $resourceTypeName
+              case _root_.scala.None => $path
             }
         }"""
   }

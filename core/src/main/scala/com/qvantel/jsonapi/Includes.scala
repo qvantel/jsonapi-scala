@@ -40,6 +40,8 @@ trait Includes[+A] {
 }
 
 object Includes {
+  def apply[A](implicit i: Includes[A]) = i
+
   object Empty extends Includes[Nothing] {
     override def includeAllowed(include: String): Boolean         = false
     override def includesAllowed(includes: String*): Boolean      = false
