@@ -33,7 +33,7 @@ trait PolyIdentifiable[A <: Coproduct] extends Identifiable[A] {
 }
 
 object PolyIdentifiable {
-  def apply[A <: Coproduct](implicit i: PolyIdentifiable[A]): PolyIdentifiable[A] = implicitly[PolyIdentifiable[A]]
+  def apply[A <: Coproduct](implicit i: PolyIdentifiable[A]): PolyIdentifiable[A] = i
 
   //@implicitNotFound("Cannot find a ResourceType for all type members of ${C}")
   trait CoproductResourceType[C <: Coproduct] {

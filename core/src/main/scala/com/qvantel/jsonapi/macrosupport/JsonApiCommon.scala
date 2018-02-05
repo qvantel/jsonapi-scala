@@ -50,7 +50,7 @@ trait JsonApiCommon extends Tools {
     "[A-Z\\d]".r.replaceAllIn(name, m => "-" + m.group(0).toLowerCase())
 
   def resourceType(t: c.Type): c.Tree =
-    q"implicitly[_root_.com.qvantel.jsonapi.ResourceType[$t]].resourceType"
+    q"_root_.scala.Predef.implicitly[_root_.com.qvantel.jsonapi.ResourceType[$t]].resourceType"
 
   def caseClassFields(t: c.Type): List[c.universe.TermSymbol] = {
     val primaryConstructor = t.typeSymbol.asClass.primaryConstructor.asMethod

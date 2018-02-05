@@ -35,7 +35,7 @@ trait ResourceType[A] {
 }
 
 object ResourceType {
-  def apply[A](implicit i: ResourceType[A]): ResourceType[A] = implicitly[ResourceType[A]]
+  def apply[A](implicit rt: ResourceType[A]): ResourceType[A] = rt
 
   implicit def apply[A](s: String): ResourceType[A] = new ResourceType[A] {
     override def resourceType: String = s
