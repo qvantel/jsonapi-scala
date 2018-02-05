@@ -3,7 +3,7 @@ package com.qvantel.jsonapi
 import cats.effect.IO
 import com.netaporter.uri.Uri
 
-trait JsonApiClient[A] {
+abstract class JsonApiClient[A](implicit format: JsonApiFormat[A]) {
   def one(id: String, include: Set[String] = Set.empty)(implicit pt: PathToId[A]): IO[Option[A]]
   def many(ids: Set[String], include: Set[String] = Set.empty)(implicit pt: PathToId[A]): IO[List[A]]
   def pathOne(path: Uri, include: Set[String] = Set.empty): IO[Option[A]]
@@ -11,14 +11,11 @@ trait JsonApiClient[A] {
   def filter(filter: String, include: Set[String] = Set.empty)(implicit pt: PathTo[A]): IO[List[A]]
 
   def post[Response](entity: A, include: Set[String] = Set.empty)(implicit pt: PathTo[A],
-                                                                  reader: JsonApiReader[Response],
-                                                                  writer: JsonApiWriter[A]): IO[Response]
+                                                                  reader: JsonApiReader[Response]): IO[Response]
   def put[Response](entity: A, include: Set[String] = Set.empty)(implicit pt: PathTo[A],
-                                                                 reader: JsonApiReader[Response],
-                                                                 writer: JsonApiWriter[A]): IO[Response]
+                                                                 reader: JsonApiReader[Response]): IO[Response]
   def patch[Response](entity: A, include: Set[String] = Set.empty)(implicit pt: PathTo[A],
-                                                                   reader: JsonApiReader[Response],
-                                                                   writer: JsonApiWriter[A]): IO[Response]
+                                                                   reader: JsonApiReader[Response]): IO[Response]
   def delete[Response](entity: A, include: Set[String] = Set.empty)(implicit pt: PathTo[A],
                                                                     reader: JsonApiReader[Response]): IO[Response]
 }

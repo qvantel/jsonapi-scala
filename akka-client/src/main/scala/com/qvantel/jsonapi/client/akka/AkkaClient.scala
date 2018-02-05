@@ -18,10 +18,10 @@ import com.netaporter.uri.dsl._
 import com.qvantel.jsonapi._
 
 object AkkaClient {
-  def apply[A](implicit jac: JsonApiClient[A]) = implicitly[JsonApiClient[A]]
+  def apply[A](implicit jac: JsonApiClient[A]) = jac
 
   implicit def instance[A](implicit rt: ResourceType[A],
-                           reader: JsonApiReader[A],
+                           format: JsonApiFormat[A],
                            m: ActorMaterializer,
                            system: ActorSystem,
                            endpoint: ApiEndpoint): JsonApiClient[A] = {
@@ -98,8 +98,7 @@ object AkkaClient {
         }
 
       override def post[Response](entity: A, include: Set[String])(implicit pt: PathTo[A],
-                                                                   reader: JsonApiReader[Response],
-                                                                   writer: JsonApiWriter[A]): IO[Response] =
+                                                                   reader: JsonApiReader[Response]): IO[Response] =
         endpoint.uri.flatMap { baseUri =>
           val reqUri = baseUri / pt.entity(entity)
 
@@ -113,8 +112,7 @@ object AkkaClient {
         }
 
       override def put[Response](entity: A, include: Set[String])(implicit pt: PathTo[A],
-                                                                  reader: JsonApiReader[Response],
-                                                                  writer: JsonApiWriter[A]): IO[Response] =
+                                                                  reader: JsonApiReader[Response]): IO[Response] =
         endpoint.uri.flatMap { baseUri =>
           val reqUri = baseUri / pt.entity(entity)
 
@@ -128,8 +126,7 @@ object AkkaClient {
         }
 
       override def patch[Response](entity: A, include: Set[String])(implicit pt: PathTo[A],
-                                                                    reader: JsonApiReader[Response],
-                                                                    writer: JsonApiWriter[A]): IO[Response] =
+                                                                    reader: JsonApiReader[Response]): IO[Response] =
         endpoint.uri.flatMap { baseUri =>
           val reqUri = baseUri / pt.entity(entity)
 
