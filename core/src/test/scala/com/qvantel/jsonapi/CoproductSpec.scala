@@ -63,7 +63,7 @@ final class CoproductSpec extends Specification {
   private[this] object Limb {
     implicit val limbResourceType: ResourceType[Limb] = ResourceType[Limb]("limbs")
     implicit val limbIdentifiable: Identifiable[Limb] = Identifiable.by(_.id)
-    implicit val limbPathTo: PathTo[Limb] = new PathTo[Limb] {
+    implicit val limbPathTo: PathTo[Limb] = new PathToId[Limb] {
       override def root: Uri = "/limbs"
     }
     implicit val limbJsonApiFormat: JsonApiFormat[Limb] = jsonApiFormat[Limb]
@@ -74,7 +74,7 @@ final class CoproductSpec extends Specification {
   private[this] object Eye {
     implicit val eyeResourceType: ResourceType[Eye] = ResourceType[Eye]("eyes")
     implicit val eyeIdentifiable: Identifiable[Eye] = Identifiable.by(_.id)
-    implicit val eyePathTo: PathTo[Eye] = new PathTo[Eye] {
+    implicit val eyePathTo: PathTo[Eye] = new PathToId[Eye] {
       override def root: Uri = "/eyes"
     }
     implicit val eyeJsonApiFormat: JsonApiFormat[Eye] = jsonApiFormat[Eye]
@@ -85,7 +85,7 @@ final class CoproductSpec extends Specification {
   private[this] object LightBulb {
     implicit val lightBulbResourceType: ResourceType[LightBulb] = ResourceType[LightBulb]("light-bulbs")
     implicit val lightBulbIdentifiable: Identifiable[LightBulb] = Identifiable.by(_.id)
-    implicit val lightBulbPathTo: PathTo[LightBulb] = new PathTo[LightBulb] {
+    implicit val lightBulbPathTo: PathTo[LightBulb] = new PathToId[LightBulb] {
       override def root: Uri = "/light-bulbs"
     }
     implicit val lightBulbJsonApiFormat: JsonApiFormat[LightBulb] = jsonApiFormat[LightBulb]
@@ -96,7 +96,7 @@ final class CoproductSpec extends Specification {
   private[this] object Robot {
     implicit val robotResourceType: ResourceType[Robot] = ResourceType[Robot]("robots")
     implicit val robotIdentifiable: Identifiable[Robot] = Identifiable.by(_.id)
-    implicit val robotPathTo: PathTo[Robot] = new PathTo[Robot] {
+    implicit val robotPathTo: PathTo[Robot] = new PathToId[Robot] {
       override def root: Uri = "/robots"
     }
     implicit val robotJsonApiFormat: JsonApiFormat[Robot] = jsonApiFormat[Robot]
@@ -108,7 +108,7 @@ final class CoproductSpec extends Specification {
     implicit val advancedRobotResourceType: ResourceType[AdvancedRobot] =
       ResourceType[AdvancedRobot]("advanced-robots")
     implicit val advancedRobotIdentifiable: Identifiable[AdvancedRobot] = Identifiable.by(_.id)
-    implicit val advancedRobotPathTo: PathTo[AdvancedRobot] = new PathTo[AdvancedRobot] {
+    implicit val advancedRobotPathTo: PathTo[AdvancedRobot] = new PathToId[AdvancedRobot] {
       override def root: Uri = "/advanced-robots"
     }
     implicit val advancedRobotJsonApiFormat: JsonApiFormat[AdvancedRobot] = jsonApiFormat[AdvancedRobot]

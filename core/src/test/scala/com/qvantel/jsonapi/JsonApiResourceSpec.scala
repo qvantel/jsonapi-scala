@@ -78,7 +78,7 @@ final class JsonApiResourceSpec extends Specification with ScalaCheck {
     }
 
     "fill in PathTo in a case class" in {
-      implicitly[PathTo[Simple]].self("1") must be equalTo "/simples/1"
+      implicitly[PathToId[Simple]].self("1") must be equalTo "/simples/1"
     }
 
     "fill in Includes in a simple case class" in {

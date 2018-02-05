@@ -14,9 +14,7 @@ import com.qvantel.jsonapi.{JsonApiReader, JsonApiWriter, readCollection, readOn
 
 final case class Include(include: Set[String])
 
-trait JsonApiInstances {
-  val mediaType: MediaType = MediaType.`application/vnd.api+json`
-
+trait JsonApiInstances extends JsonApiInstancesLowPrio {
   implicit def jsonapiJsObjectDecoder[F[_]: Effect](implicit include: Include): EntityDecoder[F, JsObject] =
     EntityDecoder.decodeBy(mediaType) { msg: Message[F] =>
       EitherT {
@@ -37,6 +35,31 @@ trait JsonApiInstances {
       msg.as[JsObject].map(json => readCollection[A](json, include.include).toList.asRight[DecodeFailure])
     }
   }
+}
+
+trait JsonApiInstancesLowPrio {
+  val mediaType: MediaType = MediaType.`application/vnd.api+json`
+
+  implicit def jsonapiJsObjectDecoder[F[_]: Effect]: EntityDecoder[F, JsObject] =
+    EntityDecoder.decodeBy(mediaType) { msg: Message[F] =>
+      EitherT {
+        msg.as[String].map(s => s.parseJson.asJsObject.asRight[DecodeFailure])
+      }
+    }
+
+  implicit def jsonapiDecoder[F[_]: Effect, A: JsonApiReader]: EntityDecoder[F, A] =
+    EntityDecoder.decodeBy(mediaType) { msg: Message[F] =>
+      EitherT {
+        msg.as[JsObject].map(json => readOne[A](json).asRight[DecodeFailure])
+      }
+    }
+
+  implicit def jsonapiListDecoder[F[_]: Effect, A: JsonApiReader]: EntityDecoder[F, List[A]] =
+    EntityDecoder.decodeBy(mediaType) { msg: Message[F] =>
+      EitherT {
+        msg.as[JsObject].map(json => readCollection[A](json).toList.asRight[DecodeFailure])
+      }
+    }
 
   implicit def jsonapiEncoder[F[_], A: JsonApiWriter](implicit F: Applicative[F]): EntityEncoder[F, A] =
     EntityEncoder

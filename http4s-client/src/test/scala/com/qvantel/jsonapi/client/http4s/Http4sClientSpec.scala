@@ -3,13 +3,14 @@ package com.qvantel.jsonapi.client.http4s
 import scala.language.experimental.macros
 
 import cats.instances.list._
+import cats.instances.option._
 import cats.syntax.traverse._
 import cats.data.OptionT
 import cats.effect.IO
 import org.specs2.matcher.MatcherMacros
 import org.specs2.mutable.Specification
 import com.netaporter.uri.dsl._
-import org.http4s.{HttpService, QueryParamDecoder}
+import org.http4s.{HttpService, QueryParamDecoder, QueryParameterValue}
 import org.http4s.client.Client
 import org.http4s.dsl.io._
 
@@ -29,14 +30,30 @@ class Http4sClientSpec extends Specification with MatcherMacros {
     "ca1" -> CustomerAccount("ca1", ToMany.reference(Set("ba1", "ba2")))
   )
 
-  implicit val stringSetQueryParamDecoder: QueryParamDecoder[Set[String]] =
+  object IncludeQueryParamMatcher extends QueryParamDecoderMatcher[Set[String]]("include") {
+    val name = "include"
+    override def unapplySeq(params: Map[String, Seq[String]]): Option[Seq[Set[String]]] =
+      params
+        .get(name)
+        .flatMap(values =>
+          values.toList.traverse(s =>
+            QueryParamDecoder[Set[String]].decode(QueryParameterValue(s)).toOption.orElse(Some(Set.empty[String]))))
+
+    override def unapply(params: Map[String, Seq[String]]): Option[Set[String]] =
+      params
+        .get(name)
+        .flatMap(_.headOption)
+        .flatMap(s => QueryParamDecoder[Set[String]].decode(QueryParameterValue(s)).toOption)
+        .orElse(Some(Set.empty[String]))
+  }
+
+  object FilterQueryParamMatcher extends QueryParamDecoderMatcher[String]("filter")
+
+  implicit val stringSetQueryParamDecoder: QueryParamDecoder[Set[String]] = {
     QueryParamDecoder.stringQueryParamDecoder.map { x =>
       x.split(",").toSet
     }
-
-  object IncludeQueryParamMatcher extends QueryParamDecoderMatcher[Set[String]]("include")
-
-  object FilterQueryParamMatcher extends QueryParamDecoderMatcher[String]("filter")
+  }
 
   val service: HttpService[IO] = HttpService[IO] {
     case GET -> Root / "billing-accounts" :? FilterQueryParamMatcher(filter) =>
@@ -46,18 +63,17 @@ class Http4sClientSpec extends Specification with MatcherMacros {
         Ok(List.empty[CustomerAccount])
       }
     case GET -> Root / "billing-accounts" / id :? IncludeQueryParamMatcher(include) =>
-      val ba = billingAccounts(id)
-      val loadedBa = if (include.contains("customer-account")) {
-        ba.copy(customerAccount = ToOne.loaded(customerAccounts(ba.customerAccount.id)))
-      } else {
-        ba
-      }
-
-      Ok(loadedBa)
-    case GET -> Root / "billing-accounts" / id =>
       billingAccounts.get(id) match {
-        case Some(x) => Ok(x)
-        case None    => NotFound()
+        case Some(ba) =>
+          val loadedBa = if (include.contains("customer-account")) {
+            ba.copy(customerAccount = ToOne.loaded(customerAccounts(ba.customerAccount.id)))
+          } else {
+            ba
+          }
+
+          Ok(loadedBa)
+        case None =>
+          NotFound()
       }
     case GET -> Root / "customer-accounts" / id =>
       customerAccounts.get(id) match {
@@ -66,6 +82,30 @@ class Http4sClientSpec extends Specification with MatcherMacros {
       }
     case GET -> Root / "billing-accounts" =>
       Ok(billingAccounts.values.toList)
+
+    case req @ POST -> Root / "billing-accounts" / id :? IncludeQueryParamMatcher(include) =>
+      implicit val _include: Include = Include(include)
+      for {
+        ba   <- req.as[BillingAccount]
+        resp <- Ok(customerAccounts("ca1").copy(id = ba.id))
+      } yield resp
+
+    case req @ PUT -> Root / "billing-accounts" / id :? IncludeQueryParamMatcher(include) =>
+      implicit val _include: Include = Include(include)
+      for {
+        ba   <- req.as[BillingAccount]
+        resp <- Ok(customerAccounts("ca1").copy(id = ba.id))
+      } yield resp
+
+    case req @ PATCH -> Root / "billing-accounts" / id :? IncludeQueryParamMatcher(include) =>
+      implicit val _include: Include = Include(include)
+      for {
+        ba   <- req.as[BillingAccount]
+        resp <- Ok(customerAccounts("ca1").copy(id = ba.id))
+      } yield resp
+
+    case DELETE -> Root / "billing-accounts" / id =>
+      Ok(customerAccounts("ca1").copy(id = "delete"))
   }
 
   implicit val endpoint: ApiEndpoint = ApiEndpoint.Static("http://localhost:8080")
@@ -161,5 +201,31 @@ class Http4sClientSpec extends Specification with MatcherMacros {
 
   "pathMany 404" >> {
     JsonApiClient[BillingAccount].pathMany("billing-accountss").unsafeRunSync() must throwA
+  }
+
+  "post" >> {
+    val ca =
+      JsonApiClient[BillingAccount].post[CustomerAccount](billingAccounts("ba1").copy(id = "post")).unsafeRunSync()
+
+    ca.id must_== "post"
+  }
+
+  "put" >> {
+    val ca = JsonApiClient[BillingAccount].put[CustomerAccount](billingAccounts("ba1").copy(id = "put")).unsafeRunSync()
+
+    ca.id must_== "put"
+  }
+
+  "patch" >> {
+    val ca =
+      JsonApiClient[BillingAccount].patch[CustomerAccount](billingAccounts("ba1").copy(id = "patch")).unsafeRunSync()
+
+    ca.id must_== "patch"
+  }
+
+  "delete" >> {
+    val ca = JsonApiClient[BillingAccount].delete[CustomerAccount](billingAccounts("ba1")).unsafeRunSync()
+
+    ca.id must_== "delete"
   }
 }

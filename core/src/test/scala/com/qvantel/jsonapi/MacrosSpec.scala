@@ -157,7 +157,7 @@ final class MacrosSpec extends Specification with ScalaCheck {
 
       implicit val resourceType: com.qvantel.jsonapi.ResourceType[Root] = ResourceType[Root]("root")
 
-      implicit val pathTo: PathTo[Root] = new PathTo[Root] {
+      implicit val pathTo: PathTo[Root] = new PathToId[Root] {
         override final def root: Uri = "/roots"
       }
 
@@ -183,7 +183,7 @@ final class MacrosSpec extends Specification with ScalaCheck {
 
       object End {
         implicit lazy val endResourceType: com.qvantel.jsonapi.ResourceType[End] = ResourceType[End]("end")
-        implicit lazy val endPathTo: PathTo[End] = new PathTo[End] {
+        implicit lazy val endPathTo: PathTo[End] = new PathToId[End] {
           override final def root: Uri = "/end"
         }
         implicit lazy val endFormat: com.qvantel.jsonapi.JsonApiFormat[End] = jsonApiFormat[End]
@@ -192,7 +192,7 @@ final class MacrosSpec extends Specification with ScalaCheck {
 
       object Leaf {
         implicit lazy val leafResourceType: com.qvantel.jsonapi.ResourceType[Leaf] = ResourceType[Leaf]("leaves")
-        implicit lazy val leafPathTo: PathTo[Leaf] = new PathTo[Leaf] {
+        implicit lazy val leafPathTo: PathTo[Leaf] = new PathToId[Leaf] {
           override final def root: Uri = "/leaves"
         }
         implicit lazy val leafFormat: com.qvantel.jsonapi.JsonApiFormat[Leaf] = jsonApiFormat[Leaf]
@@ -201,7 +201,7 @@ final class MacrosSpec extends Specification with ScalaCheck {
 
       object Child {
         implicit lazy val childResourceType: com.qvantel.jsonapi.ResourceType[Child] = ResourceType[Child]("children")
-        implicit lazy val childPathTo: PathTo[Child] = new PathTo[Child] {
+        implicit lazy val childPathTo: PathTo[Child] = new PathToId[Child] {
           override final def root: Uri = "/children"
         }
         implicit lazy val childFormat: com.qvantel.jsonapi.JsonApiFormat[Child] = jsonApiFormat[Child]
@@ -210,7 +210,7 @@ final class MacrosSpec extends Specification with ScalaCheck {
 
       object Root {
         implicit lazy val rootResourceType: com.qvantel.jsonapi.ResourceType[Root] = ResourceType[Root]("roots")
-        implicit lazy val rootPathTo: PathTo[Root] = new PathTo[Root] {
+        implicit lazy val rootPathTo: PathTo[Root] = new PathToId[Root] {
           override final def root: Uri = "/roots"
         }
         implicit lazy val rootFormat: com.qvantel.jsonapi.JsonApiFormat[Root] = jsonApiFormat[Root]
