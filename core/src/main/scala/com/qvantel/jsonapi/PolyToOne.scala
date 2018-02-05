@@ -37,15 +37,18 @@ sealed trait PolyToOne[A <: Coproduct] {
   /** Loaded biased get method as a helper when you don't want to pattern match like crazy */
   def get: Option[A]
 
-  def load(implicit jac: JsonApiClient[A], rt: ResourceType[A], pt: PathToId[A]): IO[A]
+  def load(implicit jac: JsonApiClient, reader: JsonApiReader[A], pt: PathToId[A], rt: ResourceType[A]): IO[A]
 }
 
 object PolyToOne {
   final case class Reference[A <: Coproduct](id: String, resourceType: String) extends PolyToOne[A] {
     override def get: Option[A] = None
 
-    override def load(implicit jac: JsonApiClient[A], rt: ResourceType[A], pt: PathToId[A]): IO[A] =
-      jac.one(id).flatMap {
+    override def load(implicit jac: JsonApiClient,
+                      reader: JsonApiReader[A],
+                      pt: PathToId[A],
+                      rt: ResourceType[A]): IO[A] =
+      jac.one[A](id).flatMap {
         case Some(x) => IO.pure(x)
         case None    => IO.raiseError(ApiError.NoEntityForId("id", rt.resourceType))
       }
@@ -54,7 +57,10 @@ object PolyToOne {
   final case class Loaded[A <: Coproduct](entity: A, id: String, resourceType: String) extends PolyToOne[A] {
     override def get: Option[A] = Some(entity)
 
-    override def load(implicit jac: JsonApiClient[A], rt: ResourceType[A], pt: PathToId[A]): IO[A] = IO.pure(entity)
+    override def load(implicit jac: JsonApiClient,
+                      reader: JsonApiReader[A],
+                      pt: PathToId[A],
+                      rt: ResourceType[A]): IO[A] = IO.pure(entity)
   }
 
   def reference[A <: Coproduct, E: ResourceType](id: String): PolyToOne[A] =

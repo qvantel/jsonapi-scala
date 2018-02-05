@@ -29,35 +29,35 @@ class AkkaClientSpec(implicit ee: ExecutionEnv) extends Specification with Match
   implicit val m: ActorMaterializer  = ActorMaterializer()
   implicit val endpoint: ApiEndpoint = ApiEndpoint.Static("http://localhost:8080/api")
 
+  val jac = JsonApiClient.instance
+
   "one" >> {
-    val req = JsonApiClient[BillingAccount].one("lindberg-ab-billingaccount1").unsafeRunSync()
+    val req = jac.one[BillingAccount]("lindberg-ab-billingaccount1").unsafeRunSync()
 
     req must beSome(matchA[BillingAccount].id("lindberg-ab-billingaccount1"))
   }
 
   "one should return None when backend returns 404" >> {
-    val req = JsonApiClient[BillingAccount].one("foobar").unsafeRunSync()
+    val req = jac.one[BillingAccount]("foobar").unsafeRunSync()
 
     req must beNone
   }
 
   "make sure weird characters in id work correctly" >> {
-    val req = JsonApiClient[BillingAccount].one("""foo & bar / baz""").unsafeRunSync()
+    val req = jac.one[BillingAccount]("""foo & bar / baz""").unsafeRunSync()
 
     req must beSome(matchA[BillingAccount].id("foo & bar / baz"))
   }
 
   "one with include" >> {
-    val req = OptionT(JsonApiClient[BillingAccount].one("lindberg-ab-billingaccount1", Set("customer-account")))
+    val req = OptionT(jac.one[BillingAccount]("lindberg-ab-billingaccount1", Set("customer-account")))
     val res = req.subflatMap(_.customerAccount.get).value.unsafeRunSync()
 
     res must beSome(matchA[CustomerAccount].id("lindberg-ab-customeraccount1"))
   }
 
   "many" >> {
-    val req = JsonApiClient[BillingAccount]
-      .many(Set("lindberg-ab-billingaccount1", "qvantel-billingaccount1"))
-      .unsafeRunSync()
+    val req = jac.many[BillingAccount](Set("lindberg-ab-billingaccount1", "qvantel-billingaccount1")).unsafeRunSync()
 
     req must contain(
       matchA[BillingAccount].id("lindberg-ab-billingaccount1"),
@@ -66,8 +66,8 @@ class AkkaClientSpec(implicit ee: ExecutionEnv) extends Specification with Match
   }
 
   "many with include" >> {
-    val req = JsonApiClient[BillingAccount].many(Set("lindberg-ab-billingaccount1", "qvantel-billingaccount1"),
-                                                 Set("customer-account"))
+    val req =
+      jac.many[BillingAccount](Set("lindberg-ab-billingaccount1", "qvantel-billingaccount1"), Set("customer-account"))
     val mapped = req.flatMap(_.traverse(_.customerAccount.load))
 
     val res = mapped.unsafeRunSync()
@@ -79,7 +79,7 @@ class AkkaClientSpec(implicit ee: ExecutionEnv) extends Specification with Match
   }
 
   "load ToOne" >> {
-    val ba = OptionT(JsonApiClient[BillingAccount].one("lindberg-ab-billingaccount1"))
+    val ba = OptionT(jac.one[BillingAccount]("lindberg-ab-billingaccount1"))
 
     val ca = ba.semiflatMap(_.customerAccount.load)
 
@@ -89,7 +89,7 @@ class AkkaClientSpec(implicit ee: ExecutionEnv) extends Specification with Match
   }
 
   "load ToMany" >> {
-    val ca = OptionT(JsonApiClient[CustomerAccount].one("lindberg-ab-customeraccount1"))
+    val ca = OptionT(jac.one[CustomerAccount]("lindberg-ab-customeraccount1"))
 
     val ba = ca.semiflatMap(_.billingAccounts.load)
 
@@ -99,8 +99,8 @@ class AkkaClientSpec(implicit ee: ExecutionEnv) extends Specification with Match
   }
 
   "filter" >> {
-    val req = JsonApiClient[BillingAccount]
-      .filter("""(OR (EQ id "lindberg-ab-billingaccount1") (EQ id "foo & bar / baz") )""")
+    val req = jac
+      .filter[BillingAccount]("""(OR (EQ id "lindberg-ab-billingaccount1") (EQ id "foo & bar / baz") )""")
       .unsafeRunSync()
 
     req must contain(
@@ -110,7 +110,7 @@ class AkkaClientSpec(implicit ee: ExecutionEnv) extends Specification with Match
   }
 
   "pathMany" >> {
-    val req = JsonApiClient[BillingAccount].pathMany("/api/billing-accounts").unsafeRunSync()
+    val req = jac.pathMany[BillingAccount]("/api/billing-accounts").unsafeRunSync()
 
     req must contain(
       matchA[BillingAccount].id("lindberg-ab-billingaccount1"),
@@ -119,7 +119,7 @@ class AkkaClientSpec(implicit ee: ExecutionEnv) extends Specification with Match
   }
 
   "pathMany 404" >> {
-    JsonApiClient[BillingAccount].pathMany("/api/billing-accountss").unsafeRunSync() must throwA
+    jac.pathMany[BillingAccount]("/api/billing-accountss").unsafeRunSync() must throwA
   }
 
   def afterAll = {

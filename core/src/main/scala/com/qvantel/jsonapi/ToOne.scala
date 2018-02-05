@@ -43,7 +43,7 @@ sealed trait ToOne[A] {
   /** Loaded biased get method as a helper when you don't want to pattern match like crazy */
   def get: Option[A]
 
-  def load(implicit jac: JsonApiClient[A], rt: ResourceType[A], pt: PathToId[A]): IO[A]
+  def load(implicit jac: JsonApiClient, rt: ResourceType[A], pt: PathToId[A], reader: JsonApiReader[A]): IO[A]
 }
 
 object ToOne {
@@ -53,7 +53,10 @@ object ToOne {
 
     override def get: Option[A] = None
 
-    override def load(implicit jac: JsonApiClient[A], rt: ResourceType[A], pt: PathToId[A]): IO[A] =
+    override def load(implicit jac: JsonApiClient,
+                      rt: ResourceType[A],
+                      pt: PathToId[A],
+                      reader: JsonApiReader[A]): IO[A] =
       jac.one(id).flatMap {
         case Some(x) => IO.pure(x)
         case None    => IO.raiseError(ApiError.NoEntityForId("id", rt.resourceType))
@@ -67,7 +70,10 @@ object ToOne {
 
     override def get: Option[A] = Some(entity)
 
-    override def load(implicit jac: JsonApiClient[A], rt: ResourceType[A], pt: PathToId[A]): IO[A] = IO.pure(entity)
+    override def load(implicit jac: JsonApiClient,
+                      rt: ResourceType[A],
+                      pt: PathToId[A],
+                      reader: JsonApiReader[A]): IO[A] = IO.pure(entity)
   }
 
   def reference[A](id: String): ToOne[A]           = Reference(id)

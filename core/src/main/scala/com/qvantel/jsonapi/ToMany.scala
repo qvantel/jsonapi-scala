@@ -44,21 +44,23 @@ sealed trait ToMany[A] {
   /** Loaded biased get method as a helper when you don't want to pattern match like crazy */
   def get: List[A]
 
-  def load(implicit jac: JsonApiClient[A],
+  def load(implicit jac: JsonApiClient,
            rt: ResourceType[A],
            identifiable: Identifiable[A],
-           pt: PathToId[A]): IO[List[A]]
+           pt: PathToId[A],
+           reader: JsonApiReader[A]): IO[List[A]]
 }
 
 object ToMany {
   final case class IdsReference[A](ids: Set[String]) extends ToMany[A] {
     override def get: List[A] = List.empty
 
-    def load(implicit jac: JsonApiClient[A],
+    def load(implicit jac: JsonApiClient,
              rt: ResourceType[A],
              identifiable: Identifiable[A],
-             pt: PathToId[A]): IO[List[A]] =
-      jac.many(ids).flatMap { entities =>
+             pt: PathToId[A],
+             reader: JsonApiReader[A]): IO[List[A]] =
+      jac.many[A](ids).flatMap { entities =>
         entities.filterNot(x => ids(identifiable.identify(x))) match {
           case Nil => IO.pure(entities)
           case missing =>
@@ -73,12 +75,13 @@ object ToMany {
     /** Loaded biased get method as a helper when you don't want to pattern match like crazy */
     override def get: List[A] = List.empty
 
-    def load(implicit jac: JsonApiClient[A],
+    def load(implicit jac: JsonApiClient,
              rt: ResourceType[A],
              identifiable: Identifiable[A],
-             pt: PathToId[A]): IO[List[A]] =
+             pt: PathToId[A],
+             reader: JsonApiReader[A]): IO[List[A]] =
       path match {
-        case Some(uri) => jac.pathMany(uri)
+        case Some(uri) => jac.pathMany[A](uri)
         case None      => IO.pure(List.empty)
       }
   }
@@ -88,10 +91,11 @@ object ToMany {
 
     override def get: List[A] = entities.toList
 
-    def load(implicit jac: JsonApiClient[A],
+    def load(implicit jac: JsonApiClient,
              rt: ResourceType[A],
              identifiable: Identifiable[A],
-             pt: PathToId[A]): IO[List[A]] =
+             pt: PathToId[A],
+             reader: JsonApiReader[A]): IO[List[A]] =
       IO.pure(entities.toList)
   }
 
