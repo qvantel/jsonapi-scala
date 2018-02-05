@@ -13,7 +13,7 @@ class PathToSpec extends Specification {
     val t = Test("1")
 
     PathTo[Test].entity(t) must be equalTo "/foo/bar/tests/1"
-    PathTo[Test].self("test") must be equalTo "/foo/bar/tests/test"
+    PathToId[Test].self("test") must be equalTo "/foo/bar/tests/test"
 
     rawOne(t)
       .fields("data")

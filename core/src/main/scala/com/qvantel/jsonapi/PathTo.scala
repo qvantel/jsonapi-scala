@@ -29,12 +29,22 @@ package com.qvantel.jsonapi
 import com.netaporter.uri.Uri
 import com.netaporter.uri.dsl._
 
-abstract class PathTo[A: Identifiable] {
-  def self(id: String): Uri = root / id
-  def entity(a: A): Uri     = self(implicitly[Identifiable[A]].identify(a))
+trait PathTo[A] {
   def root: Uri
+  def entity(a: A): Uri = root
 }
 
 object PathTo {
   def apply[A](implicit pt: PathTo[A]) = implicitly[PathTo[A]]
+
+  def byId[A](id: String)(implicit pti: PathToId[A]): Uri = pti.self(id)
+}
+
+abstract class PathToId[A: Identifiable] extends PathTo[A] {
+  def self(id: String): Uri      = root / id
+  override def entity(a: A): Uri = self(Identifiable[A].identify(a))
+}
+
+object PathToId {
+  def apply[A](implicit pt: PathToId[A]) = implicitly[PathToId[A]]
 }

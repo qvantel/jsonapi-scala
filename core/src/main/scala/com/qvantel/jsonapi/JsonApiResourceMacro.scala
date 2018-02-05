@@ -43,8 +43,23 @@ final class JsonApiResourceMacro(val c: WhiteboxContext) extends JsonApiCommon {
   private[this] def createResourceType(name: TypeName, resourceTypeName: String): c.Tree =
     q"""implicit final val ${TermName(s"${name}ResourceType")}: _root_.com.qvantel.jsonapi.ResourceType[$name] = _root_.com.qvantel.jsonapi.ResourceType($resourceTypeName)"""
 
+  private[this] def createPathToId(name: TypeName, resourceTypeName: String): c.Tree = {
+    val path = s"/$resourceTypeName"
+
+    q"""implicit final val ${TermName(s"${name}PathTo")}: _root_.com.qvantel.jsonapi.PathToId[$name] = new _root_.com.qvantel.jsonapi.PathToId[$name] {
+          import _root_.com.netaporter.uri.dsl._
+
+          override final val root: _root_.com.netaporter.uri.Uri =
+            implicitly[_root_.com.qvantel.jsonapi.ApiRoot].apiRoot match {
+              case Some(root) => root / $resourceTypeName
+              case None => $path
+            }
+        }"""
+  }
+
   private[this] def createPathTo(name: TypeName, resourceTypeName: String): c.Tree = {
     val path = s"/$resourceTypeName"
+
     q"""implicit final val ${TermName(s"${name}PathTo")}: _root_.com.qvantel.jsonapi.PathTo[$name] = new _root_.com.qvantel.jsonapi.PathTo[$name] {
           import _root_.com.netaporter.uri.dsl._
 
@@ -79,9 +94,9 @@ final class JsonApiResourceMacro(val c: WhiteboxContext) extends JsonApiCommon {
                                 createJsonApiFormat(className))
 
         val withIdRequiringParts = if (noId) {
-          defaultParts
+          defaultParts ++ List(createPathTo(className, resourceTypeName))
         } else {
-          defaultParts ++ List(createIdentifiable(className), createPathTo(className, resourceTypeName))
+          defaultParts ++ List(createIdentifiable(className), createPathToId(className, resourceTypeName))
         }
 
         q"""object $name {

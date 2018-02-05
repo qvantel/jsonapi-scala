@@ -33,10 +33,12 @@ import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
 
 object Link {
-  private[this] def links[P](parent: P, name: String)(implicit pathToParent: PathTo[P]): JsObject =
+  private[this] def links[P](parent: P, name: String)(implicit pathToParent: PathTo[P],
+                                                      pid: Identifiable[P]): JsObject =
     JsObject("related" -> implicitly[JsonWriter[Uri]].write(pathToParent.entity(parent) / name))
 
   def to[A, P](parent: P, relation: ToOne[A], name: String)(implicit identifiable: Identifiable[A],
+                                                            pid: Identifiable[P],
                                                             rt: ResourceType[A],
                                                             pathTo: PathTo[A],
                                                             pathToParent: PathTo[P]): JsValue = {
@@ -53,6 +55,7 @@ object Link {
   }
 
   def to[A, P](parent: P, maybeRelation: Option[ToOne[A]], name: String)(implicit identifiable: Identifiable[A],
+                                                                         pid: Identifiable[P],
                                                                          rt: ResourceType[A],
                                                                          pathTo: PathTo[A],
                                                                          pathToParent: PathTo[P]): JsValue = {
@@ -72,6 +75,7 @@ object Link {
   }
 
   def to[A, P](parent: P, maybeRelation: JsonOption[ToOne[A]], name: String)(implicit identifiable: Identifiable[A],
+                                                                             pid: Identifiable[P],
                                                                              rt: ResourceType[A],
                                                                              pathTo: PathTo[A],
                                                                              pathToParent: PathTo[P]): JsValue = {
@@ -94,6 +98,7 @@ object Link {
   }
 
   def to[A, P](parent: P, relation: ToMany[A], name: String)(implicit identifiable: Identifiable[A],
+                                                             pid: Identifiable[P],
                                                              rt: ResourceType[A],
                                                              pathTo: PathTo[A],
                                                              pathToParent: PathTo[P]): JsValue =
@@ -121,6 +126,7 @@ object Link {
     }
 
   def to[A <: Coproduct, P](parent: P, relation: PolyToOne[A], name: String)(implicit identifiable: PolyIdentifiable[A],
+                                                                             pid: Identifiable[P],
                                                                              pathToParent: PathTo[P]): JsValue = {
     def resourceLinkage(tpe: String, id: String): JsObject =
       JsObject("type" -> tpe.toJson, "id" -> id.toJson)
@@ -136,6 +142,7 @@ object Link {
 
   def to[A <: Coproduct, P](parent: P, maybeRelation: Option[PolyToOne[A]], name: String)(
       implicit identifiable: PolyIdentifiable[A],
+      pid: Identifiable[P],
       pathToParent: PathTo[P]): JsValue = {
     def resourceLinkage(tpe: String, id: String): JsObject =
       JsObject("type" -> tpe.toJson, "id" -> id.toJson)
@@ -154,6 +161,7 @@ object Link {
 
   def to[A <: Coproduct, P](parent: P, maybeRelation: JsonOption[PolyToOne[A]], name: String)(
       implicit identifiable: PolyIdentifiable[A],
+      pid: Identifiable[P],
       pathToParent: PathTo[P]): JsValue = {
     def resourceLinkage(tpe: String, id: String): JsObject =
       JsObject("type" -> tpe.toJson, "id" -> id.toJson)
@@ -175,6 +183,7 @@ object Link {
 
   def to[A <: Coproduct, P](parent: P, relation: PolyToMany[A], name: String)(
       implicit identifiable: PolyIdentifiable[A],
+      pid: Identifiable[P],
       pathToParent: PathTo[P]): JsValue =
     relation match {
       case PolyToMany.IdsReference(rels) =>

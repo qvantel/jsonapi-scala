@@ -47,7 +47,7 @@ final class SumTypeSpec extends Specification {
   private[this] object Shape {
     implicit val shapeIdentifiable: Identifiable[Shape] = Identifiable.by(_.id)
     implicit val shapeResourceType: ResourceType[Shape] = ResourceType("shapes")
-    implicit val shapePathTo: PathTo[Shape] = new PathTo[Shape] {
+    implicit val shapePathTo: PathTo[Shape] = new PathToId[Shape] {
       override def self(id: String): Path = Path("/shapes") / id
     }
     implicit val shapeJsonApiformat: JsonApiFormat[Shape] = jsonApiFormat[Shape]
@@ -67,7 +67,7 @@ final class SumTypeSpec extends Specification {
   private[this] object Scene {
     implicit val sceneIdentifiable: Identifiable[Scene] = Identifiable.by(_.id)
     implicit val sceneResourceType: ResourceType[Scene] = ResourceType("scenes")
-    implicit val scenePathTo: PathTo[Scene] = new PathTo[Scene] {
+    implicit val scenePathTo: PathTo[Scene] = new PathToId[Scene] {
       override def self(id: String): Path = Path("/scenes") / id
     }
     implicit val sceneJsonApiformat: JsonApiFormat[Scene] = jsonApiFormat[Scene]
