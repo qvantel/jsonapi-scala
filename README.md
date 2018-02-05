@@ -48,19 +48,22 @@ The subproject "http4s-client" has an implementation of this using http4s
 
 ```scala
 import cats.data.OptionT
+import com.qvantel.jsonapi.JsonApiClient
 
-val one: IO[Option[BillingAccount]] = JsonApiClient[BillingAccount].one("ba1") 
-val many: IO[List[BillingAccount]] = JsonApiClient[BillingAccount].many(Set("ba1", "ba2"))
+val jac = JsonApiClient.instance // won't work if you don't have an actual implementations stuff in scope. See setup.
+
+val one: IO[Option[BillingAccount]] = jac.one[BillingAccount]("ba1") 
+val many: IO[List[BillingAccount]] = jac.many[BillingAccount](Set("ba1", "ba2"))
 
 // can also load includes at the same time
-val withIncludes = JsonApiClient[BillingAccount].one("ba1", Set("customer-account"))
+val withIncludes = jac.one[BillingAccount]("ba1", Set("customer-account"))
 
 // includes can also be loaded on their own with a method
-val ba: OptionT[IO, BillingAccount]  = OptionT(JsonApiClient[BillingAccount].one("ba"))
+val ba: OptionT[IO, BillingAccount]  = OptionT(jac.one[BillingAccount]("ba"))
 val ca: OptionT[IO, CustomerAccount] = ba.semiflatMap(_.customerAccount.load)
 
 // filtering support
-val filtered = JsonApiClient[BillingAccount].filter("some nice filter string here")
+val filtered = jac.filter[BillingAccount]("some nice filter string here")
 ```
 
 ### Setup
@@ -69,18 +72,37 @@ val filtered = JsonApiClient[BillingAccount].filter("some nice filter string her
 ```scala
 // needs ActorSystem and Materializer for akka-http
 // the ApiEndPoint is used to as the "root" where to launch queries
+import com.netaporter.uri.dsl._
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+import com.qvantel.jsonapi.ApiEndpoint
+import com.qvantel.jsonapi.JsonApiClient
 import com.qvantel.jsonapi.client.akka.AkkaClient._
 
 implicit val system: ActorSystem  = ActorSystem()
 implicit val materializer: ActorMaterializer = ActorMaterializer()
 implicit val endpoint: ApiEndpoint = ApiEndpoint.Static("http://localhost:8080/api")
+
+val jac = JsonApiClient.instance
 ```
 
 #### http4s client
 Setup for http4s client
 ```scala
+import com.netaporter.uri.dsl._
+import org.http4s.client.Client
+import org.http4s.client.blaze.Http1Client
+import cats.effect.IO
+import com.qvantel.jsonapi.ApiEndpoint
+import com.qvantel.jsonapi.JsonApiClient
+
 import com.qvantel.jsonapi.client.http4s.Http4sClient._
 import com.qvantel.jsonapi.client.http4s.JsonApiInstances._
 
+
 implicit val endpoint: ApiEndpoint = ApiEndpoint.Static("http://localhost:8080/api")
+
+implicit val client: Client[IO] = Http1Client[IO]().unsafeRunSync()
+
+val jac = JsonApiClient.instance
 ```

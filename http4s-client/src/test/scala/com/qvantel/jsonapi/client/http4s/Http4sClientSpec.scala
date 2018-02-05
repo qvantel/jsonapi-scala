@@ -111,35 +111,35 @@ class Http4sClientSpec extends Specification with MatcherMacros {
   implicit val endpoint: ApiEndpoint = ApiEndpoint.Static("http://localhost:8080")
   implicit val client: Client[IO]    = Client.fromHttpService(service)
 
+  val jac = JsonApiClient.instance
+
   "one" >> {
-    val req = JsonApiClient[BillingAccount].one("ba1").unsafeRunSync()
+    val req = jac.one[BillingAccount]("ba1").unsafeRunSync()
 
     req must beSome(matchA[BillingAccount].id("ba1"))
   }
 
   "one should return None when backend returns 404" >> {
-    val req = JsonApiClient[BillingAccount].one("foobar").unsafeRunSync()
+    val req = jac.one[BillingAccount]("foobar").unsafeRunSync()
 
     req must beNone
   }
 
   "make sure weird characters in id work correctly" >> {
-    val req = JsonApiClient[BillingAccount].one("""foo & bar / baz""").unsafeRunSync()
+    val req = jac.one[BillingAccount]("""foo & bar / baz""").unsafeRunSync()
 
     req must beSome(matchA[BillingAccount].id("foo & bar / baz"))
   }
 
   "one with include" >> {
-    val req = OptionT(JsonApiClient[BillingAccount].one("ba1", Set("customer-account")))
+    val req = OptionT(jac.one[BillingAccount]("ba1", Set("customer-account")))
     val res = req.subflatMap(_.customerAccount.get).value.unsafeRunSync()
 
     res must beSome(matchA[CustomerAccount].id("ca1"))
   }
 
   "many" >> {
-    val req = JsonApiClient[BillingAccount]
-      .many(Set("ba1", "ba2"))
-      .unsafeRunSync()
+    val req = jac.many[BillingAccount](Set("ba1", "ba2")).unsafeRunSync()
 
     req must contain(
       matchA[BillingAccount].id("ba1"),
@@ -148,7 +148,7 @@ class Http4sClientSpec extends Specification with MatcherMacros {
   }
 
   "many with include" >> {
-    val req    = JsonApiClient[BillingAccount].many(Set("ba1", "ba2"), Set("customer-account"))
+    val req    = jac.many[BillingAccount](Set("ba1", "ba2"), Set("customer-account"))
     val mapped = req.flatMap(_.traverse(_.customerAccount.load))
 
     val res = mapped.unsafeRunSync()
@@ -159,7 +159,7 @@ class Http4sClientSpec extends Specification with MatcherMacros {
   }
 
   "load ToOne" >> {
-    val ba = OptionT(JsonApiClient[BillingAccount].one("ba1"))
+    val ba = OptionT(jac.one[BillingAccount]("ba1"))
 
     val ca = ba.semiflatMap(_.customerAccount.load)
 
@@ -169,7 +169,7 @@ class Http4sClientSpec extends Specification with MatcherMacros {
   }
 
   "load ToMany" >> {
-    val ca = OptionT(JsonApiClient[CustomerAccount].one("ca1"))
+    val ca = OptionT(jac.one[CustomerAccount]("ca1"))
 
     val ba = ca.semiflatMap(_.billingAccounts.load)
 
@@ -179,9 +179,7 @@ class Http4sClientSpec extends Specification with MatcherMacros {
   }
 
   "filter" >> {
-    val req = JsonApiClient[BillingAccount]
-      .filter("""(OR (EQ id "ba1") (EQ id "foo & bar / baz") )""")
-      .unsafeRunSync()
+    val req = jac.filter[BillingAccount]("""(OR (EQ id "ba1") (EQ id "foo & bar / baz") )""").unsafeRunSync()
 
     req must contain(
       matchA[BillingAccount].id("ba1"),
@@ -190,7 +188,7 @@ class Http4sClientSpec extends Specification with MatcherMacros {
   }
 
   "pathMany" >> {
-    val req = JsonApiClient[BillingAccount].pathMany("billing-accounts").unsafeRunSync()
+    val req = jac.pathMany[BillingAccount]("billing-accounts").unsafeRunSync()
 
     req must contain(
       matchA[BillingAccount].id("ba1"),
@@ -200,31 +198,30 @@ class Http4sClientSpec extends Specification with MatcherMacros {
   }
 
   "pathMany 404" >> {
-    JsonApiClient[BillingAccount].pathMany("billing-accountss").unsafeRunSync() must throwA
+    jac.pathMany[BillingAccount]("billing-accountss").unsafeRunSync() must throwA
   }
 
   "post" >> {
-    val ca =
-      JsonApiClient[BillingAccount].post[CustomerAccount](billingAccounts("ba1").copy(id = "post")).unsafeRunSync()
+    val ca = jac.post[BillingAccount, CustomerAccount](billingAccounts("ba1").copy(id = "post")).unsafeRunSync()
 
     ca.id must_== "post"
   }
 
   "put" >> {
-    val ca = JsonApiClient[BillingAccount].put[CustomerAccount](billingAccounts("ba1").copy(id = "put")).unsafeRunSync()
+    val ca = jac.put[BillingAccount, CustomerAccount](billingAccounts("ba1").copy(id = "put")).unsafeRunSync()
 
     ca.id must_== "put"
   }
 
   "patch" >> {
     val ca =
-      JsonApiClient[BillingAccount].patch[CustomerAccount](billingAccounts("ba1").copy(id = "patch")).unsafeRunSync()
+      jac.patch[BillingAccount, CustomerAccount](billingAccounts("ba1").copy(id = "patch")).unsafeRunSync()
 
     ca.id must_== "patch"
   }
 
   "delete" >> {
-    val ca = JsonApiClient[BillingAccount].delete[CustomerAccount](billingAccounts("ba1")).unsafeRunSync()
+    val ca = jac.delete[BillingAccount, CustomerAccount](billingAccounts("ba1")).unsafeRunSync()
 
     ca.id must_== "delete"
   }

@@ -15,8 +15,6 @@ import com.qvantel.jsonapi._
 import com.qvantel.jsonapi.client.http4s.JsonApiInstances._
 
 trait Http4sClient extends Http4sClientDsl[IO] {
-  def apply[A](implicit jac: JsonApiClient[A]) = jac
-
   private[this] def mkIncludeString(include: Set[String]): Option[String] =
     if (include.isEmpty) {
       None
@@ -24,28 +22,28 @@ trait Http4sClient extends Http4sClientDsl[IO] {
       Some(include.mkString(","))
     }
 
-  implicit def instance[A](implicit rt: ResourceType[A],
-                           format: JsonApiFormat[A],
-                           endpoint: ApiEndpoint,
-                           client: Client[IO]): JsonApiClient[A] = new JsonApiClient[A] {
+  implicit def instance(implicit endpoint: ApiEndpoint, client: Client[IO]): JsonApiClient = new JsonApiClient {
 
     implicit val uConfig: UriConfig = uriConfig
 
-    override def one(id: String, include: Set[String] = Set.empty)(implicit pt: PathToId[A]): IO[Option[A]] =
+    override def one[A](id: String, include: Set[String] = Set.empty)(implicit pt: PathToId[A],
+                                                                      reader: JsonApiReader[A]): IO[Option[A]] =
       for {
         baseUri  <- endpoint.uri
         response <- pathOne(baseUri / pt.self(id), include)
       } yield response
 
-    override def many(ids: Set[String], include: Set[String] = Set.empty)(implicit pt: PathToId[A]): IO[List[A]] =
+    override def many[A](ids: Set[String], include: Set[String] = Set.empty)(implicit pt: PathToId[A],
+                                                                             reader: JsonApiReader[A]): IO[List[A]] =
       ids.toList.traverse { id =>
         one(id, include).flatMap {
           case Some(entity) => IO.pure(entity)
-          case None         => IO.raiseError(ApiError.NoEntityForId(id, rt.resourceType))
+          case None         => IO.raiseError(ApiError.NoEntityForId(id, pt.root))
         }
       }
 
-    override def filter(filter: String, include: Set[String] = Set.empty)(implicit pt: PathTo[A]): IO[List[A]] = {
+    override def filter[A](filter: String, include: Set[String] = Set.empty)(implicit pt: PathTo[A],
+                                                                             reader: JsonApiReader[A]): IO[List[A]] = {
       implicit val _include: Include = Include(include)
 
       for {
@@ -57,7 +55,8 @@ trait Http4sClient extends Http4sClientDsl[IO] {
       } yield response
     }
 
-    override def pathOne(path: CoreUri, include: Set[String] = Set.empty): IO[Option[A]] = {
+    override def pathOne[A](path: CoreUri, include: Set[String] = Set.empty)(
+        implicit reader: JsonApiReader[A]): IO[Option[A]] = {
       implicit val _include: Include = Include(include)
 
       val request = for {
@@ -75,7 +74,8 @@ trait Http4sClient extends Http4sClientDsl[IO] {
       }
     }
 
-    override def pathMany(path: CoreUri, include: Set[String] = Set.empty): IO[List[A]] = {
+    override def pathMany[A](path: CoreUri, include: Set[String] = Set.empty)(
+        implicit reader: JsonApiReader[A]): IO[List[A]] = {
       implicit val _include: Include = Include(include)
 
       for {
@@ -87,8 +87,9 @@ trait Http4sClient extends Http4sClientDsl[IO] {
       } yield response
     }
 
-    override def post[Response](entity: A, include: Set[String] = Set.empty)(
+    override def post[A, Response](entity: A, include: Set[String] = Set.empty)(
         implicit pt: PathTo[A],
+        writer: JsonApiWriter[A],
         reader: JsonApiReader[Response]): IO[Response] = {
       implicit val _include: Include = Include(include)
 
@@ -106,8 +107,9 @@ trait Http4sClient extends Http4sClientDsl[IO] {
       }
     }
 
-    override def put[Response](entity: A, include: Set[String] = Set.empty)(
+    override def put[A, Response](entity: A, include: Set[String] = Set.empty)(
         implicit pt: PathTo[A],
+        writer: JsonApiWriter[A],
         reader: JsonApiReader[Response]): IO[Response] = {
       implicit val _include: Include = Include(include)
 
@@ -121,8 +123,9 @@ trait Http4sClient extends Http4sClientDsl[IO] {
       } yield response
     }
 
-    override def patch[Response](entity: A, include: Set[String] = Set.empty)(
+    override def patch[A, Response](entity: A, include: Set[String] = Set.empty)(
         implicit pt: PathTo[A],
+        writer: JsonApiWriter[A],
         reader: JsonApiReader[Response]): IO[Response] = {
       implicit val _include: Include = Include(include)
 
@@ -136,7 +139,7 @@ trait Http4sClient extends Http4sClientDsl[IO] {
       } yield response
     }
 
-    override def delete[Response](entity: A, include: Set[String] = Set.empty)(
+    override def delete[A, Response](entity: A, include: Set[String] = Set.empty)(
         implicit pt: PathTo[A],
         reader: JsonApiReader[Response]): IO[Response] = {
       implicit val _include: Include = Include(include)

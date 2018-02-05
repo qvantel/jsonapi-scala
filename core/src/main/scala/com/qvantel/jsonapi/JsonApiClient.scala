@@ -3,25 +3,31 @@ package com.qvantel.jsonapi
 import cats.effect.IO
 import com.netaporter.uri.Uri
 
-abstract class JsonApiClient[A](implicit format: JsonApiFormat[A]) {
-  def one(id: String, include: Set[String] = Set.empty)(implicit pt: PathToId[A]): IO[Option[A]]
-  def many(ids: Set[String], include: Set[String] = Set.empty)(implicit pt: PathToId[A]): IO[List[A]]
-  def pathOne(path: Uri, include: Set[String] = Set.empty): IO[Option[A]]
-  def pathMany(path: Uri, include: Set[String] = Set.empty): IO[List[A]]
-  def filter(filter: String, include: Set[String] = Set.empty)(implicit pt: PathTo[A]): IO[List[A]]
+trait JsonApiClient {
+  def one[A](id: String, include: Set[String] = Set.empty)(implicit pt: PathToId[A],
+                                                           reader: JsonApiReader[A]): IO[Option[A]]
+  def many[A](ids: Set[String], include: Set[String] = Set.empty)(implicit pt: PathToId[A],
+                                                                  reader: JsonApiReader[A]): IO[List[A]]
+  def pathOne[A](path: Uri, include: Set[String] = Set.empty)(implicit reader: JsonApiReader[A]): IO[Option[A]]
+  def pathMany[A](path: Uri, include: Set[String] = Set.empty)(implicit reader: JsonApiReader[A]): IO[List[A]]
+  def filter[A](filter: String, include: Set[String] = Set.empty)(implicit pt: PathTo[A],
+                                                                  reader: JsonApiReader[A]): IO[List[A]]
 
-  def post[Response](entity: A, include: Set[String] = Set.empty)(implicit pt: PathTo[A],
-                                                                  reader: JsonApiReader[Response]): IO[Response]
-  def put[Response](entity: A, include: Set[String] = Set.empty)(implicit pt: PathTo[A],
-                                                                 reader: JsonApiReader[Response]): IO[Response]
-  def patch[Response](entity: A, include: Set[String] = Set.empty)(implicit pt: PathTo[A],
-                                                                   reader: JsonApiReader[Response]): IO[Response]
-  def delete[Response](entity: A, include: Set[String] = Set.empty)(implicit pt: PathTo[A],
+  def post[A, Response](entity: A, include: Set[String] = Set.empty)(implicit pt: PathTo[A],
+                                                                     writer: JsonApiWriter[A],
+                                                                     reader: JsonApiReader[Response]): IO[Response]
+  def put[A, Response](entity: A, include: Set[String] = Set.empty)(implicit pt: PathTo[A],
+                                                                    writer: JsonApiWriter[A],
                                                                     reader: JsonApiReader[Response]): IO[Response]
+  def patch[A, Response](entity: A, include: Set[String] = Set.empty)(implicit pt: PathTo[A],
+                                                                      writer: JsonApiWriter[A],
+                                                                      reader: JsonApiReader[Response]): IO[Response]
+  def delete[A, Response](entity: A, include: Set[String] = Set.empty)(implicit pt: PathTo[A],
+                                                                       reader: JsonApiReader[Response]): IO[Response]
 }
 
 object JsonApiClient {
-  def apply[A](implicit jac: JsonApiClient[A]) = implicitly[JsonApiClient[A]]
+  def instance(implicit jac: JsonApiClient) = jac
 }
 
 sealed trait ApiError extends Throwable
