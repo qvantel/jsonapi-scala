@@ -53,10 +53,11 @@ object AkkaClient {
 
       override def one[A](id: String, include: Set[String] = Set.empty)(implicit pt: PathToId[A],
                                                                         reader: JsonApiReader[A]): IO[Option[A]] =
-        endpoint.uri.flatMap { baseUri =>
+        endpoint.config.flatMap { endpointConfig =>
+          val baseUri = endpointConfig.uri
           val reqUri = baseUri / pt.self(id)
 
-          mkRequest(addInclude(reqUri, include).toString).flatMap(respToEntity(_, include))
+          mkRequest(addInclude(reqUri, include).toString, headers = httpHeaders(endpointConfig.headers)).flatMap(respToEntity(_, include))
         }
 
       override def many[A](ids: Set[String], include: Set[String])(implicit pt: PathToId[A],
@@ -73,33 +74,37 @@ object AkkaClient {
       }
 
       override def pathOne[A](path: uri.Uri, include: Set[String])(implicit reader: JsonApiReader[A]) =
-        endpoint.uri.flatMap { baseUri =>
+        endpoint.config.flatMap { endpointConfig =>
+          val baseUri = endpointConfig.uri
           val reqUri = baseUri.copy(pathParts = path.pathParts)
 
-          mkRequest(addInclude(reqUri, include).toString).flatMap(respToEntity(_, include))
+          mkRequest(addInclude(reqUri, include).toString, headers = httpHeaders(endpointConfig.headers)).flatMap(respToEntity(_, include))
         }
 
       override def pathMany[A](path: uri.Uri, include: Set[String])(implicit reader: JsonApiReader[A]) =
-        endpoint.uri.flatMap { baseUri =>
+        endpoint.config.flatMap { endpointConfig =>
+          val baseUri = endpointConfig.uri
           val reqUri = baseUri.copy(pathParts = path.pathParts)
 
-          mkRequest(addInclude(reqUri, include).toString).flatMap(respoToEntities(_, include))
+          mkRequest(addInclude(reqUri, include).toString, headers = httpHeaders(endpointConfig.headers)).flatMap(respoToEntities(_, include))
         }
 
       override def filter[A](filter: String, include: Set[String])(implicit pt: PathTo[A], reader: JsonApiReader[A]) =
-        endpoint.uri.flatMap { baseUri =>
+        endpoint.config.flatMap { endpointConfig =>
+          val baseUri = endpointConfig.uri
           val reqUri = baseUri / pt.root ? ("filter" -> filter)
 
-          mkRequest(addInclude(reqUri, include).toString).flatMap(respoToEntities(_, include))
+          mkRequest(addInclude(reqUri, include).toString, headers = httpHeaders(endpointConfig.headers)).flatMap(respoToEntities(_, include))
         }
 
       override def post[A, Response](entity: A, include: Set[String])(implicit pt: PathTo[A],
                                                                       writer: JsonApiWriter[A],
                                                                       reader: JsonApiReader[Response]): IO[Response] =
-        endpoint.uri.flatMap { baseUri =>
+        endpoint.config.flatMap { endpointConfig =>
+          val baseUri = endpointConfig.uri
           val reqUri = baseUri / pt.entity(entity)
 
-          mkRequest(reqUri.toString, HttpMethods.POST, HttpEntity(rawOne(entity).compactPrint)).flatMap { resp =>
+          mkRequest(reqUri.toString, HttpMethods.POST, HttpEntity(rawOne(entity).compactPrint), httpHeaders(endpointConfig.headers)).flatMap { resp =>
             if (resp.status.isSuccess()) {
               bodyToJsObject(resp).map(readOne[Response])
             } else {
@@ -111,10 +116,11 @@ object AkkaClient {
       override def put[A, Response](entity: A, include: Set[String])(implicit pt: PathTo[A],
                                                                      writer: JsonApiWriter[A],
                                                                      reader: JsonApiReader[Response]): IO[Response] =
-        endpoint.uri.flatMap { baseUri =>
+        endpoint.config.flatMap { endpointConfig =>
+          val baseUri = endpointConfig.uri
           val reqUri = baseUri / pt.entity(entity)
 
-          mkRequest(reqUri.toString, HttpMethods.PUT, HttpEntity(rawOne(entity).compactPrint)).flatMap { resp =>
+          mkRequest(reqUri.toString, HttpMethods.PUT, HttpEntity(rawOne(entity).compactPrint), httpHeaders(endpointConfig.headers)).flatMap { resp =>
             if (resp.status.isSuccess()) {
               bodyToJsObject(resp).map(readOne[Response])
             } else {
@@ -126,10 +132,11 @@ object AkkaClient {
       override def patch[A, Response](entity: A, include: Set[String])(implicit pt: PathTo[A],
                                                                        writer: JsonApiWriter[A],
                                                                        reader: JsonApiReader[Response]): IO[Response] =
-        endpoint.uri.flatMap { baseUri =>
+        endpoint.config.flatMap { endpointConfig =>
+          val baseUri = endpointConfig.uri
           val reqUri = baseUri / pt.entity(entity)
 
-          mkRequest(reqUri.toString, HttpMethods.PATCH, HttpEntity(rawOne(entity).compactPrint)).flatMap { resp =>
+          mkRequest(reqUri.toString, HttpMethods.PATCH, HttpEntity(rawOne(entity).compactPrint), httpHeaders(endpointConfig.headers)).flatMap { resp =>
             if (resp.status.isSuccess()) {
               bodyToJsObject(resp).map(readOne[Response])
             } else {
@@ -140,10 +147,11 @@ object AkkaClient {
 
       override def delete[A, Response](entity: A, include: Set[String])(implicit pt: PathTo[A],
                                                                         reader: JsonApiReader[Response]): IO[Response] =
-        endpoint.uri.flatMap { baseUri =>
+        endpoint.config.flatMap { endpointConfig =>
+          val baseUri = endpointConfig.uri
           val reqUri = baseUri / pt.entity(entity)
 
-          mkRequest(reqUri.toString, HttpMethods.DELETE).flatMap { resp =>
+          mkRequest(reqUri.toString, HttpMethods.DELETE, headers = httpHeaders(endpointConfig.headers)).flatMap { resp =>
             if (resp.status.isSuccess()) {
               bodyToJsObject(resp).map(readOne[Response])
             } else {
@@ -163,7 +171,8 @@ object AkkaClient {
 
   private[this] def mkRequest(reqUri: String,
                               method: HttpMethod = HttpMethods.GET,
-                              entity: RequestEntity = HttpEntity.Empty)(implicit m: ActorMaterializer,
+                              entity: RequestEntity = HttpEntity.Empty,
+                              headers: List[HttpHeader])(implicit m: ActorMaterializer,
                                                                         system: ActorSystem): IO[HttpResponse] = {
     import system.dispatcher
 
@@ -173,7 +182,7 @@ object AkkaClient {
           .singleRequest(
             HttpRequest(
               uri = Uri(reqUri),
-              headers = encodings,
+              headers = encodings ++ headers,
               method = method,
               entity = entity
             )
@@ -198,6 +207,16 @@ object AkkaClient {
   }
 
   private[this] val mt: MediaType = MediaType.customWithOpenCharset("application", "vnd.api+json")
+
+  private[this] def httpHeaders(headers: Map[String, String]): List[HttpHeader] = {
+    headers.map { pair =>
+      val (name, value) = pair
+      HttpHeader.parse(name, value) match {
+        case HttpHeader.ParsingResult.Ok(header, _) => header
+        case _                                      => throw new Exception("this should not happen")
+      }
+    }.toList
+  }
 
   private[this] def decodeResponse(response: HttpResponse): HttpResponse = {
     val decoder = response.encoding match {

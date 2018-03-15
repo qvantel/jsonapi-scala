@@ -108,7 +108,7 @@ class Http4sClientSpec extends Specification with MatcherMacros {
       Ok(customerAccounts("ca1").copy(id = "delete"))
   }
 
-  implicit val endpoint: ApiEndpoint = ApiEndpoint.Static("http://localhost:8080")
+  implicit val endpoint: ApiEndpoint = ApiEndpoint.Static("http://localhost:8080", Map())
   implicit val client: Client[IO]    = Client.fromHttpService(service)
 
   val jac = JsonApiClient.instance
