@@ -27,7 +27,7 @@ class AkkaClientSpec(implicit ee: ExecutionEnv) extends Specification with Match
 
   implicit val system: ActorSystem   = ActorSystem()
   implicit val m: ActorMaterializer  = ActorMaterializer()
-  implicit val endpoint: ApiEndpoint = ApiEndpoint.Static("http://localhost:8080/api")
+  implicit val endpoint: ApiEndpoint = ApiEndpoint.Static("http://localhost:8080/api", Map())
 
   val jac = JsonApiClient.instance
 
