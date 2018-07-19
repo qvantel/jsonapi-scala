@@ -239,9 +239,10 @@ lazy val spray = (project in file("spray"))
       "com.typesafe.akka" %% "akka-actor" % "2.4.20" excludeAll (ExclusionRule(
         organization = "com.typesafe.akka",
         name = "akka-cluster_2.11"), ExclusionRule(organization = "com.typesafe.akka", name = "akka-remote_2.11")),
-      "io.spray"          %% "spray-testkit"             % "1.3.4"  % "test",
+      "io.spray"          %% "spray-testkit"             % "1.3.4" % "test",
       "com.typesafe.akka" %% "akka-testkit"              % "2.4.20" % "test",
-      "io.spray"          %% "spray-routing-shapeless23" % "1.3.4"  % "test"
+      "io.spray"          %% "spray-routing-shapeless23" % "1.3.4" % "test",
+      "org.scalatest"     %% "scalatest"                 % "3.0.+"
     ) ++ testDeps
   )
 
@@ -290,8 +291,30 @@ lazy val http4sClient = (project in file("http4s-client"))
     ) ++ testDeps
   )
 
+lazy val akka = (project in file("akka"))
+  .dependsOn(core, model)
+  .settings(
+    name := "jsonapi-scala-akka",
+    scalaVersion := "2.11.12",
+    crossScalaVersions := Seq("2.11.12"),
+    scalacOptions ++= scala211,
+    libraryDependencies ++= Seq(
+      compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
+      "com.typesafe.akka" %% "akka-actor" % "2.4.20" excludeAll (ExclusionRule(
+        organization = "com.typesafe.akka",
+        name = "akka-cluster_2.11"), ExclusionRule(organization = "com.typesafe.akka", name = "akka-remote_2.11")),
+      "com.typesafe.akka" %% "akka-testkit"      % "2.4.20" % "test",
+      "com.typesafe.akka" %% "akka-stream"       % "2.5.6",
+      "com.typesafe.akka" %% "akka-actor"        % "2.5.6",
+      "com.typesafe.akka" %% "akka-http"         % "10.0.10",
+      "com.typesafe.akka" %% "akka-http-core"    % "10.0.10",
+      "com.typesafe.akka" %% "akka-http-testkit" % "10.1.3",
+      "org.scalatest"     %% "scalatest"         % "3.0.+"
+    ) ++ testDeps
+  )
+
 lazy val root = (project in file("."))
-  .aggregate(core, model, spray, akkaClient, http4sClient)
+  .aggregate(core, model, spray, akkaClient, http4sClient, akka)
   .settings(
     publishArtifact := false,
     name := "jsonapi-scala",
