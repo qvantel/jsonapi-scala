@@ -168,22 +168,9 @@ trait AkkaExceptionHandlerTrait {
 
 object AkkaExceptionHandlerObject extends Rejection {
 
-  val noneHandler: Directive0 = mapResponse {
-    case HttpResponse(OK, _, HttpEntity.Empty, _) =>
-      jsonApiErrorResponse(NotFound, NotFound.reason, NotFound.defaultMessage)
-  }
-
   def jsonApiError(code: StatusCode, title: String, detail: String): JsValue =
-    JsObject(
-      "errors" -> List(
-        ErrorObject(id = None,
-                    links = Map.empty,
-                    status = Some(code.intValue.toString),
-                    code = None,
-                    title = Some(title),
-                    detail = Some(detail),
-                    source = None,
-                    meta = Map.empty)).toJson)
+    JsObject("errors" -> List(
+      ErrorObject(status = Some(code.intValue.toString), title = Some(title), detail = Some(detail))).toJson)
 
   def jsonApiErrorResponse(code: StatusCode, title: String, detail: String): HttpResponse =
     HttpResponse(

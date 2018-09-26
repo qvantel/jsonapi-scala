@@ -28,9 +28,7 @@ package com.qvantel.jsonapi.akka
 
 import com.qvantel.jsonapi._
 import scala.concurrent.{ExecutionContext, Future}
-
 import _root_.spray.json._
-
 import _root_.akka.http.scaladsl.marshalling._
 import _root_.akka.http.scaladsl.unmarshalling._
 import _root_.akka.http.scaladsl.Http
@@ -40,6 +38,8 @@ import _root_.akka.http.scaladsl.model.headers._
 import _root_.akka.stream.Materializer
 import _root_.akka.stream.scaladsl._
 import _root_.akka.util.{ByteString, Timeout}
+
+import com.qvantel.jsonapi.model.TopLevel
 
 trait JsonApiSupport extends JsonApiSupport0 {
 
@@ -89,6 +89,18 @@ trait JsonApiSupport extends JsonApiSupport0 {
 
 trait JsonApiSupport0 {
   val ct = MediaTypes.`application/vnd.api+json`
+
+  implicit val jsonApiTopLevelSingle: Unmarshaller[HttpEntity, TopLevel.Single] = {
+    Unmarshaller.byteStringUnmarshaller.map { data =>
+      JsonParser(data.utf8String).asJsObject.convertTo[TopLevel.Single]
+    }
+  }
+
+  implicit val jsonApiTopLevelCollection: Unmarshaller[HttpEntity, TopLevel.Collection] = {
+    Unmarshaller.byteStringUnmarshaller.map { data =>
+      JsonParser(data.utf8String).asJsObject.convertTo[TopLevel.Collection]
+    }
+  }
 
   implicit def jsonApiOneMarshaller[T](implicit writer: JsonApiWriter[T],
                                        printer: JsonPrinter = PrettyPrinter,

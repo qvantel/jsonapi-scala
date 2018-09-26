@@ -29,14 +29,14 @@ package com.qvantel.jsonapi.model
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
 
-final case class ErrorObject(id: Option[String],
-                             links: Links,
-                             status: Option[String],
-                             code: Option[String],
-                             title: Option[String],
-                             detail: Option[String],
-                             source: Option[ErrorSource],
-                             meta: MetaObject)
+final case class ErrorObject(id: Option[String] = None,
+                             links: Links = Map.empty,
+                             status: Option[String] = None,
+                             code: Option[String] = None,
+                             title: Option[String] = None,
+                             detail: Option[String] = None,
+                             source: Option[ErrorSource] = None,
+                             meta: MetaObject = Map.empty)
 
 object ErrorObject {
   implicit object ErrorObjectJsonFormat extends RootJsonFormat[ErrorObject] {
