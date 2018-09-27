@@ -39,7 +39,7 @@ import _root_.akka.stream.Materializer
 import _root_.akka.stream.scaladsl._
 import _root_.akka.util.{ByteString, Timeout}
 
-import com.qvantel.jsonapi.model.TopLevel
+import com.qvantel.jsonapi.model.{ErrorObjects, TopLevel}
 
 trait JsonApiSupport extends JsonApiSupport0 {
 
@@ -99,6 +99,12 @@ trait JsonApiSupport0 {
   implicit val jsonApiTopLevelCollection: Unmarshaller[HttpEntity, TopLevel.Collection] = {
     Unmarshaller.byteStringUnmarshaller.map { data =>
       JsonParser(data.utf8String).asJsObject.convertTo[TopLevel.Collection]
+    }
+  }
+
+  implicit val jsonApiErrorObject: Unmarshaller[HttpEntity, ErrorObjects] = {
+    Unmarshaller.byteStringUnmarshaller.map { data =>
+      JsonParser(data.utf8String).asJsObject.convertTo[ErrorObjects]
     }
   }
 

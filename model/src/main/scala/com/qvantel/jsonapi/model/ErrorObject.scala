@@ -29,6 +29,24 @@ package com.qvantel.jsonapi.model
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
 
+final case class ErrorObjects(errors: List[ErrorObject])
+
+object ErrorObjects {
+  import ErrorObject.ErrorObjectJsonFormat._
+  implicit object ErrorObjectsJsonFormat extends RootJsonFormat[ErrorObjects] {
+    override def write(obj: ErrorObjects): JsValue = {
+      val builder = Map.newBuilder[String, JsValue]
+      builder += "errors" -> obj.errors.toJson
+      JsObject(builder.result())
+    }
+
+    override def read(json: JsValue): ErrorObjects = {
+      val fields = json.asJsObject.fields
+      ErrorObjects(errors = fields.get("errors").fold(List.empty[ErrorObject])(_.convertTo[List[ErrorObject]]))
+    }
+  }
+}
+
 final case class ErrorObject(id: Option[String] = None,
                              links: Links = Map.empty,
                              status: Option[String] = None,
