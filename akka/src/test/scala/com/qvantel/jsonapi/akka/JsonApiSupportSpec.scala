@@ -28,7 +28,6 @@ package com.qvantel.jsonapi.akka
 
 import com.qvantel.jsonapi._
 import com.qvantel.jsonapi.akka.JsonApiSupport._
-
 import _root_.spray.json._
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.akka.http.scaladsl.model._
@@ -40,6 +39,8 @@ import com.netaporter.uri.Uri
 import com.netaporter.uri.dsl._
 import org.specs2.mutable.Specification
 import shapeless._
+
+import com.qvantel.jsonapi.model.{ErrorObject, ErrorObjects, TopLevel}
 
 final class JsonApiSupportSpec extends Specification with Specs2RouteTest {
   val ct = ContentType(MediaTypes.`application/vnd.api+json`)
@@ -585,6 +586,93 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest {
 
         loaded must be equalTo A("b1", ToOne.reference("b2"))
       }.exactly(1.times)
+    }
+    "unmarshal TopLevel.Single" in {
+
+      val route = get {
+        complete(
+          HttpResponse(
+            status = StatusCodes.BadRequest,
+            entity = HttpEntity(
+              MediaTypes.`application/vnd.api+json`,
+              TopLevel
+                .Single(
+                  data = None,
+                  links = Map.empty,
+                  meta = Map.empty,
+                  jsonapi = None,
+                  included = Map.empty
+                )
+                .toJson
+                .prettyPrint
+            )
+          ))
+      }
+      Get("/") ~> route ~> check {
+        val single = responseAs[TopLevel.Single]
+        single.data must beNone
+      }
+    }
+    "unmarshal response to TopLevel.Collection" in {
+      val route = get {
+        complete(
+          HttpResponse(
+            status = StatusCodes.BadRequest,
+            entity = HttpEntity(
+              MediaTypes.`application/vnd.api+json`,
+              TopLevel
+                .Collection(
+                  data = Map.empty,
+                  links = Map.empty,
+                  meta = Map.empty,
+                  jsonapi = None,
+                  included = Map.empty
+                )
+                .toJson
+                .prettyPrint
+            )
+          ))
+      }
+      Get("/") ~> route ~> check {
+        val collection = responseAs[TopLevel.Collection]
+        collection.data must be empty
+      }
+    }
+    "unmarshal response to ErrorObjects" in {
+      val route = get {
+        complete(
+          HttpResponse(
+            status = StatusCodes.BadRequest,
+            entity = HttpEntity(
+              MediaTypes.`application/vnd.api+json`,
+              ErrorObjects(List(ErrorObject(
+                id = None,
+                links = Map.empty,
+                status = Some(StatusCodes.BadRequest.intValue.toString),
+                code = None,
+                title = Some("title"),
+                detail = Some("detail"),
+                source = None,
+                meta = Map.empty
+              ))).toJson.prettyPrint
+            )
+          ))
+      }
+      Get("/") ~> route ~> check {
+        val errors     = responseAs[ErrorObjects]
+        val firstError = errors.errors.head
+
+        firstError.title must beSome("title")
+      }
+    }
+    "unmarshal response to jsonapi entity" in {
+      val route = get {
+        complete(HttpResponse(StatusCodes.OK, entity = HttpEntity(rawOne(Thang("id", "name")).prettyPrint)))
+      }
+      Get("/") ~> route ~> check {
+        val thang = responseAs[Thang]
+        thang must be equalTo Thang("id", "name")
+      }
     }
   }
 }
