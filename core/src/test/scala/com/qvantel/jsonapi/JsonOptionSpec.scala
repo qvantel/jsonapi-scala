@@ -102,6 +102,27 @@ class JsonOptionSpec extends Specification {
     }
   }
 
+  "is methods" should {
+    val jSome = JsonSome(1)
+    val jNone = JsonAbsent
+    val jNull = JsonNull
+    "isDefine should return correct value" in {
+      jSome.isDefined must beEqualTo(true)
+      jNone.isDefined must beEqualTo(false)
+      jNull.isDefined must beEqualTo(false)
+    }
+    "isEmpty should return correct value" in {
+      jSome.isEmpty must beEqualTo(false)
+      jNone.isEmpty must beEqualTo(true)
+      jNull.isEmpty must beEqualTo(true)
+    }
+    "isAbsent should return correct value" in {
+      jSome.isAbsent must beEqualTo(false)
+      jNone.isAbsent must beEqualTo(true)
+      jNull.isAbsent must beEqualTo(false)
+    }
+  }
+
   "macro support" should {
     implicit val apiRoot: com.qvantel.jsonapi.ApiRoot = ApiRoot.empty
 

@@ -31,7 +31,7 @@ import _root_.spray.json._
 object JsonOption {
   def apply[A](x: A): JsonOption[A] = if (x == null) JsonNull else JsonSome(x)
   def apply[A](x: Option[A]): JsonOption[A] = x match {
-    case Some(x) => JsonSome(x)
+    case Some(y) => JsonSome(y)
     case None    => JsonAbsent
   }
   def empty[A]: JsonOption[A] = JsonAbsent
@@ -86,6 +86,10 @@ sealed abstract class JsonOption[+A] { self =>
   /** Returns true if maybe is nothing or null
     */
   def isEmpty: Boolean
+
+  /** Returns true if maybe is nothing
+    */
+  def isAbsent: Boolean
 
   /** Returns true if maybe is instance of just
     */
@@ -343,8 +347,9 @@ sealed abstract class JsonOption[+A] { self =>
 /** Class `Some[A]` represents existing values of type `A`.
   */
 final case class JsonSome[+A](x: A) extends JsonOption[A] {
-  def isEmpty = false
-  def get     = x
+  override def isEmpty  = false
+  override def isAbsent = false
+  override def get: A   = x
 
   /** Turns this JsonOption into scala Option
     */
@@ -360,11 +365,13 @@ sealed trait JsonEmpty extends JsonOption[Nothing] {
 /** This case object represents non-existent values.
   */
 case object JsonAbsent extends JsonEmpty {
-  override def get = throw new NoSuchElementException("JsonAbsent.get")
+  override def get      = throw new NoSuchElementException("JsonAbsent.get")
+  override def isAbsent = true
 }
 
 /** This case object represents null values.
   */
 case object JsonNull extends JsonEmpty {
-  override def get = throw new NoSuchElementException("JsonNull.get")
+  override def get      = throw new NoSuchElementException("JsonNull.get")
+  override def isAbsent = false
 }
