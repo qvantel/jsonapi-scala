@@ -26,21 +26,21 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.qvantel.jsonapi.akka
 
-import com.qvantel.jsonapi._
-import com.qvantel.jsonapi.akka.JsonApiSupport._
-import _root_.spray.json._
-import _root_.spray.json.DefaultJsonProtocol._
 import _root_.akka.http.scaladsl.model._
 import _root_.akka.http.scaladsl.server.Directive._
 import _root_.akka.http.scaladsl.server.Directives._
 import _root_.akka.http.scaladsl.server._
 import _root_.akka.http.scaladsl.testkit.Specs2RouteTest
+import _root_.spray.json.DefaultJsonProtocol._
+import _root_.spray.json._
 import com.netaporter.uri.Uri
 import com.netaporter.uri.dsl._
 import org.specs2.mutable.Specification
 import shapeless._
 
-import com.qvantel.jsonapi.model.{ErrorObject, ErrorObjects, TopLevel}
+import com.qvantel.jsonapi._
+import com.qvantel.jsonapi.akka.JsonApiSupport._
+import com.qvantel.jsonapi.model.{ErrorObject, TopLevel}
 
 final class JsonApiSupportSpec extends Specification with Specs2RouteTest {
   val ct = ContentType(MediaTypes.`application/vnd.api+json`)
@@ -638,28 +638,36 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest {
         collection.data must be empty
       }
     }
-    "unmarshal response to ErrorObjects" in {
+    "unmarshal response to TopLevel.Errors" in {
       val route = get {
         complete(
           HttpResponse(
             status = StatusCodes.BadRequest,
             entity = HttpEntity(
               MediaTypes.`application/vnd.api+json`,
-              ErrorObjects(List(ErrorObject(
-                id = None,
-                links = Map.empty,
-                status = Some(StatusCodes.BadRequest.intValue.toString),
-                code = None,
-                title = Some("title"),
-                detail = Some("detail"),
-                source = None,
-                meta = Map.empty
-              ))).toJson.prettyPrint
+              TopLevel
+                .Errors(
+                  meta = Map.empty,
+                  jsonapi = None,
+                  links = Map.empty,
+                  errors = Set(ErrorObject(
+                    id = None,
+                    links = Map.empty,
+                    status = Some(StatusCodes.BadRequest.intValue.toString),
+                    code = None,
+                    title = Some("title"),
+                    detail = Some("detail"),
+                    source = None,
+                    meta = Map.empty
+                  ))
+                )
+                .toJson
+                .prettyPrint
             )
           ))
       }
       Get("/") ~> route ~> check {
-        val errors     = responseAs[ErrorObjects]
+        val errors     = responseAs[TopLevel.Errors]
         val firstError = errors.errors.head
 
         firstError.title must beSome("title")
