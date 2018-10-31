@@ -26,20 +26,21 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.qvantel.jsonapi.akka
 
-import com.qvantel.jsonapi._
-import scala.concurrent.{ExecutionContext, Future}
-import _root_.spray.json._
-import _root_.akka.http.scaladsl.marshalling._
-import _root_.akka.http.scaladsl.unmarshalling._
 import _root_.akka.http.scaladsl.Http
 import _root_.akka.http.scaladsl.client.RequestBuilding
+import _root_.akka.http.scaladsl.marshalling._
 import _root_.akka.http.scaladsl.model._
 import _root_.akka.http.scaladsl.model.headers._
+import _root_.akka.http.scaladsl.unmarshalling._
 import _root_.akka.stream.Materializer
 import _root_.akka.stream.scaladsl._
 import _root_.akka.util.{ByteString, Timeout}
+import _root_.spray.json._
 
-import com.qvantel.jsonapi.model.{ErrorObjects, TopLevel}
+import scala.concurrent.{ExecutionContext, Future}
+
+import com.qvantel.jsonapi._
+import com.qvantel.jsonapi.model.TopLevel
 
 trait JsonApiSupport extends JsonApiSupport0 {
 
@@ -102,9 +103,9 @@ trait JsonApiSupport0 {
     }
   }
 
-  implicit val jsonApiErrorObject: Unmarshaller[HttpEntity, ErrorObjects] = {
+  implicit val jsonApiErrorObject: Unmarshaller[HttpEntity, TopLevel.Errors] = {
     Unmarshaller.byteStringUnmarshaller.map { data =>
-      JsonParser(data.utf8String).asJsObject.convertTo[ErrorObjects]
+      JsonParser(data.utf8String).asJsObject.convertTo[TopLevel.Errors]
     }
   }
 
@@ -183,9 +184,10 @@ trait JsonApiSupport0 {
   * header that can be read by FromResponseUnmarshaller
   */
 object JsonApiClientAkka extends RequestBuilding {
-  import scala.concurrent.duration._
   import _root_.akka.actor._
   import _root_.akka.http.scaladsl.settings.{ClientConnectionSettings, ConnectionPoolSettings}
+
+  import scala.concurrent.duration._
 
   def jsonApiSendReceive(implicit refFactory: ActorRefFactory,
                          executionContext: ExecutionContext,
