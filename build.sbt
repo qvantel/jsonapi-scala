@@ -116,7 +116,7 @@ val scala211 = Seq(
 
 description in ThisBuild := "jsonapi.org scala implementation"
 
-version in ThisBuild := "8.1.1"
+version in ThisBuild := "8.1.2"
 
 startYear in ThisBuild := Some(2015)
 
@@ -295,19 +295,25 @@ lazy val akka = (project in file("akka"))
   .settings(
     name := "jsonapi-scala-akka",
     scalaVersion := "2.11.12",
-    crossScalaVersions := Seq("2.11.12"),
-    scalacOptions ++= scala211,
+    crossScalaVersions := Seq("2.11.12", "2.12.4"),
+    scalacOptions ++= {
+      if (scalaVersion.value startsWith "2.11.") {
+        scala211
+      } else {
+        scala212
+      }
+    },
     libraryDependencies ++= Seq(
       compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
-      "com.typesafe.akka" %% "akka-actor" % "2.5.6" excludeAll (ExclusionRule(
+      "com.typesafe.akka" %% "akka-actor" % "2.5.13" excludeAll (ExclusionRule(
         organization = "com.typesafe.akka",
         name = "akka-cluster_2.11"), ExclusionRule(organization = "com.typesafe.akka", name = "akka-remote_2.11")),
-      "com.typesafe.akka" %% "akka-testkit"      % "2.4.20" % "test",
-      "com.typesafe.akka" %% "akka-stream"       % "2.5.6",
-      "com.typesafe.akka" %% "akka-http"         % "10.1.3",
-      "com.typesafe.akka" %% "akka-http-core"    % "10.1.3",
-      "com.typesafe.akka" %% "akka-http-testkit" % "10.1.3",
-      "org.scalatest"     %% "scalatest"         % "3.0.4"
+      "com.typesafe.akka" %% "akka-stream"       % "2.5.13",
+      "com.typesafe.akka" %% "akka-http"         % "10.1.5",
+      "com.typesafe.akka" %% "akka-http-core"    % "10.1.5",
+      "com.typesafe.akka" %% "akka-http-testkit" % "10.1.5",
+      "org.scalatest"     %% "scalatest"         % "3.0.4",
+      "com.typesafe.akka" %% "akka-testkit"      % "2.5.13" % Test
     ) ++ testDeps
   )
 
