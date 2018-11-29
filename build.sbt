@@ -116,7 +116,7 @@ val scala211 = Seq(
 
 description in ThisBuild := "jsonapi.org scala implementation"
 
-version in ThisBuild := "8.1.2"
+version in ThisBuild := "8.2.0"
 
 startYear in ThisBuild := Some(2015)
 
