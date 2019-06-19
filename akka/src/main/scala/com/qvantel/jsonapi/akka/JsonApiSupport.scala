@@ -38,6 +38,7 @@ import _root_.akka.util.{ByteString, Timeout}
 import _root_.spray.json._
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration._
 
 import com.qvantel.jsonapi._
 import com.qvantel.jsonapi.model.TopLevel
@@ -59,12 +60,7 @@ trait JsonApiSupport extends JsonApiSupport0 {
       override def apply(value: HttpRequest)(implicit ec: ExecutionContext,
                                              materializer: Materializer): Future[Iterable[T]] = {
         val include = value.uri.query().get("include").map(_.split(',').toSet).getOrElse(Set.empty[String])
-        value.entity match {
-          case HttpEntity.Strict(_, data)     => extractEntities(data, include)
-          case HttpEntity.Default(_, _, data) => extractEntities(data, include)
-          case wrongType =>
-            throw new Exception(wrongType.toString)
-        }
+        value.entity.toStrict(10.seconds).flatMap(strictEntity => extractEntities(strictEntity.data, include))
       }
     }
 
@@ -77,12 +73,7 @@ trait JsonApiSupport extends JsonApiSupport0 {
           .find(_.name == JsonApiSupport.JsonApiIncludeHeader)
           .map(_.value.split(',').toSet)
           .getOrElse(Set.empty[String])
-        value.entity match {
-          case HttpEntity.Strict(_, data)     => extractEntities(data, include)
-          case HttpEntity.Default(_, _, data) => extractEntities(data, include)
-          case wrongType =>
-            throw new Exception(wrongType.toString)
-        }
+        value.entity.toStrict(10.seconds).flatMap(strictEntity => extractEntities(strictEntity.data, include))
       }
     }
 
@@ -129,12 +120,7 @@ trait JsonApiSupport0 {
     new FromRequestUnmarshaller[T] {
       override def apply(value: HttpRequest)(implicit ec: ExecutionContext, materializer: Materializer): Future[T] = {
         val include = value.uri.query().get("include").map(_.split(',').toSet).getOrElse(Set.empty[String])
-        value.entity match {
-          case HttpEntity.Strict(_, data)     => extractEntity(data, include)
-          case HttpEntity.Default(_, _, data) => extractEntity(data, include)
-          case wrongType =>
-            throw new Exception(wrongType.toString)
-        }
+        value.entity.toStrict(10.seconds).flatMap(strictEntity => extractEntity(strictEntity.data, include))
       }
     }
 
@@ -145,12 +131,7 @@ trait JsonApiSupport0 {
           .find(_.name == JsonApiSupport.JsonApiIncludeHeader)
           .map(_.value.split(',').toSet)
           .getOrElse(Set.empty[String])
-        value.entity match {
-          case HttpEntity.Strict(_, data)     => extractEntity(data, include)
-          case HttpEntity.Default(_, _, data) => extractEntity(data, include)
-          case wrongType =>
-            throw new Exception(wrongType.toString)
-        }
+        value.entity.toStrict(10.seconds).flatMap(strictEntity => extractEntity(strictEntity.data, include))
       }
     }
 

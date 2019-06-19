@@ -116,7 +116,7 @@ val scala211 = Seq(
 
 description in ThisBuild := "jsonapi.org scala implementation"
 
-version in ThisBuild := "8.2.0"
+version in ThisBuild := "8.3.0"
 
 startYear in ThisBuild := Some(2015)
 
@@ -311,8 +311,8 @@ lazy val akka = (project in file("akka"))
       "com.typesafe.akka" %% "akka-stream"       % "2.5.13",
       "com.typesafe.akka" %% "akka-http"         % "10.1.5",
       "com.typesafe.akka" %% "akka-http-core"    % "10.1.5",
-      "com.typesafe.akka" %% "akka-http-testkit" % "10.1.5",
-      "org.scalatest"     %% "scalatest"         % "3.0.4",
+      "com.typesafe.akka" %% "akka-http-testkit" % "10.1.5" % Test,
+      "org.scalatest"     %% "scalatest"         % "3.0.4" % Test,
       "com.typesafe.akka" %% "akka-testkit"      % "2.5.13" % Test
     ) ++ testDeps
   )
