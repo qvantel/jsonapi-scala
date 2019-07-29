@@ -185,9 +185,9 @@ sealed abstract class JsonOption[+A] { self =>
     */
   @inline final def filter(p: A => Boolean): JsonOption[A] =
     this match {
-      case JsonSome(x) if p(x) => this
-      case JsonAbsent          => JsonAbsent
-      case JsonNull            => JsonNull
+      case JsonSome(x) if p(x)      => this
+      case JsonAbsent | JsonSome(_) => JsonAbsent
+      case JsonNull                 => JsonNull
     }
 
   /** Returns this $option if it is nonempty '''and''' applying the predicate $p to
@@ -197,9 +197,9 @@ sealed abstract class JsonOption[+A] { self =>
     */
   @inline final def filterNot(p: A => Boolean): JsonOption[A] =
     this match {
-      case JsonSome(x) if !p(x) => this
-      case JsonAbsent           => JsonAbsent
-      case JsonNull             => JsonNull
+      case JsonSome(x) if !p(x)     => this
+      case JsonAbsent | JsonSome(_) => JsonAbsent
+      case JsonNull                 => JsonNull
     }
 
   /** Necessary to keep $option from being implicitly converted to

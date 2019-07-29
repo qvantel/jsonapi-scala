@@ -30,6 +30,7 @@ import org.specs2.mutable._
 import shapeless.{:+:, CNil, Poly1}
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
+import com.qvantel.jsonapi
 
 class JsonOptionSpec extends Specification {
   var nullRef: AnyRef = null
@@ -120,6 +121,42 @@ class JsonOptionSpec extends Specification {
       jSome.isAbsent must beEqualTo(false)
       jNone.isAbsent must beEqualTo(true)
       jNull.isAbsent must beEqualTo(false)
+    }
+  }
+
+  "filter" should {
+    val jSome = JsonSome("some-value")
+    val jNone = JsonAbsent
+    val jNull = JsonOption(nullRef)
+    "work for JsonAbsent" in {
+      jNone.filter(_ => false) must beEqualTo(JsonAbsent)
+      jNone.filter(_ => true) must beEqualTo(JsonAbsent)
+    }
+    "work for jNull" in {
+      jNull.filter(_ => false) must beEqualTo(JsonNull)
+      jNull.filter(_ => true) must beEqualTo(JsonNull)
+    }
+    "work for jSome" in {
+      jSome.filter(s => s == "some-value") must beEqualTo(JsonSome("some-value"))
+      jSome.filter(s => s == "some-other-value") must beEqualTo(JsonAbsent)
+    }
+  }
+
+  "filterNot" should {
+    val jSome = JsonSome("some-value")
+    val jNone = JsonAbsent
+    val jNull = JsonOption(nullRef)
+    "work for JsonAbsent" in {
+      jNone.filterNot(_ => false) must beEqualTo(JsonAbsent)
+      jNone.filterNot(_ => true) must beEqualTo(JsonAbsent)
+    }
+    "work for jNull" in {
+      jNull.filterNot(_ => false) must beEqualTo(JsonNull)
+      jNull.filterNot(_ => true) must beEqualTo(JsonNull)
+    }
+    "work for jSome" in {
+      jSome.filterNot(s => s == "some-value") must beEqualTo(JsonAbsent)
+      jSome.filterNot(s => s == "some-other-value") must beEqualTo(JsonSome("some-value"))
     }
   }
 
