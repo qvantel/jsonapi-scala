@@ -2,7 +2,7 @@ language: scala
 scala:
   - 2.11.11
 jdk:
-  - oraclejdk8
+  - openjdk8
 script:
   - sbt +clean scalafmt::test test:scalafmt::test sbt:scalafmt::test coverage +compile +test:compile +test coverageReport &&
     sbt coverageAggregate
