@@ -35,7 +35,7 @@ trait PathTo[A] {
 }
 
 object PathTo {
-  def apply[A](implicit pt: PathTo[A]) = pt
+  def apply[A](implicit pt: PathTo[A]): PathTo[A] = pt
 
   def byId[A](id: String)(implicit pti: PathToId[A]): Uri = pti.self(id)
 }
@@ -46,5 +46,5 @@ abstract class PathToId[A: Identifiable] extends PathTo[A] {
 }
 
 object PathToId {
-  def apply[A](implicit pt: PathToId[A]) = pt
+  def apply[A](implicit pt: PathToId[A]): PathToId[A] = pt
 }

@@ -27,7 +27,7 @@ trait JsonApiClient {
 }
 
 object JsonApiClient {
-  def instance(implicit jac: JsonApiClient) = jac
+  def instance(implicit jac: JsonApiClient): JsonApiClient = jac
 }
 
 sealed trait ApiError extends Throwable

@@ -41,12 +41,12 @@ object JsonOption {
   implicit def jsonOptionFormat[T: JF]: JF[JsonOption[T]] = new JsonOptionFormat[T]
 
   class JsonOptionFormat[T: JF] extends JF[JsonOption[T]] {
-    def write(option: JsonOption[T]) = option match {
+    def write(option: JsonOption[T]): JsValue = option match {
       case JsonSome(x) => x.toJson
       case JsonAbsent  => JsNull
       case JsonNull    => JsNull
     }
-    def read(value: JsValue) = value match {
+    def read(value: JsValue): JsonOption[T] = value match {
       case JsNull => JsonNull
       case x      => JsonSome(x.convertTo[T])
     }
@@ -223,7 +223,7 @@ sealed abstract class JsonOption[+A] { self =>
     *
     *  @note   Implemented here to avoid the implicit conversion to Iterable.
     */
-  final def nonEmpty = isDefined
+  final def nonEmpty: Boolean = isDefined
 
   /** Tests whether the option contains a given value as an element.
     *
@@ -328,7 +328,7 @@ sealed abstract class JsonOption[+A] { self =>
     * @see toLeft
     */
   @SuppressWarnings(Array("org.wartremover.warts.Product", "org.wartremover.warts.Serializable"))
-  @inline final def toRight[X](left: => X) =
+  @inline final def toRight[X](left: => X): Either[X, A] =
     if (isEmpty) Left(left) else Right(this.get)
 
   /** Returns a [[scala.util.Right]] containing the given
@@ -340,7 +340,7 @@ sealed abstract class JsonOption[+A] { self =>
     * @see toRight
     */
   @SuppressWarnings(Array("org.wartremover.warts.Product", "org.wartremover.warts.Serializable"))
-  @inline final def toLeft[X](right: => X) =
+  @inline final def toLeft[X](right: => X): Either[A, X] =
     if (isEmpty) Right(right) else Left(this.get)
 }
 

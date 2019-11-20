@@ -98,10 +98,8 @@ trait Http4sClient extends Http4sClientDsl[IO] {
 
       val request = for {
         config <- endpoint.config
-        uri <- IO.fromEither(
-          org.http4s.Uri
-            .fromString(config.uri / pt.entity(entity)))
-        req <- POST(uri, entity, httpHeaders(config.headers): _*)
+        uri    <- IO.fromEither(org.http4s.Uri.fromString(config.uri / pt.entity(entity)))
+        req    <- POST(entity, uri, httpHeaders(config.headers): _*)
       } yield req
 
       client.fetch(request) {
@@ -117,11 +115,9 @@ trait Http4sClient extends Http4sClientDsl[IO] {
       implicit val _include: Include = Include(include)
 
       for {
-        config <- endpoint.config
-        uri <- IO.fromEither(
-          org.http4s.Uri
-            .fromString(config.uri / pt.entity(entity)))
-        req      <- PUT(uri, entity, httpHeaders(config.headers): _*)
+        config   <- endpoint.config
+        uri      <- IO.fromEither(org.http4s.Uri.fromString(config.uri / pt.entity(entity)))
+        req      <- PUT(entity, uri, httpHeaders(config.headers): _*)
         response <- client.fetchAs[Response](req)
       } yield response
     }
@@ -133,11 +129,9 @@ trait Http4sClient extends Http4sClientDsl[IO] {
       implicit val _include: Include = Include(include)
 
       for {
-        config <- endpoint.config
-        uri <- IO.fromEither(
-          org.http4s.Uri
-            .fromString(config.uri / pt.entity(entity)))
-        req      <- PATCH(uri, entity, httpHeaders(config.headers): _*)
+        config   <- endpoint.config
+        uri      <- IO.fromEither(org.http4s.Uri.fromString(config.uri / pt.entity(entity)))
+        req      <- PATCH(entity, uri, httpHeaders(config.headers): _*)
         response <- client.fetchAs[Response](req)
       } yield response
     }
@@ -148,10 +142,8 @@ trait Http4sClient extends Http4sClientDsl[IO] {
       implicit val _include: Include = Include(include)
 
       for {
-        config <- endpoint.config
-        uri <- IO.fromEither(
-          org.http4s.Uri
-            .fromString(config.uri / pt.entity(entity)))
+        config   <- endpoint.config
+        uri      <- IO.fromEither(org.http4s.Uri.fromString(config.uri / pt.entity(entity)))
         req      <- DELETE(uri, httpHeaders(config.headers): _*)
         response <- client.fetchAs[Response](req)
       } yield response

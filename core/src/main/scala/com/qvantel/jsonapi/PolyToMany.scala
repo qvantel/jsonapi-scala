@@ -68,7 +68,7 @@ object PolyToMany {
   }
 
   final case class Loaded[A <: Coproduct: PolyIdentifiable](entities: Seq[A]) extends PolyToMany[A] {
-    override lazy val relationships = entities
+    override lazy val relationships: Set[Rel] = entities
       .map(x => Rel(PolyIdentifiable[A].identify(x), PolyIdentifiable[A].resourceType(x)))
       .toSet
 
@@ -94,7 +94,7 @@ object PolyToMany {
 
     }
 
-    IdsReference[A](relationships.toSet)
+    IdsReference[A](relationships)
   }
   def reference[A <: Coproduct](rels: Set[Rel]): PolyToMany[A] = IdsReference[A](rels)
 

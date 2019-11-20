@@ -38,7 +38,7 @@ trait JsonApiInstances extends JsonApiInstancesLowPrio {
 }
 
 trait JsonApiInstancesLowPrio {
-  val mediaType: MediaType = MediaType.`application/vnd.api+json`
+  val mediaType: MediaType = new MediaType("application", "vnd.api+json")
 
   implicit def jsonapiJsObjectDecoder[F[_]: Effect]: EntityDecoder[F, JsObject] =
     EntityDecoder.decodeBy(mediaType) { msg: Message[F] =>
@@ -63,13 +63,13 @@ trait JsonApiInstancesLowPrio {
 
   implicit def jsonapiEncoder[F[_], A: JsonApiWriter](implicit F: Applicative[F]): EntityEncoder[F, A] =
     EntityEncoder
-      .stringEncoder(F, Charset.`UTF-8`)
+      .stringEncoder(Charset.`UTF-8`)
       .contramap[A](entity => rawOne(entity).compactPrint)
       .withContentType(`Content-Type`(mediaType))
 
   implicit def jsonapiListEncoder[F[_], A: JsonApiWriter](implicit F: Applicative[F]): EntityEncoder[F, List[A]] =
     EntityEncoder
-      .stringEncoder(F, Charset.`UTF-8`)
+      .stringEncoder(Charset.`UTF-8`)
       .contramap[List[A]](entities => rawCollection(entities).compactPrint)
       .withContentType(`Content-Type`(mediaType))
 }

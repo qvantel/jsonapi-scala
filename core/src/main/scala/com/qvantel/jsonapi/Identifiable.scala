@@ -34,6 +34,6 @@ object Identifiable {
   def apply[A](implicit i: Identifiable[A]): Identifiable[A] = implicitly[Identifiable[A]]
 
   def by[A](f: A => String): Identifiable[A] = new Identifiable[A] {
-    override def identify(a: A) = f(a)
+    override def identify(a: A): String = f(a)
   }
 }
