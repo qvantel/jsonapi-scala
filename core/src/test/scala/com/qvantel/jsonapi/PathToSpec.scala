@@ -12,8 +12,8 @@ class PathToSpec extends Specification {
   "apiRoot should be printed to PathTo output" >> {
     val t = Test("1")
 
-    PathTo[Test].entity(t) must be equalTo "/foo/bar/tests/1"
-    PathToId[Test].self("test") must be equalTo "/foo/bar/tests/test"
+    PathTo[Test].entity(t) must be equalTo "foo/bar/tests/1"
+    PathToId[Test].self("test") must be equalTo "foo/bar/tests/test"
 
     rawOne(t)
       .fields("data")
@@ -21,10 +21,10 @@ class PathToSpec extends Specification {
       .fields("links")
       .asJsObject
       .fields("self")
-      .convertTo[String] must be equalTo "/foo/bar/tests/1"
+      .convertTo[String] must be equalTo "foo/bar/tests/1"
   }
 
   "root should print out apiRoot" >> {
-    PathTo[Test].root must be equalTo "/foo/bar/tests"
+    PathTo[Test].root must be equalTo "foo/bar/tests"
   }
 }

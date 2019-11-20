@@ -87,7 +87,7 @@ object ToMany {
   }
 
   final case class Loaded[A: Identifiable](entities: Iterable[A]) extends ToMany[A] {
-    val ids = entities.map(implicitly[Identifiable[A]].identify).toSet
+    val ids: Set[String] = entities.map(implicitly[Identifiable[A]].identify).toSet
 
     override def get: List[A] = entities.toList
 

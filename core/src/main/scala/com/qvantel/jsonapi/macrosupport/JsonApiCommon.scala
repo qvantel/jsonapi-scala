@@ -34,19 +34,19 @@ import com.qvantel.jsonapi._
 trait JsonApiCommon extends Tools {
   import c.universe._
 
-  val toOneType                 = typeOf[ToOne[_]]
-  val optionalToOneType         = typeOf[Option[ToOne[_]]]
-  val jsonOptionalToOneType     = typeOf[JsonOption[ToOne[_]]]
-  val toManyType                = typeOf[ToMany[_]]
-  val polyToOneType             = typeOf[PolyToOne[_]]
-  val optionalPolyToOneType     = typeOf[Option[PolyToOne[_]]]
-  val jsonOptionalPolyToOneType = typeOf[JsonOption[PolyToOne[_]]]
-  val polyToManyType            = typeOf[PolyToMany[_]]
+  val toOneType: c.universe.Type                 = typeOf[ToOne[_]]
+  val optionalToOneType: c.universe.Type         = typeOf[Option[ToOne[_]]]
+  val jsonOptionalToOneType: c.universe.Type     = typeOf[JsonOption[ToOne[_]]]
+  val toManyType: c.universe.Type                = typeOf[ToMany[_]]
+  val polyToOneType: c.universe.Type             = typeOf[PolyToOne[_]]
+  val optionalPolyToOneType: c.universe.Type     = typeOf[Option[PolyToOne[_]]]
+  val jsonOptionalPolyToOneType: c.universe.Type = typeOf[JsonOption[PolyToOne[_]]]
+  val polyToManyType: c.universe.Type            = typeOf[PolyToMany[_]]
 
-  val optionType     = typeOf[Option[_]]
-  val jsonOptionType = typeOf[JsonOption[_]]
+  val optionType: c.universe.Type     = typeOf[Option[_]]
+  val jsonOptionType: c.universe.Type = typeOf[JsonOption[_]]
 
-  def camelToDashes(name: String) =
+  def camelToDashes(name: String): String =
     "[A-Z\\d]".r.replaceAllIn(name, m => "-" + m.group(0).toLowerCase())
 
   def resourceType(t: c.Type): c.Tree =

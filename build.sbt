@@ -116,7 +116,7 @@ val scala211 = Seq(
 
 description in ThisBuild := "jsonapi.org scala implementation"
 
-version in ThisBuild := "8.3.0"
+version in ThisBuild := "8.4.0"
 
 startYear in ThisBuild := Some(2015)
 
@@ -168,10 +168,10 @@ javacOptions in ThisBuild ++= Seq("-deprecation", "-g", "-source", "8", "-target
 
 val testDeps = Seq(
   // testing related
-  "org.specs2" %% "specs2-core"          % "4.0.0" % "test",
-  "org.specs2" %% "specs2-junit"         % "4.0.0" % "test",
-  "org.specs2" %% "specs2-scalacheck"    % "4.0.0" % "test",
-  "org.specs2" %% "specs2-matcher-extra" % "4.0.0" % "test"
+  "org.specs2" %% "specs2-core"          % "4.8.1" % Test,
+  "org.specs2" %% "specs2-junit"         % "4.8.1" % Test,
+  "org.specs2" %% "specs2-scalacheck"    % "4.8.1" % Test,
+  "org.specs2" %% "specs2-matcher-extra" % "4.8.1" % Test
 )
 
 wartremoverErrors in (Compile, compile) ++= (Warts.unsafe.toSet -- Set(Wart.Any,
@@ -180,12 +180,16 @@ wartremoverErrors in (Compile, compile) ++= (Warts.unsafe.toSet -- Set(Wart.Any,
                                                                        Wart.AsInstanceOf,
                                                                        Wart.DefaultArguments,
                                                                        Wart.Throw)).toSeq
+lazy val scalafixSettings =
+  Seq(addCompilerPlugin(scalafixSemanticdb),
+      scalacOptions ++= Seq("-Yrangepos", "-Ywarn-unused-import", "-P:semanticdb:failures:warning"))
 
 lazy val core = (project in file("core"))
+  .settings(scalafixSettings)
   .settings(
     name := "jsonapi-scala-core",
     scalaVersion := "2.11.12",
-    crossScalaVersions := Seq("2.11.12", "2.12.4"),
+    crossScalaVersions := Seq("2.11.12", "2.12.10"),
     scalacOptions ++= {
       if (scalaVersion.value startsWith "2.11.") {
         scala211
@@ -196,22 +200,23 @@ lazy val core = (project in file("core"))
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-reflect" % scalaVersion.value,
       compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
-      "com.chuusai"      %% "shapeless"       % "2.3.2",
+      "com.chuusai"      %% "shapeless"       % "2.3.3",
       "com.qvantel"      %% "scala-inflector" % "1.3.6",
-      "io.spray"         %% "spray-json"      % "1.3.2",
-      "io.lemonlabs"     %% "scala-uri"       % "0.5.0",
-      "net.virtual-void" %% "json-lenses"     % "0.6.2" excludeAll ExclusionRule(organization = "org.parboiled",
-                                                                             name = "parboiled-scala_2.11"),
-      "org.typelevel" %% "cats-effect" % "0.8"
+      "io.spray"         %% "spray-json"      % "1.3.5",
+      "io.lemonlabs"     %% "scala-uri"       % "0.5.7",
+      "net.virtual-void" %% "json-lenses"     % "0.6.2" excludeAll
+        ExclusionRule(organization = "org.parboiled", name = "parboiled-scala_2.11"),
+      "org.typelevel" %% "cats-effect" % "1.4.0"
     ) ++ testDeps
   )
 
 lazy val model = (project in file("model"))
   .dependsOn(core)
+  .settings(scalafixSettings)
   .settings(
     name := "jsonapi-scala-model",
     scalaVersion := "2.11.12",
-    crossScalaVersions := Seq("2.11.12", "2.12.4"),
+    crossScalaVersions := Seq("2.11.12", "2.12.10"),
     scalacOptions ++= {
       if (scalaVersion.value startsWith "2.11.") {
         scala211
@@ -224,6 +229,7 @@ lazy val model = (project in file("model"))
 
 lazy val spray = (project in file("spray"))
   .dependsOn(core, model)
+  .settings(scalafixSettings)
   .settings(
     name := "jsonapi-scala-spray",
     scalaVersion := "2.11.12",
@@ -232,13 +238,13 @@ lazy val spray = (project in file("spray"))
     libraryDependencies ++= Seq(
       compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
       "io.spray" %% "spray-httpx"  % "1.3.4",
-      "io.spray" %% "spray-client" % "1.3.4" excludeAll ExclusionRule(organization = "com.typesafe.akka",
-                                                                      name = "akka-actor_2.11"),
-      "io.spray" %% "spray-routing-shapeless23" % "1.3.4" excludeAll ExclusionRule(organization = "com.chuusai",
-                                                                                   name = "shapeless_2.11"),
-      "com.typesafe.akka" %% "akka-actor" % "2.4.20" excludeAll (ExclusionRule(
-        organization = "com.typesafe.akka",
-        name = "akka-cluster_2.11"), ExclusionRule(organization = "com.typesafe.akka", name = "akka-remote_2.11")),
+      "io.spray" %% "spray-client" % "1.3.4" excludeAll
+        ExclusionRule(organization = "com.typesafe.akka", name = "akka-actor_2.11"),
+      "io.spray" %% "spray-routing-shapeless23" % "1.3.4" excludeAll
+        ExclusionRule(organization = "com.chuusai", name = "shapeless_2.11"),
+      "com.typesafe.akka" %% "akka-actor" % "2.4.20" excludeAll (ExclusionRule(organization = "com.typesafe.akka",
+                                                                               name = "akka-cluster_2.11"),
+      ExclusionRule(organization = "com.typesafe.akka", name = "akka-remote_2.11")),
       "io.spray"          %% "spray-testkit"             % "1.3.4"  % "test",
       "com.typesafe.akka" %% "akka-testkit"              % "2.4.20" % "test",
       "io.spray"          %% "spray-routing-shapeless23" % "1.3.4"  % "test"
@@ -247,10 +253,11 @@ lazy val spray = (project in file("spray"))
 
 lazy val akkaClient = (project in file("akka-client"))
   .dependsOn(core)
+  .settings(scalafixSettings)
   .settings(
     name := "jsonapi-scala-akka-client",
     scalaVersion := "2.11.12",
-    crossScalaVersions := Seq("2.11.12", "2.12.4"),
+    crossScalaVersions := Seq("2.11.12", "2.12.10"),
     scalacOptions ++= {
       if (scalaVersion.value startsWith "2.11.") {
         scala211
@@ -260,21 +267,22 @@ lazy val akkaClient = (project in file("akka-client"))
     },
     libraryDependencies ++= Seq(
       compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
-      "com.typesafe.akka" %% "akka-stream"          % "2.5.6",
-      "com.typesafe.akka" %% "akka-actor"           % "2.5.6",
-      "com.typesafe.akka" %% "akka-http"            % "10.0.10",
-      "com.typesafe.akka" %% "akka-http-spray-json" % "10.0.10"
+      "com.typesafe.akka" %% "akka-stream"          % "2.5.23",
+      "com.typesafe.akka" %% "akka-actor"           % "2.5.23",
+      "com.typesafe.akka" %% "akka-http"            % "10.1.9",
+      "com.typesafe.akka" %% "akka-http-spray-json" % "10.1.9"
     ) ++ testDeps
   )
 
-val http4sVersion = "0.18.0"
+val http4sVersion = "0.20.13"
 
 lazy val http4sClient = (project in file("http4s-client"))
   .dependsOn(core)
+  .settings(scalafixSettings)
   .settings(
     name := "jsonapi-scala-http4s-client",
     scalaVersion := "2.11.12",
-    crossScalaVersions := Seq("2.11.12", "2.12.4"),
+    crossScalaVersions := Seq("2.11.12", "2.12.10"),
     scalacOptions ++= {
       if (scalaVersion.value startsWith "2.11.") {
         scala211
@@ -286,16 +294,17 @@ lazy val http4sClient = (project in file("http4s-client"))
       compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
       "org.http4s" %% "http4s-dsl"          % http4sVersion,
       "org.http4s" %% "http4s-blaze-client" % http4sVersion,
-      "org.http4s" %% "http4s-blaze-server" % http4sVersion % "test"
+      "org.http4s" %% "http4s-blaze-server" % http4sVersion % Test
     ) ++ testDeps
   )
 
 lazy val akka = (project in file("akka"))
   .dependsOn(core, model)
+  .settings(scalafixSettings)
   .settings(
     name := "jsonapi-scala-akka",
     scalaVersion := "2.11.12",
-    crossScalaVersions := Seq("2.11.12", "2.12.4"),
+    crossScalaVersions := Seq("2.11.12", "2.12.10"),
     scalacOptions ++= {
       if (scalaVersion.value startsWith "2.11.") {
         scala211
@@ -305,15 +314,16 @@ lazy val akka = (project in file("akka"))
     },
     libraryDependencies ++= Seq(
       compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
-      "com.typesafe.akka" %% "akka-actor" % "2.5.13" excludeAll (ExclusionRule(
-        organization = "com.typesafe.akka",
-        name = "akka-cluster_2.11"), ExclusionRule(organization = "com.typesafe.akka", name = "akka-remote_2.11")),
-      "com.typesafe.akka" %% "akka-stream"       % "2.5.13",
-      "com.typesafe.akka" %% "akka-http"         % "10.1.5",
-      "com.typesafe.akka" %% "akka-http-core"    % "10.1.5",
-      "com.typesafe.akka" %% "akka-http-testkit" % "10.1.5" % Test,
-      "org.scalatest"     %% "scalatest"         % "3.0.4" % Test,
-      "com.typesafe.akka" %% "akka-testkit"      % "2.5.13" % Test
+      "com.typesafe.akka" %% "akka-actor" % "2.5.23" excludeAll (
+        ExclusionRule(organization = "com.typesafe.akka", name = "akka-cluster_2.11"),
+        ExclusionRule(organization = "com.typesafe.akka", name = "akka-remote_2.11")
+      ),
+      "com.typesafe.akka" %% "akka-stream"       % "2.5.23",
+      "com.typesafe.akka" %% "akka-http"         % "10.1.9",
+      "com.typesafe.akka" %% "akka-http-core"    % "10.1.9",
+      "com.typesafe.akka" %% "akka-http-testkit" % "10.1.9" % Test,
+      "org.scalatest"     %% "scalatest"         % "3.0.8" % Test,
+      "com.typesafe.akka" %% "akka-testkit"      % "2.5.23" % Test
     ) ++ testDeps
   )
 
@@ -324,5 +334,3 @@ lazy val root = (project in file("."))
     name := "jsonapi-scala",
     scalaVersion := "2.11.12"
   )
-
-scalafixSettings

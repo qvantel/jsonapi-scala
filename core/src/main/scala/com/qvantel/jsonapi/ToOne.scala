@@ -64,7 +64,7 @@ object ToOne {
   }
 
   final case class Loaded[A: Identifiable](entity: A) extends ToOne[A] {
-    override val id = implicitly[Identifiable[A]].identify(entity)
+    override val id: String = implicitly[Identifiable[A]].identify(entity)
     override def fold[B: Identifiable](_fId: String => String, fEntity: A => B): ToOne[B] =
       ToOne.loaded(fEntity(entity))
 

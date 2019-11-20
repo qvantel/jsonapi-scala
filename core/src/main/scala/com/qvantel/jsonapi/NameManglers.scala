@@ -46,7 +46,7 @@ object NameManglers {
       s"$u${m.group(1).toLowerCase}${m.group(2)}"
     })
 
-  def separated(separator: Char): NameMangler = { (s: String) =>
+  def separated(separator: Char): NameMangler = { s: String =>
     if (s.forall(_.isUpper)) {
       s.toLowerCase
     } else {

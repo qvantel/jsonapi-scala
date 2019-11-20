@@ -31,12 +31,14 @@ import _root_.spray.json.{JsArray, JsNull, JsObject, JsValue, JsonPrinter, Prett
 /** Used render proper related link response as specified by jsonapi spec
   * found at http://jsonapi.org/format/1.0/#fetching-resources
   *
-  * @tparam A
+  * @tparam A Type of the object that the RelatedResponse points to
   */
 sealed trait RelatedResponse[A] {
   def toResponse(implicit writer: JsonApiWriter[A],
                  printer: JsonPrinter = PrettyPrinter,
                  sorting: JsonApiSorting = JsonApiSorting.Unsorted): JsValue
+
+  def transform[B](f: A => B): RelatedResponse[B]
 }
 
 object RelatedResponse {
@@ -47,11 +49,16 @@ object RelatedResponse {
       def toResponse(implicit writer: JsonApiWriter[A],
                      printer: JsonPrinter = PrettyPrinter,
                      sorting: JsonApiSorting = JsonApiSorting.Unsorted): JsValue = JsObject("data" -> JsNull)
+
+      def transform[B](f: A => B): RelatedResponse[B] = new Empty[B]
     }
+
     final case class Result[A](data: A) extends One[A] {
       def toResponse(implicit writer: JsonApiWriter[A],
                      printer: JsonPrinter = PrettyPrinter,
                      sorting: JsonApiSorting = JsonApiSorting.Unsorted): JsValue = rawOne(data)
+
+      def transform[B](f: A => B): RelatedResponse[B] = Result(f(data))
     }
 
     def apply[A](a: Option[A]): One[A] = a match {
@@ -69,12 +76,16 @@ object RelatedResponse {
       def toResponse(implicit writer: JsonApiWriter[A],
                      printer: JsonPrinter = PrettyPrinter,
                      sorting: JsonApiSorting = JsonApiSorting.Unsorted): JsValue = JsObject("data" -> JsArray.empty)
+
+      def transform[B](f: A => B): RelatedResponse[B] = new Empty[B]
     }
+
     final case class Result[A](data: List[A]) extends Many[A] {
       override def toResponse(implicit writer: JsonApiWriter[A],
                               printer: JsonPrinter = PrettyPrinter,
-                              sorting: JsonApiSorting = JsonApiSorting.Unsorted): JsValue =
-        rawCollection(data)
+                              sorting: JsonApiSorting = JsonApiSorting.Unsorted): JsValue = rawCollection(data)
+
+      def transform[B](f: A => B): RelatedResponse[B] = Result(data.map(f))
     }
 
     def apply[A](a: List[A]): Many[A] = a match {

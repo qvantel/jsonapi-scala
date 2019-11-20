@@ -27,9 +27,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.qvantel.jsonapi
 
 import scala.annotation.compileTimeOnly
-import scala.reflect.macros.blackbox.Context
-
 import com.qvantel.jsonapi.macrosupport.{JsonApiReaders, JsonApiWriters}
+
+import scala.reflect.macros.blackbox
 
 /**
   * Contains macros used to automatically create JsonApiWriter and JsonApiFormat instances from a case class for http://jsonapi.org format.
@@ -49,7 +49,7 @@ import com.qvantel.jsonapi.macrosupport.{JsonApiReaders, JsonApiWriters}
   * }}}
   */
 @compileTimeOnly("Macros can only be used at compile-time")
-final class Macros(val c: Context) extends JsonApiWriters with JsonApiReaders {
+final class Macros(val c: blackbox.Context) extends JsonApiWriters with JsonApiReaders {
   import c.universe._
 
   private[this] def createFormat(t: c.Type): c.Tree = {
