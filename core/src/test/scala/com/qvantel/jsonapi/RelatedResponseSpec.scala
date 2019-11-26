@@ -24,7 +24,7 @@ class RelatedResponseSpec extends Specification with ScalaCheck {
       "data" -> JsNull
     )
 
-    RelatedResponse(emptyTest).transform(transformToTest2).toResponse must be equalTo JsObject(
+    RelatedResponse(emptyTest).map(transformToTest2).toResponse must be equalTo JsObject(
       "data" -> JsNull
     )
   }
@@ -36,8 +36,8 @@ class RelatedResponseSpec extends Specification with ScalaCheck {
     RelatedResponse(test.get).toResponse must be equalTo answer
 
     val transformedAnswer = rawOne(transformToTest2(test.get))
-    RelatedResponse(test).transform(transformToTest2).toResponse must be equalTo transformedAnswer
-    RelatedResponse(test.get).transform(transformToTest2).toResponse must be equalTo transformedAnswer
+    RelatedResponse(test).map(transformToTest2).toResponse must be equalTo transformedAnswer
+    RelatedResponse(test.get).map(transformToTest2).toResponse must be equalTo transformedAnswer
   }
 
   "correctly write to many empty case" in {
@@ -45,7 +45,7 @@ class RelatedResponseSpec extends Specification with ScalaCheck {
       "data" -> JsArray.empty
     )
 
-    RelatedResponse(emptyTests).transform(transformToTest2).toResponse must be equalTo JsObject(
+    RelatedResponse(emptyTests).map(transformToTest2).toResponse must be equalTo JsObject(
       "data" -> JsArray.empty
     )
   }
@@ -60,9 +60,9 @@ class RelatedResponseSpec extends Specification with ScalaCheck {
 
     val transformedAnswer = rawCollection(tests.map(transformToTest2))
 
-    RelatedResponse(tests).transform(transformToTest2).toResponse must be equalTo transformedAnswer
-    RelatedResponse(tests.toSeq).transform(transformToTest2).toResponse must be equalTo transformedAnswer
-    RelatedResponse(tests.toIterable).transform(transformToTest2).toResponse must be equalTo transformedAnswer
-    RelatedResponse(tests.toSet).transform(transformToTest2).toResponse must be equalTo transformedAnswer
+    RelatedResponse(tests).map(transformToTest2).toResponse must be equalTo transformedAnswer
+    RelatedResponse(tests.toSeq).map(transformToTest2).toResponse must be equalTo transformedAnswer
+    RelatedResponse(tests.toIterable).map(transformToTest2).toResponse must be equalTo transformedAnswer
+    RelatedResponse(tests.toSet).map(transformToTest2).toResponse must be equalTo transformedAnswer
   }
 }
