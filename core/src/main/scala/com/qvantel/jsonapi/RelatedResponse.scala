@@ -38,7 +38,7 @@ sealed trait RelatedResponse[A] {
                  printer: JsonPrinter = PrettyPrinter,
                  sorting: JsonApiSorting = JsonApiSorting.Unsorted): JsValue
 
-  def transform[B](f: A => B): RelatedResponse[B]
+  def map[B](f: A => B): RelatedResponse[B]
 }
 
 object RelatedResponse {
@@ -50,7 +50,7 @@ object RelatedResponse {
                      printer: JsonPrinter = PrettyPrinter,
                      sorting: JsonApiSorting = JsonApiSorting.Unsorted): JsValue = JsObject("data" -> JsNull)
 
-      def transform[B](f: A => B): RelatedResponse[B] = new Empty[B]
+      def map[B](f: A => B): RelatedResponse[B] = new Empty[B]
     }
 
     final case class Result[A](data: A) extends One[A] {
@@ -58,7 +58,7 @@ object RelatedResponse {
                      printer: JsonPrinter = PrettyPrinter,
                      sorting: JsonApiSorting = JsonApiSorting.Unsorted): JsValue = rawOne(data)
 
-      def transform[B](f: A => B): RelatedResponse[B] = Result(f(data))
+      def map[B](f: A => B): RelatedResponse[B] = Result(f(data))
     }
 
     def apply[A](a: Option[A]): One[A] = a match {
@@ -77,15 +77,15 @@ object RelatedResponse {
                      printer: JsonPrinter = PrettyPrinter,
                      sorting: JsonApiSorting = JsonApiSorting.Unsorted): JsValue = JsObject("data" -> JsArray.empty)
 
-      def transform[B](f: A => B): RelatedResponse[B] = new Empty[B]
+      def map[B](f: A => B): RelatedResponse[B] = new Empty[B]
     }
 
     final case class Result[A](data: List[A]) extends Many[A] {
-      override def toResponse(implicit writer: JsonApiWriter[A],
-                              printer: JsonPrinter = PrettyPrinter,
-                              sorting: JsonApiSorting = JsonApiSorting.Unsorted): JsValue = rawCollection(data)
+      def toResponse(implicit writer: JsonApiWriter[A],
+                     printer: JsonPrinter = PrettyPrinter,
+                     sorting: JsonApiSorting = JsonApiSorting.Unsorted): JsValue = rawCollection(data)
 
-      def transform[B](f: A => B): RelatedResponse[B] = Result(data.map(f))
+      def map[B](f: A => B): RelatedResponse[B] = Result(data.map(f))
     }
 
     def apply[A](a: List[A]): Many[A] = a match {
