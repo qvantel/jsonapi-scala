@@ -318,8 +318,8 @@ final class ToOneSpec extends Specification {
     }
   }
 
-  "write" >> {
-    "print out data as null for None case of Option[ToOne[X]]" >> {
+  "write" should {
+    "print out data as null for None case of Option[ToOne[X]]" in {
       @jsonApiResource final case class Test(id: String, opt: Option[ToOne[Test]])
 
       val t = Test("id", None)
@@ -328,9 +328,6 @@ final class ToOneSpec extends Specification {
         """
           |{
           |  "data": {
-          |    "attributes": {
-          |
-          |    },
           |    "relationships": {
           |      "opt": {
           |        "links": {
@@ -351,7 +348,7 @@ final class ToOneSpec extends Specification {
       rawOne(t) must be equalTo rawJson
     }
 
-    "print out data as null for JsonAbsent case of JsonOption[ToOne[X]]" >> {
+    "print out data as null for JsonAbsent case of JsonOption[ToOne[X]]" in {
       @jsonApiResource final case class Test(id: String, opt: JsonOption[ToOne[Test]])
 
       val t = Test("id", JsonAbsent)
@@ -360,9 +357,6 @@ final class ToOneSpec extends Specification {
         """
           |{
           |  "data": {
-          |    "attributes": {
-          |
-          |    },
           |    "relationships": {
           |      "opt": {
           |        "links": {
@@ -382,7 +376,7 @@ final class ToOneSpec extends Specification {
       rawOne(t) must be equalTo rawJson
     }
 
-    "print out data as null for JsonAbsent case of JsonOption[ToOne[X]]" >> {
+    "print out data as null for JsonAbsent case of JsonOption[ToOne[X]]" in {
       @jsonApiResource final case class Test(id: String, opt: JsonOption[ToOne[Test]])
 
       val t = Test("id", JsonNull)
@@ -391,9 +385,6 @@ final class ToOneSpec extends Specification {
         """
           |{
           |  "data": {
-          |    "attributes": {
-          |
-          |    },
           |    "relationships": {
           |      "opt": {
           |        "links": {
@@ -412,6 +403,62 @@ final class ToOneSpec extends Specification {
         """.stripMargin.parseJson.asJsObject
 
       rawOne(t) must be equalTo rawJson
+    }
+
+    "work with sparse fieldsets" in {
+      @jsonApiResource final case class Agreement(id: String, name: String, amount: Int)
+      @jsonApiResource final case class CustomerAccount(id: String,
+                                                        name: String,
+                                                        amount: Int,
+                                                        agreement: ToOne[Agreement])
+
+      val data = CustomerAccount("customer-account-id",
+                                 "customer-account-name",
+                                 1,
+                                 ToOne.loaded(Agreement("agreement-id", "agreement-name", 2)))
+      implicit val sparseFields: Map[String, List[String]] =
+        Map("customer-accounts" -> List("name", "agreement"), "agreements" -> List("amount"))
+
+      val rawJson =
+        """
+          |{
+          |  "data": {
+          |    "attributes": {
+          |       "name": "customer-account-name"
+          |    },
+          |    "relationships": {
+          |      "agreement": {
+          |        "links": {
+          |          "related": "/customer-accounts/customer-account-id/agreement"
+          |        },
+          |        "data": {
+          |          "id": "agreement-id",
+          |          "type": "agreements"
+          |        }
+          |      }
+          |    },
+          |    "links": {
+          |      "self": "/customer-accounts/customer-account-id"
+          |    },
+          |    "id": "customer-account-id",
+          |    "type": "customer-accounts"
+          |  },
+          |  "included": [
+          |    {
+          |      "attributes": {
+          |        "amount": 2
+          |      },
+          |      "id": "agreement-id",
+          |      "links": {
+          |        "self":"/agreements/agreement-id"
+          |      },
+          |      "type": "agreements"
+          |    }
+          |  ]
+          |}
+        """.stripMargin.parseJson.asJsObject
+
+      rawOne(data) must be equalTo rawJson
     }
   }
 

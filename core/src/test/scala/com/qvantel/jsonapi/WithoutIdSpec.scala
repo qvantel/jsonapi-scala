@@ -32,13 +32,13 @@ import _root_.spray.json.DefaultJsonProtocol._
 
 class WithoutIdSpec extends Specification {
   implicit val apiRoot: com.qvantel.jsonapi.ApiRoot = ApiRoot(None)
-  @jsonApiResource("normal", "no-id") case class Test(name: String, child: ToOne[Child])
 
-  @jsonApiResource case class Child(id: String, name: String)
+  @jsonApiResource("normal", "no-id") case class Test(name: String, child: ToOne[Child])
+  @jsonApiResource case class Child(id: String, name: String, age: Int)
 
   "json api resource" should {
     "work without id" in {
-      val c = Child("test-id", "test-name")
+      val c = Child("test-id", "test-name", 20)
       val t = Test("test", ToOne.loaded(c))
 
       val primaryJson =
@@ -62,6 +62,26 @@ class WithoutIdSpec extends Specification {
       implicitly[JsonApiWriter[Test]].write(t) must be equalTo primaryJson
       implicitly[JsonApiWriter[Test]].included(t) must be equalTo Set(
         implicitly[JsonApiWriter[Child]].write(c).asJsObject)
+    }
+
+    "work without id and sparse fields" in {
+      val c            = Child("test-id", "test-name", 20)
+      val t            = Test("test", ToOne.loaded(c))
+      val sparseFields = Map("tests" -> List("name"), "children" -> List("age"))
+
+      val primaryJson =
+        """
+          |{
+          |  "type": "tests",
+          |  "attributes": {
+          |    "name": "test"
+          |  }
+          |}
+        """.stripMargin.parseJson
+
+      implicitly[JsonApiWriter[Test]].write(t, sparseFields) must be equalTo primaryJson
+      implicitly[JsonApiWriter[Test]].included(t, sparseFields) must be equalTo Set(
+        implicitly[JsonApiWriter[Child]].write(c, sparseFields).asJsObject)
     }
   }
 }

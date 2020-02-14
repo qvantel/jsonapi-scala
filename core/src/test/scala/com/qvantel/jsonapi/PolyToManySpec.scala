@@ -269,6 +269,57 @@ final class PolyToManySpec extends Specification {
     }
   }
 
+  "write" should {
+    "correctly write sparse fieldsets (while supporting inclusion of the relationships even if it is not included in the sparse fieldset)" in {
+      implicit val sparseFields: Map[String, List[String]] = Map("articles" -> List("title"))
+      val article =
+        Article("1",
+                "boom",
+                PolyToMany.loaded[Author](
+                  Seq(Coproduct[Author](Person("john", "doe")), Coproduct[Author](Company("evil", "business")))))
+
+      val rawJson =
+        """
+          |{
+          |  "data": {
+          |    "attributes": {
+          |      "title": "boom"
+          |    },
+          |    "links": {
+          |      "self":"/articles/1"
+          |    },
+          |    "id": "1",
+          |    "type": "articles"
+          |  },
+          |  "included": [
+          |    {
+          |      "attributes": {
+          |        "name": "doe"
+          |      },
+          |      "id": "john",
+          |      "links": {
+          |        "self": "/people/john"
+          |      },
+          |      "type": "people"
+          |    },
+          |    {
+          |      "attributes": {
+          |        "name": "business"
+          |      },
+          |      "id": "evil",
+          |      "links": {
+          |        "self": "/companies/evil"
+          |      },
+          |      "type": "companies"
+          |    }
+          |  ]
+          |}
+        """.stripMargin.parseJson.asJsObject
+
+      rawOne[Article](article) must be equalTo rawJson
+    }
+  }
+
   "properly generate Includes type class for poly to many relationship" in {
     val includes = implicitly[Includes[Loop]]
 

@@ -36,7 +36,8 @@ import _root_.spray.json.{JsArray, JsNull, JsObject, JsValue, JsonPrinter, Prett
 sealed trait RelatedResponse[A] {
   def toResponse(implicit writer: JsonApiWriter[A],
                  printer: JsonPrinter = PrettyPrinter,
-                 sorting: JsonApiSorting = JsonApiSorting.Unsorted): JsValue
+                 sorting: JsonApiSorting = JsonApiSorting.Unsorted,
+                 sparseFields: Map[String, List[String]] = Map.empty): JsValue
 
   def map[B](f: A => B): RelatedResponse[B]
 }
@@ -48,7 +49,8 @@ object RelatedResponse {
     final class Empty[A] extends One[A] {
       def toResponse(implicit writer: JsonApiWriter[A],
                      printer: JsonPrinter = PrettyPrinter,
-                     sorting: JsonApiSorting = JsonApiSorting.Unsorted): JsValue = JsObject("data" -> JsNull)
+                     sorting: JsonApiSorting = JsonApiSorting.Unsorted,
+                     sparseFields: Map[String, List[String]] = Map.empty): JsValue = JsObject("data" -> JsNull)
 
       def map[B](f: A => B): RelatedResponse[B] = new Empty[B]
     }
@@ -56,7 +58,8 @@ object RelatedResponse {
     final case class Result[A](data: A) extends One[A] {
       def toResponse(implicit writer: JsonApiWriter[A],
                      printer: JsonPrinter = PrettyPrinter,
-                     sorting: JsonApiSorting = JsonApiSorting.Unsorted): JsValue = rawOne(data)
+                     sorting: JsonApiSorting = JsonApiSorting.Unsorted,
+                     sparseFields: Map[String, List[String]] = Map.empty): JsValue = rawOne(data)
 
       def map[B](f: A => B): RelatedResponse[B] = Result(f(data))
     }
@@ -75,7 +78,8 @@ object RelatedResponse {
     final class Empty[A] extends Many[A] {
       def toResponse(implicit writer: JsonApiWriter[A],
                      printer: JsonPrinter = PrettyPrinter,
-                     sorting: JsonApiSorting = JsonApiSorting.Unsorted): JsValue = JsObject("data" -> JsArray.empty)
+                     sorting: JsonApiSorting = JsonApiSorting.Unsorted,
+                     sparseFields: Map[String, List[String]] = Map.empty): JsValue = JsObject("data" -> JsArray.empty)
 
       def map[B](f: A => B): RelatedResponse[B] = new Empty[B]
     }
@@ -83,7 +87,8 @@ object RelatedResponse {
     final case class Result[A](data: List[A]) extends Many[A] {
       def toResponse(implicit writer: JsonApiWriter[A],
                      printer: JsonPrinter = PrettyPrinter,
-                     sorting: JsonApiSorting = JsonApiSorting.Unsorted): JsValue = rawCollection(data)
+                     sorting: JsonApiSorting = JsonApiSorting.Unsorted,
+                     sparseFields: Map[String, List[String]] = Map.empty): JsValue = rawCollection(data)
 
       def map[B](f: A => B): RelatedResponse[B] = Result(data.map(f))
     }

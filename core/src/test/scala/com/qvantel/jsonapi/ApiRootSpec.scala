@@ -41,7 +41,6 @@ class ApiRootSpec extends org.specs2.mutable.Specification {
       val json =
         """
           |{
-          |  "attributes":{},
           |  "relationships":{
           |    "rel":{
           |      "data":{

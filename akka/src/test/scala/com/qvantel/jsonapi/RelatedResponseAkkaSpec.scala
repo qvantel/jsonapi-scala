@@ -38,11 +38,11 @@ import _root_.akka.http.scaladsl.server.Directives._
 class RelatedResponseAkkaSpec extends Specification with Specs2RouteTest {
   def actorRefFactory                               = system
   implicit val apiRoot: com.qvantel.jsonapi.ApiRoot = ApiRoot(None)
-  @jsonApiResource final case class Test(id: String)
+  @jsonApiResource final case class Test(id: String, name: String)
 
-  val test: Option[Test]      = Some(Test("teståöä•Ωé®")) // test UTF-8
+  val test: Option[Test]      = Some(Test("teståöä•Ωé®", "name")) // test UTF-8
   val emptyTest: Option[Test] = None
-  val tests: List[Test]       = List(Test("test 1"), Test("test 2"))
+  val tests: List[Test]       = List(Test("test 1", "name 1"), Test("test 2", "name 2"))
   val emptyTests: List[Test]  = List.empty
 
   val route = get {
@@ -64,13 +64,32 @@ class RelatedResponseAkkaSpec extends Specification with Specs2RouteTest {
     RelatedResponse(test.get).toResponse must be equalTo answer
   }
 
+  "correctly write to one some case with sparse fields defined" in {
+    implicit val sparseFields: Map[String, List[String]] = Map("tests" -> List("someFieldThatDoesNotExist"))
+    val answer                                           = rawOne(test.get)
+
+    RelatedResponse(test).toResponse must be equalTo answer
+    RelatedResponse(test.get).toResponse must be equalTo answer
+  }
+
   "correctly write to many empty case" in {
     RelatedResponse(emptyTests).toResponse must be equalTo JsObject(
       "data" -> JsArray.empty
     )
   }
 
-  "correctly write to many non-empt case" in {
+  "correctly write to many non-empty case" in {
+    val answer = rawCollection(tests)
+
+    RelatedResponse(tests).toResponse must be equalTo answer
+    RelatedResponse(tests.toSeq).toResponse must be equalTo answer
+    RelatedResponse(tests.toIterable).toResponse must be equalTo answer
+    RelatedResponse(tests.toSet).toResponse must be equalTo answer
+  }
+
+  "correctly write to many non-empty case with sparse fields defined" in {
+    implicit val sparseFields: Map[String, List[String]] = Map("tests" -> List("someFieldThatDoesNotExist"))
+
     val answer = rawCollection(tests)
 
     RelatedResponse(tests).toResponse must be equalTo answer

@@ -116,7 +116,7 @@ val scala211 = Seq(
 
 description in ThisBuild := "jsonapi.org scala implementation"
 
-version in ThisBuild := "8.4.0"
+version in ThisBuild := "9.0.0"
 
 startYear in ThisBuild := Some(2015)
 
@@ -269,8 +269,8 @@ lazy val akkaClient = (project in file("akka-client"))
       compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
       "com.typesafe.akka" %% "akka-stream"          % "2.5.23",
       "com.typesafe.akka" %% "akka-actor"           % "2.5.23",
-      "com.typesafe.akka" %% "akka-http"            % "10.1.9",
-      "com.typesafe.akka" %% "akka-http-spray-json" % "10.1.9"
+      "com.typesafe.akka" %% "akka-http"            % "10.1.11",
+      "com.typesafe.akka" %% "akka-http-spray-json" % "10.1.11"
     ) ++ testDeps
   )
 
@@ -319,9 +319,9 @@ lazy val akka = (project in file("akka"))
         ExclusionRule(organization = "com.typesafe.akka", name = "akka-remote_2.11")
       ),
       "com.typesafe.akka" %% "akka-stream"       % "2.5.23",
-      "com.typesafe.akka" %% "akka-http"         % "10.1.9",
-      "com.typesafe.akka" %% "akka-http-core"    % "10.1.9",
-      "com.typesafe.akka" %% "akka-http-testkit" % "10.1.9" % Test,
+      "com.typesafe.akka" %% "akka-http"         % "10.1.11",
+      "com.typesafe.akka" %% "akka-http-core"    % "10.1.11",
+      "com.typesafe.akka" %% "akka-http-testkit" % "10.1.11" % Test,
       "org.scalatest"     %% "scalatest"         % "3.0.8" % Test,
       "com.typesafe.akka" %% "akka-testkit"      % "2.5.23" % Test
     ) ++ testDeps

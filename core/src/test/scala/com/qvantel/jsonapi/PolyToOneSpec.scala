@@ -226,9 +226,6 @@ final class PolyToOneSpec extends Specification {
         """
           |{
           |  "data": {
-          |    "attributes": {
-          |
-          |    },
           |    "relationships": {
           |      "maybe": {
           |        "data": null,
@@ -247,6 +244,41 @@ final class PolyToOneSpec extends Specification {
         """.stripMargin.parseJson.asJsObject
 
       rawOne(t) must be equalTo rawJson
+    }
+
+    "correctly write sparse fieldsets (while supporting inclusion of the relationship even if it is not included in the sparse fieldset)" >> {
+      implicit val sparseFields: Map[String, List[String]] = Map("articles" -> List("title"))
+      val article                                          = Article("1", "boom", PolyToOne.loaded[Author, Person](Person("test-id", "mario")))
+
+      val rawJson =
+        """
+          |{
+          |  "data": {
+          |    "attributes": {
+          |      "title": "boom"
+          |    },
+          |    "links": {
+          |      "self":"/articles/1"
+          |    },
+          |    "id": "1",
+          |    "type": "articles"
+          |  },
+          |  "included": [
+          |    {
+          |      "attributes": {
+          |        "name": "mario"
+          |      },
+          |      "id": "test-id",
+          |      "links": {
+          |        "self": "/people/test-id"
+          |      },
+          |      "type": "people"
+          |    }
+          |  ]
+          |}
+        """.stripMargin.parseJson.asJsObject
+
+      rawOne[Article](article) must be equalTo rawJson
     }
   }
 

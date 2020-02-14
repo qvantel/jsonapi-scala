@@ -49,7 +49,8 @@ trait JsonApiSupport extends JsonApiSupport0 {
       implicit writer: JsonApiWriter[T],
       printer: JsonPrinter = PrettyPrinter,
       metaProfiles: Set[MetaProfile] = Set.empty,
-      sorting: JsonApiSorting = JsonApiSorting.Unsorted): ToEntityMarshaller[Iterable[T]] =
+      sorting: JsonApiSorting = JsonApiSorting.Unsorted,
+      sparseFields: Map[String, List[String]] = Map.empty): ToEntityMarshaller[Iterable[T]] =
     Marshaller.withFixedContentType(ct) { as =>
       HttpEntity(ct, rawCollection(as))
     }
@@ -103,7 +104,8 @@ trait JsonApiSupport0 {
   implicit def jsonApiOneMarshaller[T](implicit writer: JsonApiWriter[T],
                                        printer: JsonPrinter = PrettyPrinter,
                                        metaProfiles: Set[MetaProfile] = Set.empty,
-                                       sorting: JsonApiSorting = JsonApiSorting.Unsorted): ToEntityMarshaller[T] =
+                                       sorting: JsonApiSorting = JsonApiSorting.Unsorted,
+                                       sparseFields: Map[String, List[String]] = Map.empty): ToEntityMarshaller[T] =
     Marshaller.withFixedContentType(ct) { a =>
       HttpEntity(ct, rawOne(a))
     }
@@ -111,7 +113,8 @@ trait JsonApiSupport0 {
   implicit def relatedResponseMarshaller[A](
       implicit writer: JsonApiWriter[A],
       printer: JsonPrinter = PrettyPrinter,
-      sorting: JsonApiSorting = JsonApiSorting.Unsorted): ToEntityMarshaller[com.qvantel.jsonapi.RelatedResponse[A]] =
+      sorting: JsonApiSorting = JsonApiSorting.Unsorted,
+      sparseFields: Map[String, List[String]] = Map.empty): ToEntityMarshaller[com.qvantel.jsonapi.RelatedResponse[A]] =
     PredefinedToEntityMarshallers.StringMarshaller.wrap(ct) { value =>
       printer.apply(value.toResponse)
     }
