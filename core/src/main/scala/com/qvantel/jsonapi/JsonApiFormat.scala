@@ -58,7 +58,9 @@ trait JsonApiReader[T] extends RootJsonReader[T] {
 
 @implicitNotFound(msg = "Cannot find JsonApiWriter or JsonApiFormat type class for ${T}")
 trait JsonApiWriter[T] extends RootJsonWriter[T] {
-  def included(obj: T): Set[JsObject]
+  override def write(obj: T): JsValue = write(obj, Map.empty)
+  def included(obj: T, sparseFields: Map[String, List[String]] = Map.empty): Set[JsObject]
+  def write(obj: T, sparseFields: Map[String, List[String]]): JsValue
 }
 
 @implicitNotFound(msg = "Cannot find JsonApiFormat type class for ${T}")

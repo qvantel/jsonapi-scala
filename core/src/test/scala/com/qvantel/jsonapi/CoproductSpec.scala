@@ -144,6 +144,22 @@ final class CoproductSpec extends Specification {
       ok
     }
 
+    "at least compile with a sparse fieldset defined" in {
+      val sparseFields: Map[String, List[String]] = Map("robots" -> List("arm"), "advanced-robots" -> List("modules"))
+
+      val pjr1 = implicitly[JsonApiFormat[Robot]].write(Examples.robot1, sparseFields)
+      val pjr2 = implicitly[JsonApiFormat[Robot]].write(Examples.robot2, sparseFields)
+      val pjr3 = implicitly[JsonApiFormat[Robot]].write(Examples.robot3, sparseFields)
+      val ijr1 = implicitly[JsonApiFormat[Robot]].included(Examples.robot1, sparseFields)
+      val ijr2 = implicitly[JsonApiFormat[Robot]].included(Examples.robot2, sparseFields)
+      val ijr3 = implicitly[JsonApiFormat[Robot]].included(Examples.robot3, sparseFields)
+      val pja1 = implicitly[JsonApiFormat[AdvancedRobot]].write(Examples.advancedRobot1, sparseFields)
+      val pja2 = implicitly[JsonApiFormat[AdvancedRobot]].write(Examples.advancedRobot2, sparseFields)
+      val ija1 = implicitly[JsonApiFormat[AdvancedRobot]].included(Examples.advancedRobot1, sparseFields)
+      val ija2 = implicitly[JsonApiFormat[AdvancedRobot]].included(Examples.advancedRobot2, sparseFields)
+      ok
+    }
+
     "includes work" in {
       Eye.eyeIncludes.includesAllowed("friend", "friend.arm", "friend.module") must beTrue
       Robot.robotIncludes.includesAllowed("arm", "module") must beTrue

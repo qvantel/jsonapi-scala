@@ -175,6 +175,38 @@ final class MacrosSpec extends Specification with ScalaCheck {
         """{"a-field":"a field","b-field":3,"c-field":3.2,"name-mangling":"test data","r-field":false}""")
     }
 
+    "correctly produce json if a sparse fieldset is defined" in {
+      import _root_.spray.json.lenses.JsonLenses._
+
+      final case class Root(id: String,
+                            nameMangling: String,
+                            rField: Boolean,
+                            aField: String,
+                            bField: Int,
+                            cField: BigDecimal)
+          extends HasId
+
+      implicit val resourceType: com.qvantel.jsonapi.ResourceType[Root] = ResourceType[Root]("root")
+
+      implicit val pathTo: PathTo[Root] = new PathToId[Root] {
+        override final def root: Uri = "/roots"
+      }
+
+      val format = jsonApiFormat[Root]
+
+      val data         = Root("1", "test data", false, "a field", 3, BigDecimal(3.2))
+      val sparseFields = Map("root" -> List("b-field", "name-mangling", "r-field"))
+
+      val json = format.write(data, sparseFields)
+
+      json.extract[String]('attributes / "name-mangling") must_== data.nameMangling
+      json.extract[String]('id) must_== "1"
+      json.extract[String]('type) must_== "root"
+      // check that attributes are ordered
+      json.extract[JsObject]('attributes) must_== JsonParser(
+        """{"b-field":3,"name-mangling":"test data","r-field":false}""")
+    }
+
     "materialize multi level relationships" in {
       final case class Root(id: String, nameMangling: String, child: ToOne[Child])           extends HasId
       final case class Child(id: String, child: Option[ToOne[Leaf]], children: ToMany[Leaf]) extends HasId

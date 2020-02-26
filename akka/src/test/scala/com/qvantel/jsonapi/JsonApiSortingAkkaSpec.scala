@@ -54,9 +54,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
     """
       |{
       |  "data": {
-      |    "attributes": {
-      |
-      |    },
       |    "relationships": {
       |      "rel": {
       |        "data": [{
@@ -78,9 +75,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
       |    "type": "res"
       |  },
       |  "included": [{
-      |    "attributes": {
-      |
-      |    },
       |    "relationships": {
       |      "rel": {
       |        "links": {
@@ -94,9 +88,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
       |    "id": "3",
       |    "type": "res"
       |  }, {
-      |    "attributes": {
-      |
-      |    },
       |    "relationships": {
       |      "rel": {
       |        "links": {
@@ -117,9 +108,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
     """
       |{
       |  "data": [{
-      |    "attributes": {
-      |
-      |    },
       |    "relationships": {
       |      "rel": {
       |        "links": {
@@ -133,9 +121,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
       |    "id": "1",
       |    "type": "res"
       |  }, {
-      |    "attributes": {
-      |
-      |    },
       |    "relationships": {
       |      "rel": {
       |        "links": {
@@ -149,9 +134,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
       |    "id": "3",
       |    "type": "res"
       |  }, {
-      |    "attributes": {
-      |
-      |    },
       |    "relationships": {
       |      "rel": {
       |        "links": {
@@ -189,9 +171,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
       """
         |{
         |  "data": {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "data": [{
@@ -213,9 +192,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
         |    "type": "res"
         |  },
         |  "included": [{
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -229,9 +205,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
         |    "id": "2",
         |    "type": "res"
         |  }, {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -252,9 +225,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
       """
         |{
         |  "data": [{
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -268,9 +238,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
         |    "id": "1",
         |    "type": "res"
         |  }, {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -284,9 +251,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
         |    "id": "2",
         |    "type": "res"
         |  }, {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -320,9 +284,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
       """
         |{
         |  "data": {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "data": [{
@@ -344,9 +305,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
         |    "type": "res"
         |  },
         |  "included": [{
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -360,9 +318,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
         |    "id": "3",
         |    "type": "res"
         |  }, {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -383,9 +338,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
       """
         |{
         |  "data": [{
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -399,9 +351,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
         |    "id": "3",
         |    "type": "res"
         |  }, {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -415,9 +364,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
         |    "id": "2",
         |    "type": "res"
         |  }, {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -452,9 +398,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
       """
         |{
         |  "data": {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "data": [{
@@ -476,9 +419,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
         |    "type": "res"
         |  },
         |  "included": [{
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -492,9 +432,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
         |    "id": "2",
         |    "type": "res"
         |  }, {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -515,9 +452,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
       """
         |{
         |  "data": [{
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -531,9 +465,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
         |    "id": "1",
         |    "type": "res"
         |  }, {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -547,9 +478,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
         |    "id": "2",
         |    "type": "res"
         |  }, {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -583,9 +511,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
       """
         |{
         |  "data": {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "data": [{
@@ -607,9 +532,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
         |    "type": "res"
         |  },
         |  "included": [{
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -623,9 +545,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
         |    "id": "2",
         |    "type": "res"
         |  }, {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -646,9 +565,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
       """
         |{
         |  "data": [{
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -662,9 +578,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
         |    "id": "1",
         |    "type": "res"
         |  }, {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -678,9 +591,6 @@ final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
         |    "id": "2",
         |    "type": "res"
         |  }, {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {

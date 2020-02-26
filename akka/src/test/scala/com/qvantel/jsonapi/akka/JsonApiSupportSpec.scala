@@ -26,6 +26,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.qvantel.jsonapi.akka
 
+import scala.concurrent.Future
+
+import _root_.akka.http.scaladsl.marshalling.ToEntityMarshaller
 import _root_.akka.http.scaladsl.model._
 import _root_.akka.http.scaladsl.server.Directive._
 import _root_.akka.http.scaladsl.server.Directives._
@@ -89,6 +92,7 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest {
   def actorRefFactory = system
 
   val child = Child("1", "test")
+  val thang = Thang("idThang", "nameThang", 20)
   val many  = Seq(Child("3", "test 3"), Child("4", "test 4"), Child("5", "test 5"))
   val data = Root("1",
                   "test data",
@@ -105,7 +109,7 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest {
                    ToMany.reference,
                    ToOne.loaded(Article("55", "test")))
 
-  @jsonApiResource final case class Thang(id: String, name: String)
+  @jsonApiResource final case class Thang(id: String, name: String, age: Int)
   @jsonApiResource("name-changed", "no-id") final case class Thing(name: String, thang: ToOne[Thang])
 
   val route: Route =
@@ -245,7 +249,86 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest {
       rawOne(data) must be equalTo json
     }
 
-    "rawOne correctly prints jsonapi json for one entity" in {
+    "rawOne correctly prints jsonapi json for one entity with sparse fields defined" in {
+      val json =
+        """
+          |{
+          |  "data": {
+          |    "attributes": {
+          |      "name-mangling": "test data"
+          |    },
+          |    "relationships": {
+          |      "article": {
+          |        "data": {
+          |          "type": "article",
+          |          "id": "55"
+          |        },
+          |        "links": {
+          |          "related": "/roots/1/article"
+          |        }
+          |      },
+          |      "referenced": {
+          |        "data": {
+          |          "type": "child",
+          |          "id": "2"
+          |        },
+          |        "links": {
+          |          "related": "/roots/1/referenced"
+          |        }
+          |      }
+          |    },
+          |    "links": {
+          |      "self": "/roots/1"
+          |    },
+          |    "id": "1",
+          |    "type": "root"
+          |  },
+          |  "included": [{
+          |    "type": "child",
+          |    "id": "4",
+          |    "links": {
+          |      "self": "/children/4"
+          |    }
+          |  }, {
+          |    "type": "child",
+          |    "id": "3",
+          |    "links": {
+          |      "self": "/children/3"
+          |    }
+          |  }, {
+          |    "type": "child",
+          |    "id": "5",
+          |    "links": {
+          |      "self": "/children/5"
+          |    }
+          |  }, {
+          |    "type": "article",
+          |    "attributes": {
+          |      "name": "test"
+          |    },
+          |    "id": "55",
+          |    "links": {
+          |      "self": "/articles/55"
+          |    }
+          |  }, {
+          |    "type": "child",
+          |    "id": "1",
+          |    "links": {
+          |      "self": "/children/1"
+          |    }
+          |  }]
+          |}
+        """.stripMargin.parseJson.asJsObject
+
+      implicit val sparseFields: Map[String, List[String]] =
+        Map("root"    -> List("name-mangling", "referenced", "article"),
+            "child"   -> List("fieldThatDoesNotExist"),
+            "article" -> List("name"))
+
+      rawOne(data) must be equalTo json
+    }
+
+    "rawCollection correctly prints jsonapi json for two entities" in {
       val json =
         """
           |{
@@ -417,6 +500,114 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest {
       rawCollection(Iterable(data, data2)) must be equalTo json
     }
 
+    "rawCollection correctly prints jsonapi json for two entities with sparse fields defined" in {
+      val json =
+        """
+          |{
+          |  "data": [{
+          |    "attributes": {
+          |      "name-mangling": "test data"
+          |    },
+          |    "relationships": {
+          |      "article": {
+          |        "data": {
+          |          "type": "article",
+          |          "id": "55"
+          |        },
+          |        "links": {
+          |          "related": "/roots/1/article"
+          |        }
+          |      },
+          |      "referenced": {
+          |        "data": {
+          |          "type": "child",
+          |          "id": "2"
+          |        },
+          |        "links": {
+          |          "related": "/roots/1/referenced"
+          |        }
+          |      }
+          |    },
+          |    "links": {
+          |      "self": "/roots/1"
+          |    },
+          |    "id": "1",
+          |    "type": "root"
+          |  }, {
+          |    "attributes": {
+          |      "name-mangling": "test data"
+          |    },
+          |    "relationships": {
+          |      "article": {
+          |        "data": {
+          |          "type": "article",
+          |          "id": "55"
+          |        },
+          |        "links": {
+          |          "related": "/roots/2/article"
+          |        }
+          |      },
+          |      "referenced": {
+          |        "data": {
+          |          "type": "child",
+          |          "id": "2"
+          |        },
+          |        "links": {
+          |          "related": "/roots/2/referenced"
+          |        }
+          |      }
+          |    },
+          |    "links": {
+          |      "self": "/roots/2"
+          |    },
+          |    "id": "2",
+          |    "type": "root"
+          |  }],
+          |  "included": [{
+          |    "type": "child",
+          |    "id": "4",
+          |    "links": {
+          |      "self": "/children/4"
+          |    }
+          |  }, {
+          |    "type": "child",
+          |    "id": "3",
+          |    "links": {
+          |      "self": "/children/3"
+          |    }
+          |  }, {
+          |    "type": "child",
+          |    "id": "5",
+          |    "links": {
+          |      "self": "/children/5"
+          |    }
+          |  }, {
+          |    "type": "article",
+          |    "attributes": {
+          |      "name": "test"
+          |    },
+          |    "id": "55",
+          |    "links": {
+          |      "self": "/articles/55"
+          |    }
+          |  }, {
+          |    "type": "child",
+          |    "id": "1",
+          |    "links": {
+          |      "self": "/children/1"
+          |    }
+          |  }]
+          |}
+        """.stripMargin.parseJson.asJsObject
+
+      implicit val sparseFields: Map[String, List[String]] =
+        Map("root"    -> List("name-mangling", "referenced", "article"),
+            "child"   -> List("fieldThatDoesNotExist"),
+            "article" -> List("name"))
+
+      rawCollection(Iterable(data, data2)) must be equalTo json
+    }
+
     "return correct media type" in {
       Get() ~> route ~> check {
         contentType must_== ct
@@ -493,6 +684,40 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest {
       implicitly[JsonApiWriter[AorB]].write(Coproduct[AorB](TestB("2"))) must_== TestB("2").toJson
     }
 
+    "marshal a RelatedResponse[Thang] to JSON" in {
+      val route = (path("notSparse") & get) {
+        implicit val marshaller: ToEntityMarshaller[RelatedResponse[Thang]] = relatedResponseMarshaller[Thang]
+        complete {
+          Future.successful(Some(RelatedResponse.apply(thang)))
+        }
+      }
+
+      Get("/notSparse") ~> route ~> check {
+        val json = JsonParser(responseAs[String])
+
+        json must be equalTo rawOne[Thang](thang)
+      }
+    }
+
+    "marshal a RelatedResponse[Thang] to JSON with sparse fields" in {
+      // The sparseFields implicit has to be before the marshaller as the value of it will be "hard-coded" inside of it and not reloaded for each "complete()".
+      implicit val sparseFields: Map[String, List[String]]                = Map("thangs" -> List("age"))
+      implicit val marshaller: ToEntityMarshaller[RelatedResponse[Thang]] = relatedResponseMarshaller[Thang]
+
+      val route =
+        (path("sparse") & get) {
+          complete {
+            Future.successful(Some(RelatedResponse.apply(thang)))
+          }
+        }
+
+      Get("/sparse") ~> route ~> check {
+        val json = JsonParser(responseAs[String])
+        println(json)
+        json must be equalTo rawOne[Thang](thang)
+      }
+    }
+
     "unmarshaller a single jsonapi object" in {
       Post("/single?include=loaded,article,referenced,many-referenced,many", data) ~> route ~> check {
         contentType must_== ct
@@ -505,7 +730,7 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest {
     }
 
     "unmarshaller a single jsonapi object that does not have an id" in {
-      val thingData = Thing("test", ToOne.loaded(Thang("1", "test")))
+      val thingData = Thing("test", ToOne.loaded(thang))
 
       Post("/thing?include=thang", thingData) ~> route ~> check {
         contentType must_== ct
@@ -675,11 +900,11 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest {
     }
     "unmarshal response to jsonapi entity" in {
       val route = get {
-        complete(HttpResponse(StatusCodes.OK, entity = HttpEntity(rawOne(Thang("id", "name")).prettyPrint)))
+        complete(HttpResponse(StatusCodes.OK, entity = HttpEntity(rawOne(thang).prettyPrint)))
       }
       Get("/") ~> route ~> check {
-        val thang = responseAs[Thang]
-        thang must be equalTo Thang("id", "name")
+        val thangResponse = responseAs[Thang]
+        thangResponse must be equalTo thang
       }
     }
   }

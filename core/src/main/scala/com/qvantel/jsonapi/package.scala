@@ -39,7 +39,7 @@ import com.netaporter.uri.encoding.percentEncode
 package object jsonapi {
   type NameMangler = String => String
 
-  val uriConfig = UriConfig(encoder = percentEncode ++ '/' ++ '"')
+  val uriConfig: UriConfig = UriConfig(encoder = percentEncode ++ '/' ++ '"')
 
   implicit object PathJsonFormat extends JsonFormat[Uri] {
     override def write(obj: Uri): JsValue = JsString(obj.toString(uriConfig))
@@ -59,13 +59,14 @@ package object jsonapi {
 
   implicit def coproductJsonApiWriter0[L](implicit wl: JsonApiWriter[L]): JsonApiWriter[L :+: CNil] =
     new JsonApiWriter[L :+: CNil] {
-      override def included(obj: L :+: CNil): Set[JsObject] = obj match {
-        case Inl(l) => wl.included(l)
-        case Inr(_) => ???
-      }
+      override def included(obj: L :+: CNil, sparseFields: Map[String, List[String]] = Map.empty): Set[JsObject] =
+        obj match {
+          case Inl(l) => wl.included(l, sparseFields)
+          case Inr(_) => ???
+        }
 
-      override def write(obj: L :+: CNil): JsValue = obj match {
-        case Inl(l) => wl.write(l)
+      override def write(obj: L :+: CNil, sparseFields: Map[String, List[String]]): JsValue = obj match {
+        case Inl(l) => wl.write(l, sparseFields)
         case Inr(_) => ???
       }
     }
@@ -73,15 +74,17 @@ package object jsonapi {
   implicit def coproductJsonApiWriter1[L, R <: Coproduct](implicit wl: JsonApiWriter[L],
                                                           wr: JsonApiWriter[R]): JsonApiWriter[L :+: R] =
     new JsonApiWriter[L :+: R] {
-      override def included(obj: L :+: R): Set[JsObject] = obj match {
-        case Inl(l) => wl.included(l)
-        case Inr(r) => wr.included(r)
+      override def included(obj: L :+: R, sparseFields: Map[String, List[String]] = Map.empty): Set[JsObject] =
+        obj match {
+          case Inl(l) => wl.included(l, sparseFields)
+          case Inr(r) => wr.included(r, sparseFields)
+        }
+
+      override def write(obj: L :+: R, sparseFields: Map[String, List[String]]): JsValue = obj match {
+        case Inl(l) => wl.write(l, sparseFields)
+        case Inr(r) => wr.write(r, sparseFields)
       }
 
-      override def write(obj: L :+: R): JsValue = obj match {
-        case Inl(l) => wl.write(l)
-        case Inr(r) => wr.write(r)
-      }
     }
 
   private[this] def addMetaProfiles(obj: JsObject, metaProfiles: Set[MetaProfile]): JsObject =
@@ -99,9 +102,10 @@ package object jsonapi {
 
   def rawOne[T](entity: T)(implicit writer: JsonApiWriter[T],
                            metaProfiles: Set[MetaProfile] = Set.empty,
-                           sorting: JsonApiSorting = JsonApiSorting.Unsorted): JsObject = {
-    val primaryData = writer.write(entity)
-    val included    = writer.included(entity)
+                           sorting: JsonApiSorting = JsonApiSorting.Unsorted,
+                           sparseFields: Map[String, List[String]] = Map.empty): JsObject = {
+    val primaryData = writer.write(entity, sparseFields)
+    val included    = writer.included(entity, sparseFields)
     val res = if (included.nonEmpty) {
       sorting match {
         case JsonApiSorting.Unsorted =>
@@ -118,9 +122,10 @@ package object jsonapi {
 
   def rawCollection[T](entities: Iterable[T])(implicit writer: JsonApiWriter[T],
                                               metaProfiles: Set[MetaProfile] = Set.empty,
-                                              sorting: JsonApiSorting = JsonApiSorting.Unsorted): JsObject = {
-    val primary  = entities.map(x => writer.write(x).asJsObject)
-    val included = entities.map(writer.included).foldLeft(Set.empty[JsObject])(_ ++ _)
+                                              sorting: JsonApiSorting = JsonApiSorting.Unsorted,
+                                              sparseFields: Map[String, List[String]] = Map.empty): JsObject = {
+    val primary  = entities.map(x => writer.write(x, sparseFields).asJsObject)
+    val included = entities.map(entity => writer.included(entity, sparseFields)).foldLeft(Set.empty[JsObject])(_ ++ _)
     val res = if (included.nonEmpty) {
       sorting match {
         case JsonApiSorting.Unsorted =>

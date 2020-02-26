@@ -169,6 +169,13 @@ object TopLevel {
   }
 
   implicit object TopLevelJsonFormat extends JsonApiFormat[TopLevel] {
+
+    override def write(obj: TopLevel, sparseFields: Map[String, List[String]]): JsValue = obj match {
+      case s: Single     => SingleJsonFormat.write(s)
+      case c: Collection => CollectionJsonFormat.write(c)
+      case e: Errors     => ErrorsJsonFormat.write(e)
+    }
+
     override def write(obj: TopLevel): JsValue = obj match {
       case s: Single     => SingleJsonFormat.write(s)
       case c: Collection => CollectionJsonFormat.write(c)
@@ -188,11 +195,12 @@ object TopLevel {
       })
     }
 
-    override def included(obj: TopLevel): Set[JsObject] = obj match {
-      case s: Single     => s.included.values.map(_.toJson.asJsObject).toSet
-      case c: Collection => c.included.values.map(_.toJson.asJsObject).toSet
-      case e: Errors     => Set.empty
-    }
+    override def included(obj: TopLevel, sparseFields: Map[String, List[String]] = Map.empty): Set[JsObject] =
+      obj match {
+        case s: Single     => s.included.values.map(_.toJson.asJsObject).toSet
+        case c: Collection => c.included.values.map(_.toJson.asJsObject).toSet
+        case e: Errors     => Set.empty
+      }
 
     override def read(primary: JsValue,
                       included: Map[(String, String), JsObject],

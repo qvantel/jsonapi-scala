@@ -284,4 +284,48 @@ final class ToManySpec extends Specification with MatcherMacros {
         "mixed reference and loaded types found")
     }
   }
+
+  "write" should {
+    "work with sparse fieldsets" in {
+
+      val article = Article("1", "boom", ToMany.loaded(Seq(Comment("2", "hello"), Comment("3", "world"))))
+
+      implicit val sparseFields: Map[String, List[String]] =
+        Map("articles" -> List("title"), "comments" -> List("fieldThatDoesNotExist"))
+
+      val rawJson =
+        """
+          |{
+          |  "data": {
+          |    "attributes": {
+          |       "title": "boom"
+          |    },
+          |    "links": {
+          |      "self": "/articles/1"
+          |    },
+          |    "id": "1",
+          |    "type": "articles"
+          |  },
+          |  "included": [
+          |    {
+          |      "id": "2",
+          |      "links": {
+          |        "self":"/comments/2"
+          |      },
+          |      "type": "comments"
+          |    },
+          |    {
+          |      "id": "3",
+          |      "links": {
+          |        "self":"/comments/3"
+          |      },
+          |      "type": "comments"
+          |    }
+          |  ]
+          |}
+        """.stripMargin.parseJson.asJsObject
+
+      rawOne(article) must be equalTo rawJson
+    }
+  }
 }

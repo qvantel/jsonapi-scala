@@ -114,6 +114,37 @@ final class JsonApiResourceSpec extends Specification with ScalaCheck {
       )
     }
 
+    "create a proper JsonApiFormat for a composite entity with sparse fields passed to the JsonApiWriter" in {
+      val obj = Relations("1", 2, ToOne.reference("a"), ToMany.loaded(Seq(Simple("2", 3))), None)
+      implicitly[JsonApiFormat[Relations]].write(obj, Map("relations" -> List("n", "b"))) must be equalTo JsObject(
+        "type"       -> "relations".toJson,
+        "id"         -> "1".toJson,
+        "attributes" -> JsObject("n" -> 2.toJson),
+        "relationships" -> JsObject(
+          "b" -> JsObject("data" -> JsArray(JsObject("type" -> "simples".toJson, "id" -> "2".toJson)),
+                          "links" -> JsObject("related" -> "/relations/1/b".toJson))
+        ),
+        "links" -> JsObject("self" -> "/relations/1".toJson)
+      )
+    }
+
+    "create a proper JsonApiFormat for a composite entity that has no ID and sparse fields passed to the JsonApiWriter" in {
+      @jsonApiResource("normal", "no-id") final case class RelationsNoID(n: Int,
+                                                                         a: ToOne[Simple],
+                                                                         b: ToMany[Simple],
+                                                                         c: Option[ToOne[Simple]])
+
+      val obj = RelationsNoID(2, ToOne.reference("a"), ToMany.loaded(Seq(Simple("2", 3))), None)
+      implicitly[JsonApiFormat[RelationsNoID]]
+        .write(obj, Map("relations-no-ids" -> List("n", "b"))) must be equalTo JsObject(
+        "type"       -> "relations-no-ids".toJson,
+        "attributes" -> JsObject("n" -> 2.toJson),
+        "relationships" -> JsObject(
+          "b" -> JsObject("data" -> JsArray(JsObject("type" -> "simples".toJson, "id" -> "2".toJson)))
+        )
+      )
+    }
+
     "create a proper JsonApiReader for a simple case class" in {
       val s     = Simple("1", 1)
       val sJson = implicitly[JsonApiFormat[Simple]].write(s)
@@ -281,9 +312,6 @@ final class JsonApiResourceSpec extends Specification with ScalaCheck {
       val json = """
                    |{
                    |  "type": "we-changed-this",
-                   |  "attributes": {
-                   |
-                   |  },
                    |  "id": "id",
                    |  "links": {
                    |    "self": "/we-changed-this/id"

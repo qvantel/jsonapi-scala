@@ -57,9 +57,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
     """
       |{
       |  "data": {
-      |    "attributes": {
-      |
-      |    },
       |    "relationships": {
       |      "rel": {
       |        "data": [{
@@ -81,9 +78,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
       |    "type": "res"
       |  },
       |  "included": [{
-      |    "attributes": {
-      |
-      |    },
       |    "relationships": {
       |      "rel": {
       |        "links": {
@@ -97,9 +91,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
       |    "id": "3",
       |    "type": "res"
       |  }, {
-      |    "attributes": {
-      |
-      |    },
       |    "relationships": {
       |      "rel": {
       |        "links": {
@@ -120,9 +111,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
     """
       |{
       |  "data": [{
-      |    "attributes": {
-      |
-      |    },
       |    "relationships": {
       |      "rel": {
       |        "links": {
@@ -136,9 +124,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
       |    "id": "1",
       |    "type": "res"
       |  }, {
-      |    "attributes": {
-      |
-      |    },
       |    "relationships": {
       |      "rel": {
       |        "links": {
@@ -152,9 +137,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
       |    "id": "3",
       |    "type": "res"
       |  }, {
-      |    "attributes": {
-      |
-      |    },
       |    "relationships": {
       |      "rel": {
       |        "links": {
@@ -191,9 +173,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
       """
         |{
         |  "data": {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "data": [{
@@ -215,9 +194,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
         |    "type": "res"
         |  },
         |  "included": [{
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -231,9 +207,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
         |    "id": "2",
         |    "type": "res"
         |  }, {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -254,9 +227,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
       """
         |{
         |  "data": [{
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -270,9 +240,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
         |    "id": "1",
         |    "type": "res"
         |  }, {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -286,9 +253,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
         |    "id": "2",
         |    "type": "res"
         |  }, {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -322,9 +286,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
       """
         |{
         |  "data": {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "data": [{
@@ -346,9 +307,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
         |    "type": "res"
         |  },
         |  "included": [{
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -362,9 +320,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
         |    "id": "3",
         |    "type": "res"
         |  }, {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -385,9 +340,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
       """
         |{
         |  "data": [{
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -401,9 +353,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
         |    "id": "3",
         |    "type": "res"
         |  }, {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -417,9 +366,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
         |    "id": "2",
         |    "type": "res"
         |  }, {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -454,9 +400,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
       """
         |{
         |  "data": {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "data": [{
@@ -478,9 +421,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
         |    "type": "res"
         |  },
         |  "included": [{
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -494,9 +434,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
         |    "id": "2",
         |    "type": "res"
         |  }, {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -517,9 +454,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
       """
         |{
         |  "data": [{
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -533,9 +467,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
         |    "id": "1",
         |    "type": "res"
         |  }, {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -549,9 +480,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
         |    "id": "2",
         |    "type": "res"
         |  }, {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -585,9 +513,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
       """
         |{
         |  "data": {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "data": [{
@@ -609,9 +534,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
         |    "type": "res"
         |  },
         |  "included": [{
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -625,9 +547,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
         |    "id": "2",
         |    "type": "res"
         |  }, {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -648,9 +567,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
       """
         |{
         |  "data": [{
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -664,9 +580,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
         |    "id": "1",
         |    "type": "res"
         |  }, {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {
@@ -680,9 +593,6 @@ final class JsonApiSortingSpec extends Specification with Specs2RouteTest with H
         |    "id": "2",
         |    "type": "res"
         |  }, {
-        |    "attributes": {
-        |
-        |    },
         |    "relationships": {
         |      "rel": {
         |        "links": {

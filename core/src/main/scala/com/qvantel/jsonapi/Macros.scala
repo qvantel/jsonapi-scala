@@ -59,9 +59,10 @@ final class Macros(val c: blackbox.Context) extends JsonApiWriters with JsonApiR
     val includePath       = TermName(c.freshName("includePath"))
     q"""new _root_.com.qvantel.jsonapi.JsonApiFormat[$t] with _root_.spray.json.RootJsonFormat[$t] {
           import _root_.com.qvantel.jsonapi.PathJsonFormat
-          override final def write($rootParamName: $t): _root_.spray.json.JsValue = ${primaryDataWriter(t,
-                                                                                                        rootParamName)}
-          override final def included($rootParamName: $t): _root_.scala.collection.immutable.Set[_root_.spray.json.JsObject] = ${includedWriter(
+          override final def write($rootParamName: $t, sparseFields: Map[String, List[String]]): _root_.spray.json.JsValue = ${primaryDataWriter(
+      t,
+      rootParamName)}
+          override final def included($rootParamName: $t, sparseFields: Map[String, List[String]]): _root_.scala.collection.immutable.Set[_root_.spray.json.JsObject] = ${includedWriter(
       t,
       rootParamName)}
           override final def read(
