@@ -116,7 +116,7 @@ val scala211 = Seq(
 
 description in ThisBuild := "jsonapi.org scala implementation"
 
-version in ThisBuild := "9.0.0"
+version in ThisBuild := "9.0.1"
 
 startYear in ThisBuild := Some(2015)
 
@@ -267,10 +267,10 @@ lazy val akkaClient = (project in file("akka-client"))
     },
     libraryDependencies ++= Seq(
       compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
-      "com.typesafe.akka" %% "akka-stream"          % "2.5.23",
-      "com.typesafe.akka" %% "akka-actor"           % "2.5.23",
-      "com.typesafe.akka" %% "akka-http"            % "10.1.11",
-      "com.typesafe.akka" %% "akka-http-spray-json" % "10.1.11"
+      "com.typesafe.akka" %% "akka-stream"          % "2.5.31"  % Provided,
+      "com.typesafe.akka" %% "akka-actor"           % "2.5.31"  % Provided,
+      "com.typesafe.akka" %% "akka-http"            % "10.1.11" % Provided,
+      "com.typesafe.akka" %% "akka-http-spray-json" % "10.1.11" % Provided
     ) ++ testDeps
   )
 
@@ -314,16 +314,16 @@ lazy val akka = (project in file("akka"))
     },
     libraryDependencies ++= Seq(
       compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
-      "com.typesafe.akka" %% "akka-actor" % "2.5.23" excludeAll (
+      "com.typesafe.akka" %% "akka-actor" % "2.5.31" % Provided excludeAll (
         ExclusionRule(organization = "com.typesafe.akka", name = "akka-cluster_2.11"),
         ExclusionRule(organization = "com.typesafe.akka", name = "akka-remote_2.11")
       ),
-      "com.typesafe.akka" %% "akka-stream"       % "2.5.23",
-      "com.typesafe.akka" %% "akka-http"         % "10.1.11",
-      "com.typesafe.akka" %% "akka-http-core"    % "10.1.11",
+      "com.typesafe.akka" %% "akka-stream"       % "2.5.31"  % Provided,
+      "com.typesafe.akka" %% "akka-http"         % "10.1.11" % Provided,
+      "com.typesafe.akka" %% "akka-http-core"    % "10.1.11" % Provided,
       "com.typesafe.akka" %% "akka-http-testkit" % "10.1.11" % Test,
-      "org.scalatest"     %% "scalatest"         % "3.0.8" % Test,
-      "com.typesafe.akka" %% "akka-testkit"      % "2.5.23" % Test
+      "org.scalatest"     %% "scalatest"         % "3.0.8"   % Test,
+      "com.typesafe.akka" %% "akka-testkit"      % "2.5.31"  % Test
     ) ++ testDeps
   )
 
