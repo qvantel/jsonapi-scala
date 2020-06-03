@@ -50,7 +50,8 @@ trait JsonApiSupport extends JsonApiSupport0 {
       printer: JsonPrinter = PrettyPrinter,
       metaProfiles: Set[MetaProfile] = Set.empty,
       sorting: JsonApiSorting = JsonApiSorting.Unsorted,
-      sparseFields: Map[String, List[String]] = Map.empty): ToEntityMarshaller[Iterable[T]] =
+      sparseFields: Map[String, List[String]] = Map.empty,
+      pagination: JsonApiPagination = JsonApiPagination.Empty): ToEntityMarshaller[Iterable[T]] =
     Marshaller.withFixedContentType(ct) { as =>
       HttpEntity(ct, rawCollection(as))
     }
