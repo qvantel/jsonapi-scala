@@ -37,7 +37,8 @@ sealed trait RelatedResponse[A] {
   def toResponse(implicit writer: JsonApiWriter[A],
                  printer: JsonPrinter = PrettyPrinter,
                  sorting: JsonApiSorting = JsonApiSorting.Unsorted,
-                 sparseFields: Map[String, List[String]] = Map.empty): JsValue
+                 sparseFields: Map[String, List[String]] = Map.empty,
+                 pagination: JsonApiPagination = JsonApiPagination.Empty): JsValue
 
   def map[B](f: A => B): RelatedResponse[B]
 }
@@ -50,7 +51,8 @@ object RelatedResponse {
       def toResponse(implicit writer: JsonApiWriter[A],
                      printer: JsonPrinter = PrettyPrinter,
                      sorting: JsonApiSorting = JsonApiSorting.Unsorted,
-                     sparseFields: Map[String, List[String]] = Map.empty): JsValue = JsObject("data" -> JsNull)
+                     sparseFields: Map[String, List[String]] = Map.empty,
+                     pagination: JsonApiPagination = JsonApiPagination.Empty): JsValue = JsObject("data" -> JsNull)
 
       def map[B](f: A => B): RelatedResponse[B] = new Empty[B]
     }
@@ -59,7 +61,8 @@ object RelatedResponse {
       def toResponse(implicit writer: JsonApiWriter[A],
                      printer: JsonPrinter = PrettyPrinter,
                      sorting: JsonApiSorting = JsonApiSorting.Unsorted,
-                     sparseFields: Map[String, List[String]] = Map.empty): JsValue = rawOne(data)
+                     sparseFields: Map[String, List[String]] = Map.empty,
+                     pagination: JsonApiPagination = JsonApiPagination.Empty): JsValue = rawOne(data)
 
       def map[B](f: A => B): RelatedResponse[B] = Result(f(data))
     }
@@ -79,7 +82,9 @@ object RelatedResponse {
       def toResponse(implicit writer: JsonApiWriter[A],
                      printer: JsonPrinter = PrettyPrinter,
                      sorting: JsonApiSorting = JsonApiSorting.Unsorted,
-                     sparseFields: Map[String, List[String]] = Map.empty): JsValue = JsObject("data" -> JsArray.empty)
+                     sparseFields: Map[String, List[String]] = Map.empty,
+                     pagination: JsonApiPagination = JsonApiPagination.Empty): JsValue =
+        JsObject("data" -> JsArray.empty)
 
       def map[B](f: A => B): RelatedResponse[B] = new Empty[B]
     }
@@ -88,7 +93,8 @@ object RelatedResponse {
       def toResponse(implicit writer: JsonApiWriter[A],
                      printer: JsonPrinter = PrettyPrinter,
                      sorting: JsonApiSorting = JsonApiSorting.Unsorted,
-                     sparseFields: Map[String, List[String]] = Map.empty): JsValue = rawCollection(data)
+                     sparseFields: Map[String, List[String]] = Map.empty,
+                     pagination: JsonApiPagination = JsonApiPagination.Empty): JsValue = rawCollection(data)
 
       def map[B](f: A => B): RelatedResponse[B] = Result(data.map(f))
     }

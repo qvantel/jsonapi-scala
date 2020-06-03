@@ -100,6 +100,16 @@ package object jsonapi {
       JsObject(obj.fields ++ aliases ++ links)
     }
 
+  private[this] def addTopPagination(obj: JsObject, pagination: JsonApiPagination): JsObject =
+    pagination match {
+      case JsonApiPagination.Empty => obj
+      case paging =>
+        val oldLinks: Map[String, JsValue]  = obj.fields.get("links").map(_.asJsObject.fields).getOrElse(Map.empty)
+        val pageLinks: Map[String, JsValue] = paging.allLinksAsUris.mapValues(uri => JsString(uri.toString()))
+        val links: Map[String, JsValue]     = Map("links" -> JsObject(oldLinks ++ pageLinks))
+        JsObject(obj.fields ++ links)
+    }
+
   def rawOne[T](entity: T)(implicit writer: JsonApiWriter[T],
                            metaProfiles: Set[MetaProfile] = Set.empty,
                            sorting: JsonApiSorting = JsonApiSorting.Unsorted,
@@ -123,7 +133,8 @@ package object jsonapi {
   def rawCollection[T](entities: Iterable[T])(implicit writer: JsonApiWriter[T],
                                               metaProfiles: Set[MetaProfile] = Set.empty,
                                               sorting: JsonApiSorting = JsonApiSorting.Unsorted,
-                                              sparseFields: Map[String, List[String]] = Map.empty): JsObject = {
+                                              sparseFields: Map[String, List[String]] = Map.empty,
+                                              pagination: JsonApiPagination = JsonApiPagination.Empty): JsObject = {
     val primary  = entities.map(x => writer.write(x, sparseFields).asJsObject)
     val included = entities.map(entity => writer.included(entity, sparseFields)).foldLeft(Set.empty[JsObject])(_ ++ _)
     val res = if (included.nonEmpty) {
@@ -143,6 +154,7 @@ package object jsonapi {
     }
 
     addMetaProfiles(res, metaProfiles)
+    addTopPagination(res, pagination)
   }
 
   /** Reads one jsonapi entity. Due to no includes path being provided includes are ignored.
