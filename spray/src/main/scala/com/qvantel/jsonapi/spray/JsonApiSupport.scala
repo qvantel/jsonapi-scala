@@ -46,7 +46,7 @@ trait JsonApiSupport extends JsonApiSupport0 {
       printer: JsonPrinter = PrettyPrinter,
       metaProfiles: Set[MetaProfile] = Set.empty,
       sorting: JsonApiSorting = JsonApiSorting.Unsorted,
-      pagination: JsonApiPagination = JsonApiPagination.Empty): Marshaller[Iterable[T]] =
+      pagination: JsonApiPagination.PaginationFunc = JsonApiPagination.EmptyFunc): Marshaller[Iterable[T]] =
     Marshaller.of[Iterable[T]](ct) { (value, _, ctx) =>
       ctx.marshalTo(HttpEntity(ct, HttpData(printer.apply(rawCollection(value)), HttpCharsets.`UTF-8`)))
     }

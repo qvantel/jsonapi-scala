@@ -51,7 +51,7 @@ trait JsonApiSupport extends JsonApiSupport0 {
       metaProfiles: Set[MetaProfile] = Set.empty,
       sorting: JsonApiSorting = JsonApiSorting.Unsorted,
       sparseFields: Map[String, List[String]] = Map.empty,
-      pagination: JsonApiPagination = JsonApiPagination.Empty): ToEntityMarshaller[Iterable[T]] =
+      pagination: JsonApiPagination.PaginationFunc = JsonApiPagination.EmptyFunc): ToEntityMarshaller[Iterable[T]] =
     Marshaller.withFixedContentType(ct) { as =>
       HttpEntity(ct, rawCollection(as))
     }
