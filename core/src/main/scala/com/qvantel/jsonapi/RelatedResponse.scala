@@ -38,7 +38,7 @@ sealed trait RelatedResponse[A] {
                  printer: JsonPrinter = PrettyPrinter,
                  sorting: JsonApiSorting = JsonApiSorting.Unsorted,
                  sparseFields: Map[String, List[String]] = Map.empty,
-                 pagination: JsonApiPagination = JsonApiPagination.Empty): JsValue
+                 pagination: JsonApiPagination.PaginationFunc = JsonApiPagination.EmptyFunc): JsValue
 
   def map[B](f: A => B): RelatedResponse[B]
 }
@@ -52,7 +52,8 @@ object RelatedResponse {
                      printer: JsonPrinter = PrettyPrinter,
                      sorting: JsonApiSorting = JsonApiSorting.Unsorted,
                      sparseFields: Map[String, List[String]] = Map.empty,
-                     pagination: JsonApiPagination = JsonApiPagination.Empty): JsValue = JsObject("data" -> JsNull)
+                     pagination: JsonApiPagination.PaginationFunc = JsonApiPagination.EmptyFunc): JsValue =
+        JsObject("data" -> JsNull)
 
       def map[B](f: A => B): RelatedResponse[B] = new Empty[B]
     }
@@ -62,7 +63,7 @@ object RelatedResponse {
                      printer: JsonPrinter = PrettyPrinter,
                      sorting: JsonApiSorting = JsonApiSorting.Unsorted,
                      sparseFields: Map[String, List[String]] = Map.empty,
-                     pagination: JsonApiPagination = JsonApiPagination.Empty): JsValue = rawOne(data)
+                     pagination: JsonApiPagination.PaginationFunc = JsonApiPagination.EmptyFunc): JsValue = rawOne(data)
 
       def map[B](f: A => B): RelatedResponse[B] = Result(f(data))
     }
@@ -83,7 +84,7 @@ object RelatedResponse {
                      printer: JsonPrinter = PrettyPrinter,
                      sorting: JsonApiSorting = JsonApiSorting.Unsorted,
                      sparseFields: Map[String, List[String]] = Map.empty,
-                     pagination: JsonApiPagination = JsonApiPagination.Empty): JsValue =
+                     pagination: JsonApiPagination.PaginationFunc = JsonApiPagination.EmptyFunc): JsValue =
         JsObject("data" -> JsArray.empty)
 
       def map[B](f: A => B): RelatedResponse[B] = new Empty[B]
@@ -94,7 +95,8 @@ object RelatedResponse {
                      printer: JsonPrinter = PrettyPrinter,
                      sorting: JsonApiSorting = JsonApiSorting.Unsorted,
                      sparseFields: Map[String, List[String]] = Map.empty,
-                     pagination: JsonApiPagination = JsonApiPagination.Empty): JsValue = rawCollection(data)
+                     pagination: JsonApiPagination.PaginationFunc = JsonApiPagination.EmptyFunc): JsValue =
+        rawCollection(data)
 
       def map[B](f: A => B): RelatedResponse[B] = Result(data.map(f))
     }

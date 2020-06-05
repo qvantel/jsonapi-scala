@@ -63,5 +63,8 @@ case class JsonApiPagination(originalUri: Uri,
 }
 
 object JsonApiPagination {
+  type PaginationFunc = Long => JsonApiPagination
+  val EmptyFunc: PaginationFunc = _ => Empty
+
   val Empty = new JsonApiPagination(Uri.empty)
 }

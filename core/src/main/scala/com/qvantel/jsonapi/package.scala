@@ -130,11 +130,12 @@ package object jsonapi {
     addMetaProfiles(res, metaProfiles)
   }
 
-  def rawCollection[T](entities: Iterable[T])(implicit writer: JsonApiWriter[T],
-                                              metaProfiles: Set[MetaProfile] = Set.empty,
-                                              sorting: JsonApiSorting = JsonApiSorting.Unsorted,
-                                              sparseFields: Map[String, List[String]] = Map.empty,
-                                              pagination: JsonApiPagination = JsonApiPagination.Empty): JsObject = {
+  def rawCollection[T](entities: Iterable[T])(
+      implicit writer: JsonApiWriter[T],
+      metaProfiles: Set[MetaProfile] = Set.empty,
+      sorting: JsonApiSorting = JsonApiSorting.Unsorted,
+      sparseFields: Map[String, List[String]] = Map.empty,
+      pagination: JsonApiPagination.PaginationFunc = JsonApiPagination.EmptyFunc): JsObject = {
     val primary  = entities.map(x => writer.write(x, sparseFields).asJsObject)
     val included = entities.map(entity => writer.included(entity, sparseFields)).foldLeft(Set.empty[JsObject])(_ ++ _)
     val res = if (included.nonEmpty) {
@@ -154,7 +155,7 @@ package object jsonapi {
     }
 
     addMetaProfiles(res, metaProfiles)
-    addTopPagination(res, pagination)
+    addTopPagination(res, pagination(entities.size))
   }
 
   /** Reads one jsonapi entity. Due to no includes path being provided includes are ignored.
