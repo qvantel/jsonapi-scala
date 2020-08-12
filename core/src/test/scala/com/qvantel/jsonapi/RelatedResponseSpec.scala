@@ -5,6 +5,7 @@ import org.specs2.mutable.Specification
 import spray.json.{JsArray, JsNull, JsObject}
 import _root_.spray.json._
 import _root_.spray.json.DefaultJsonProtocol._
+import fs2.Stream
 
 class RelatedResponseSpec extends Specification with ScalaCheck {
   implicit val apiRoot: com.qvantel.jsonapi.ApiRoot = ApiRoot(None)
@@ -27,6 +28,14 @@ class RelatedResponseSpec extends Specification with ScalaCheck {
     RelatedResponse(emptyTest).map(transformToTest2).toResponse must be equalTo JsObject(
       "data" -> JsNull
     )
+
+    RelatedResponse(emptyTest).filter(_ => true).toResponse must be equalTo JsObject(
+      "data" -> JsNull
+    )
+
+    RelatedResponse(test).filter(_ => false).toResponse must be equalTo JsObject(
+      "data" -> JsNull
+    )
   }
 
   "correctly write to one some case" in {
@@ -38,6 +47,8 @@ class RelatedResponseSpec extends Specification with ScalaCheck {
     val transformedAnswer = rawOne(transformToTest2(test.get))
     RelatedResponse(test).map(transformToTest2).toResponse must be equalTo transformedAnswer
     RelatedResponse(test.get).map(transformToTest2).toResponse must be equalTo transformedAnswer
+
+    RelatedResponse(test).filter(_.age == 20).toResponse must be equalTo answer
   }
 
   "correctly write to many empty case" in {
@@ -46,6 +57,22 @@ class RelatedResponseSpec extends Specification with ScalaCheck {
     )
 
     RelatedResponse(emptyTests).map(transformToTest2).toResponse must be equalTo JsObject(
+      "data" -> JsArray.empty
+    )
+
+    RelatedResponse(emptyTests).filter(_ => true).toResponse must be equalTo JsObject(
+      "data" -> JsArray.empty
+    )
+
+    RelatedResponse(tests).filter(_ => false).toResponse must be equalTo JsObject(
+      "data" -> JsArray.empty
+    )
+
+    RelatedResponse(Stream.emits(emptyTests)).filter(_ => true).toResponse must be equalTo JsObject(
+      "data" -> JsArray.empty
+    )
+
+    RelatedResponse(Stream.emits(tests)).filter(_ => false).toResponse must be equalTo JsObject(
       "data" -> JsArray.empty
     )
   }
@@ -57,6 +84,7 @@ class RelatedResponseSpec extends Specification with ScalaCheck {
     RelatedResponse(tests.toSeq).toResponse must be equalTo answer
     RelatedResponse(tests.toIterable).toResponse must be equalTo answer
     RelatedResponse(tests.toSet).toResponse must be equalTo answer
+    RelatedResponse(Stream.emits(tests)).toResponse must be equalTo answer
 
     val transformedAnswer = rawCollection(tests.map(transformToTest2))
 
@@ -64,6 +92,12 @@ class RelatedResponseSpec extends Specification with ScalaCheck {
     RelatedResponse(tests.toSeq).map(transformToTest2).toResponse must be equalTo transformedAnswer
     RelatedResponse(tests.toIterable).map(transformToTest2).toResponse must be equalTo transformedAnswer
     RelatedResponse(tests.toSet).map(transformToTest2).toResponse must be equalTo transformedAnswer
+    RelatedResponse(Stream.emits(tests)).map(transformToTest2).toResponse must be equalTo transformedAnswer
+
+    val filteredAnswer = rawCollection(tests.filter(_.age > 20))
+
+    RelatedResponse(tests).filter(_.age > 20).toResponse must be equalTo filteredAnswer
+    RelatedResponse(Stream.emits(tests)).filter(_.age > 20).toResponse must be equalTo filteredAnswer
   }
 
   "correctly write sparse fieldsets" in {
