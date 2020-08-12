@@ -116,7 +116,7 @@ val scala211 = Seq(
 
 description in ThisBuild := "jsonapi.org scala implementation"
 
-version in ThisBuild := "9.2.0"
+version in ThisBuild := "9.3.0"
 
 startYear in ThisBuild := Some(2015)
 
@@ -206,7 +206,8 @@ lazy val core = (project in file("core"))
       "io.lemonlabs"     %% "scala-uri"       % "0.5.7",
       "net.virtual-void" %% "json-lenses"     % "0.6.2" excludeAll
         ExclusionRule(organization = "org.parboiled", name = "parboiled-scala_2.11"),
-      "org.typelevel" %% "cats-effect" % "1.4.0"
+      "org.typelevel" %% "cats-effect" % "1.4.0",
+      "co.fs2"        %% "fs2-io"      % "1.0.5"
     ) ++ testDeps
   )
 

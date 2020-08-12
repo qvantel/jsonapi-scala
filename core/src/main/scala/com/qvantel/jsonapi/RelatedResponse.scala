@@ -27,9 +27,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.qvantel.jsonapi
 
 import _root_.spray.json.{JsArray, JsNull, JsObject, JsValue, JsonPrinter, PrettyPrinter}
+import cats.effect.IO
+import fs2.Stream
 
-/** Used render proper related link response as specified by jsonapi spec
+/** Used to render proper related link response as specified by jsonapi spec
   * found at http://jsonapi.org/format/1.0/#fetching-resources
+  * Depending on if the related relation is a to-one or a to-many this class
+  * will generate the correct JSON structure
   *
   * @tparam A Type of the object that the RelatedResponse points to
   */
@@ -41,6 +45,8 @@ sealed trait RelatedResponse[A] {
                  pagination: JsonApiPagination.PaginationFunc = JsonApiPagination.EmptyFunc): JsValue
 
   def map[B](f: A => B): RelatedResponse[B]
+  def filter(p: A => Boolean): RelatedResponse[A]
+  def isOneEmpty: Boolean = false
 }
 
 object RelatedResponse {
@@ -48,24 +54,28 @@ object RelatedResponse {
 
   private[this] object One {
     final class Empty[A] extends One[A] {
-      def toResponse(implicit writer: JsonApiWriter[A],
-                     printer: JsonPrinter = PrettyPrinter,
-                     sorting: JsonApiSorting = JsonApiSorting.Unsorted,
-                     sparseFields: Map[String, List[String]] = Map.empty,
-                     pagination: JsonApiPagination.PaginationFunc = JsonApiPagination.EmptyFunc): JsValue =
+      override def toResponse(implicit writer: JsonApiWriter[A],
+                              printer: JsonPrinter = PrettyPrinter,
+                              sorting: JsonApiSorting = JsonApiSorting.Unsorted,
+                              sparseFields: Map[String, List[String]] = Map.empty,
+                              pagination: JsonApiPagination.PaginationFunc = JsonApiPagination.EmptyFunc): JsValue =
         JsObject("data" -> JsNull)
 
-      def map[B](f: A => B): RelatedResponse[B] = new Empty[B]
+      override def map[B](f: A => B): RelatedResponse[B]       = new Empty[B]
+      override def filter(p: A => Boolean): RelatedResponse[A] = this
+      override def isOneEmpty: Boolean                         = true
     }
 
     final case class Result[A](data: A) extends One[A] {
-      def toResponse(implicit writer: JsonApiWriter[A],
-                     printer: JsonPrinter = PrettyPrinter,
-                     sorting: JsonApiSorting = JsonApiSorting.Unsorted,
-                     sparseFields: Map[String, List[String]] = Map.empty,
-                     pagination: JsonApiPagination.PaginationFunc = JsonApiPagination.EmptyFunc): JsValue = rawOne(data)
+      override def toResponse(implicit writer: JsonApiWriter[A],
+                              printer: JsonPrinter = PrettyPrinter,
+                              sorting: JsonApiSorting = JsonApiSorting.Unsorted,
+                              sparseFields: Map[String, List[String]] = Map.empty,
+                              pagination: JsonApiPagination.PaginationFunc = JsonApiPagination.EmptyFunc): JsValue =
+        rawOne(data)
 
-      def map[B](f: A => B): RelatedResponse[B] = Result(f(data))
+      override def map[B](f: A => B): RelatedResponse[B]       = Result(f(data))
+      override def filter(p: A => Boolean): RelatedResponse[A] = One(Option(data).filter(p))
     }
 
     def apply[A](a: Option[A]): One[A] = a match {
@@ -80,31 +90,46 @@ object RelatedResponse {
 
   private[this] object ToMany {
     final class Empty[A] extends Many[A] {
-      def toResponse(implicit writer: JsonApiWriter[A],
-                     printer: JsonPrinter = PrettyPrinter,
-                     sorting: JsonApiSorting = JsonApiSorting.Unsorted,
-                     sparseFields: Map[String, List[String]] = Map.empty,
-                     pagination: JsonApiPagination.PaginationFunc = JsonApiPagination.EmptyFunc): JsValue =
+      override def toResponse(implicit writer: JsonApiWriter[A],
+                              printer: JsonPrinter = PrettyPrinter,
+                              sorting: JsonApiSorting = JsonApiSorting.Unsorted,
+                              sparseFields: Map[String, List[String]] = Map.empty,
+                              pagination: JsonApiPagination.PaginationFunc = JsonApiPagination.EmptyFunc): JsValue =
         JsObject("data" -> JsArray.empty)
 
-      def map[B](f: A => B): RelatedResponse[B] = new Empty[B]
+      override def map[B](f: A => B): RelatedResponse[B]       = new Empty[B]
+      override def filter(p: A => Boolean): RelatedResponse[A] = this
     }
 
     final case class Result[A](data: List[A]) extends Many[A] {
+      override def toResponse(implicit writer: JsonApiWriter[A],
+                              printer: JsonPrinter = PrettyPrinter,
+                              sorting: JsonApiSorting = JsonApiSorting.Unsorted,
+                              sparseFields: Map[String, List[String]] = Map.empty,
+                              pagination: JsonApiPagination.PaginationFunc = JsonApiPagination.EmptyFunc): JsValue =
+        rawCollection(data)
+
+      override def map[B](f: A => B): RelatedResponse[B]       = Result(data.map(f))
+      override def filter(p: A => Boolean): RelatedResponse[A] = ToMany(data.filter(p))
+    }
+
+    final case class ResultStream[A](data: Stream[IO, A]) extends Many[A] {
       def toResponse(implicit writer: JsonApiWriter[A],
                      printer: JsonPrinter = PrettyPrinter,
                      sorting: JsonApiSorting = JsonApiSorting.Unsorted,
                      sparseFields: Map[String, List[String]] = Map.empty,
                      pagination: JsonApiPagination.PaginationFunc = JsonApiPagination.EmptyFunc): JsValue =
-        rawCollection(data)
+        rawCollection(data.compile.toList.unsafeRunSync())
 
-      def map[B](f: A => B): RelatedResponse[B] = Result(data.map(f))
+      override def map[B](f: A => B): RelatedResponse[B]       = ResultStream(data.map(f))
+      override def filter(p: A => Boolean): RelatedResponse[A] = ResultStream(data.filter(p))
     }
 
     def apply[A](a: List[A]): Many[A] = a match {
       case Nil => new Empty
       case all => Result(all)
     }
+    def apply[A](a: Stream[IO, A]): Many[A] = ResultStream(a)
 
     def apply[A](a: Iterable[A]): Many[A] = apply(a.toList)
     def apply[A](a: Seq[A]): Many[A]      = apply(a.toList)
@@ -117,4 +142,6 @@ object RelatedResponse {
   def apply[A](a: Iterable[A]): RelatedResponse[A] = ToMany(a.toList)
   def apply[A](a: Seq[A]): RelatedResponse[A]      = ToMany(a.toList)
   def apply[A](a: Set[A]): RelatedResponse[A]      = ToMany(a.toList)
+
+  def apply[A](a: Stream[IO, A]): RelatedResponse[A] = ToMany(a)
 }

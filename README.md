@@ -8,7 +8,7 @@
 * Automatic generation of jsonapi json writers with relationship handling for case classes
 
 ## Requirements
-* Tested to work on Scala 2.11.11 or 2.12.3
+* Tested to work on Scala 2.11.12 or 2.12.10
 * Macro paradise plugin. Add `addCompilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)` into your build.sbt somewhere
 
 ### Example
