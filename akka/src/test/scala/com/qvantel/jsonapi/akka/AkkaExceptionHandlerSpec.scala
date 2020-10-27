@@ -104,7 +104,7 @@ class AkkaExceptionHandlerSpec extends Specification with Directives with Specs2
           reject(UnacceptedResponseEncodingRejection(HttpEncoding("encodingX")))
         } ~
         path("unsupportedRequestContentType") {
-          reject(UnsupportedRequestContentTypeRejection(Set(ContentType(MediaTypes.`application/vnd.api+json`))))
+          reject(UnsupportedRequestContentTypeRejection(Set(ContentType(MediaTypes.`application/vnd.api+json`)), None))
         } ~
         path("unsupportedRequestEncoding") {
           reject(UnsupportedRequestEncodingRejection(HttpEncoding("encodingX")))
@@ -124,9 +124,9 @@ class AkkaExceptionHandlerSpec extends Specification with Directives with Specs2
         contentType must_== JSON
 
         val json  = JsonParser(responseAs[String])
-        val error = json.extract[JsArray]('errors).elements.headOption
-        error.map(_.extract[String]('title)) must beSome("Internal Server Error")
-        error.map(_.extract[String]('detail)) must beSome("Specified error message")
+        val error = json.extract[JsArray]("errors").elements.headOption
+        error.map(_.extract[String]("title")) must beSome("Internal Server Error")
+        error.map(_.extract[String]("detail")) must beSome("Specified error message")
       }
     }
 
@@ -138,9 +138,9 @@ class AkkaExceptionHandlerSpec extends Specification with Directives with Specs2
         contentType must_== JSON
 
         val json  = JsonParser(responseAs[String])
-        val error = json.extract[JsArray]('errors).elements.headOption
-        error.map(_.extract[String]('title)) must beSome("Internal Server Error")
-        error.map(_.extract[String]('detail)) must beSome(InternalServerError.defaultMessage)
+        val error = json.extract[JsArray]("errors").elements.headOption
+        error.map(_.extract[String]("title")) must beSome("Internal Server Error")
+        error.map(_.extract[String]("detail")) must beSome(InternalServerError.defaultMessage)
       }
     }
 
@@ -152,9 +152,9 @@ class AkkaExceptionHandlerSpec extends Specification with Directives with Specs2
         contentType must_== JSON
 
         val json  = JsonParser(responseAs[String])
-        val error = json.extract[JsArray]('errors).elements.headOption
-        error.map(_.extract[String]('title)) must beSome("Illegal Request")
-        error.map(_.extract[String]('detail)) must beSome("The request contains bad syntax or cannot be fulfilled.")
+        val error = json.extract[JsArray]("errors").elements.headOption
+        error.map(_.extract[String]("title")) must beSome("Illegal Request")
+        error.map(_.extract[String]("detail")) must beSome("The request contains bad syntax or cannot be fulfilled.")
       }
     }
   }
@@ -167,10 +167,10 @@ class AkkaExceptionHandlerSpec extends Specification with Directives with Specs2
         contentType must_== JSON
 
         val json  = JsonParser(responseAs[String])
-        val error = json.extract[JsArray]('errors).elements.headOption
-        error.map(_.extract[String]('detail)) must beSome(
+        val error = json.extract[JsArray]("errors").elements.headOption
+        error.map(_.extract[String]("detail")) must beSome(
           "The resource requires authentication, which was not supplied with the request")
-        error.map(_.extract[String]('title)) must beSome("Authentication Failed")
+        error.map(_.extract[String]("title")) must beSome("Authentication Failed")
       }
     }
 
@@ -180,9 +180,9 @@ class AkkaExceptionHandlerSpec extends Specification with Directives with Specs2
         contentType must_== JSON
 
         val json  = JsonParser(responseAs[String])
-        val error = json.extract[JsArray]('errors).elements.headOption
-        error.map(_.extract[String]('detail)) must beSome("The supplied authentication is invalid")
-        error.map(_.extract[String]('title)) must beSome("Authentication Failed")
+        val error = json.extract[JsArray]("errors").elements.headOption
+        error.map(_.extract[String]("detail")) must beSome("The supplied authentication is invalid")
+        error.map(_.extract[String]("title")) must beSome("Authentication Failed")
       }
     }
 
@@ -192,10 +192,10 @@ class AkkaExceptionHandlerSpec extends Specification with Directives with Specs2
         contentType must_== JSON
 
         val json  = JsonParser(responseAs[String])
-        val error = json.extract[JsArray]('errors).elements.headOption
-        error.map(_.extract[String]('detail)) must beSome(
+        val error = json.extract[JsArray]("errors").elements.headOption
+        error.map(_.extract[String]("detail")) must beSome(
           "The supplied authentication is not authorized to access this resource")
-        error.map(_.extract[String]('title)) must beSome("Authorization Failed")
+        error.map(_.extract[String]("title")) must beSome("Authorization Failed")
       }
     }
 
@@ -205,9 +205,9 @@ class AkkaExceptionHandlerSpec extends Specification with Directives with Specs2
         contentType must_== JSON
 
         val json  = JsonParser(responseAs[String])
-        val error = json.extract[JsArray]('errors).elements.headOption
-        error.map(_.extract[String]('detail)) must beSome("The form field 'nameX' was malformed:\nmessageX")
-        error.map(_.extract[String]('title)) must beSome("Malformed Form Field")
+        val error = json.extract[JsArray]("errors").elements.headOption
+        error.map(_.extract[String]("detail")) must beSome("The form field 'nameX' was malformed:\nmessageX")
+        error.map(_.extract[String]("title")) must beSome("Malformed Form Field")
       }
     }
 
@@ -217,9 +217,9 @@ class AkkaExceptionHandlerSpec extends Specification with Directives with Specs2
         contentType must_== JSON
 
         val json  = JsonParser(responseAs[String])
-        val error = json.extract[JsArray]('errors).elements.headOption
-        error.map(_.extract[String]('detail)) must beSome("The value of HTTP header 'nameX' was malformed:\nmessageX")
-        error.map(_.extract[String]('title)) must beSome("Malformed Header")
+        val error = json.extract[JsArray]("errors").elements.headOption
+        error.map(_.extract[String]("detail")) must beSome("The value of HTTP header 'nameX' was malformed:\nmessageX")
+        error.map(_.extract[String]("title")) must beSome("Malformed Header")
       }
     }
 
@@ -229,9 +229,9 @@ class AkkaExceptionHandlerSpec extends Specification with Directives with Specs2
         contentType must_== JSON
 
         val json  = JsonParser(responseAs[String])
-        val error = json.extract[JsArray]('errors).elements.headOption
-        error.map(_.extract[String]('detail)) must beSome("The query parameter 'nameX' was malformed:\nmessageX")
-        error.map(_.extract[String]('title)) must beSome("Malformed Query Param")
+        val error = json.extract[JsArray]("errors").elements.headOption
+        error.map(_.extract[String]("detail")) must beSome("The query parameter 'nameX' was malformed:\nmessageX")
+        error.map(_.extract[String]("title")) must beSome("Malformed Query Param")
       }
     }
 
@@ -241,9 +241,9 @@ class AkkaExceptionHandlerSpec extends Specification with Directives with Specs2
         contentType must_== JSON
 
         val json  = JsonParser(responseAs[String])
-        val error = json.extract[JsArray]('errors).elements.headOption
-        error.map(_.extract[String]('detail)) must beSome("The request content was malformed:\nmessageX")
-        error.map(_.extract[String]('title)) must beSome("Malformed Request Content")
+        val error = json.extract[JsArray]("errors").elements.headOption
+        error.map(_.extract[String]("detail")) must beSome("The request content was malformed:\nmessageX")
+        error.map(_.extract[String]("title")) must beSome("Malformed Request Content")
       }
     }
 
@@ -253,9 +253,10 @@ class AkkaExceptionHandlerSpec extends Specification with Directives with Specs2
         contentType must_== JSON
 
         val json  = JsonParser(responseAs[String])
-        val error = json.extract[JsArray]('errors).elements.headOption
-        error.map(_.extract[String]('detail)) must beSome("HTTP method not allowed, supported methods: HttpMethod(GET)")
-        error.map(_.extract[String]('title)) must beSome("HTTP method not allowed")
+        val error = json.extract[JsArray]("errors").elements.headOption
+        error.map(_.extract[String]("detail")) must beSome(
+          "HTTP method not allowed, supported methods: HttpMethod(GET)")
+        error.map(_.extract[String]("title")) must beSome("HTTP method not allowed")
       }
     }
 
@@ -265,9 +266,9 @@ class AkkaExceptionHandlerSpec extends Specification with Directives with Specs2
         contentType must_== JSON
 
         val json  = JsonParser(responseAs[String])
-        val error = json.extract[JsArray]('errors).elements.headOption
-        error.map(_.extract[String]('detail)) must beSome("Uri scheme not allowed, supported schemes: schemeX")
-        error.map(_.extract[String]('title)) must beSome("Uri scheme not allowed")
+        val error = json.extract[JsArray]("errors").elements.headOption
+        error.map(_.extract[String]("detail")) must beSome("Uri scheme not allowed, supported schemes: schemeX")
+        error.map(_.extract[String]("title")) must beSome("Uri scheme not allowed")
       }
     }
 
@@ -277,9 +278,9 @@ class AkkaExceptionHandlerSpec extends Specification with Directives with Specs2
         contentType must_== JSON
 
         val json  = JsonParser(responseAs[String])
-        val error = json.extract[JsArray]('errors).elements.headOption
-        error.map(_.extract[String]('detail)) must beSome("Request is missing required cookie 'cookieX'")
-        error.map(_.extract[String]('title)) must beSome("Missing Cookie")
+        val error = json.extract[JsArray]("errors").elements.headOption
+        error.map(_.extract[String]("detail")) must beSome("Request is missing required cookie 'cookieX'")
+        error.map(_.extract[String]("title")) must beSome("Missing Cookie")
       }
     }
 
@@ -289,9 +290,9 @@ class AkkaExceptionHandlerSpec extends Specification with Directives with Specs2
         contentType must_== JSON
 
         val json  = JsonParser(responseAs[String])
-        val error = json.extract[JsArray]('errors).elements.headOption
-        error.map(_.extract[String]('detail)) must beSome("Request is missing required form field 'formFieldX'")
-        error.map(_.extract[String]('title)) must beSome("Missing Form Field")
+        val error = json.extract[JsArray]("errors").elements.headOption
+        error.map(_.extract[String]("detail")) must beSome("Request is missing required form field 'formFieldX'")
+        error.map(_.extract[String]("title")) must beSome("Missing Form Field")
       }
     }
 
@@ -301,9 +302,9 @@ class AkkaExceptionHandlerSpec extends Specification with Directives with Specs2
         contentType must_== JSON
 
         val json  = JsonParser(responseAs[String])
-        val error = json.extract[JsArray]('errors).elements.headOption
-        error.map(_.extract[String]('detail)) must beSome("Request is missing required HTTP header 'headerX'")
-        error.map(_.extract[String]('title)) must beSome("Missing Header")
+        val error = json.extract[JsArray]("errors").elements.headOption
+        error.map(_.extract[String]("detail")) must beSome("Request is missing required HTTP header 'headerX'")
+        error.map(_.extract[String]("title")) must beSome("Missing Header")
       }
     }
 
@@ -313,9 +314,9 @@ class AkkaExceptionHandlerSpec extends Specification with Directives with Specs2
         contentType must_== JSON
 
         val json  = JsonParser(responseAs[String])
-        val error = json.extract[JsArray]('errors).elements.headOption
-        error.map(_.extract[String]('detail)) must beSome("Request is missing required query parameter 'parameterX'")
-        error.map(_.extract[String]('title)) must beSome("Missing Query Param")
+        val error = json.extract[JsArray]("errors").elements.headOption
+        error.map(_.extract[String]("detail")) must beSome("Request is missing required query parameter 'parameterX'")
+        error.map(_.extract[String]("title")) must beSome("Missing Query Param")
       }
     }
 
@@ -325,34 +326,34 @@ class AkkaExceptionHandlerSpec extends Specification with Directives with Specs2
         contentType must_== JSON
 
         val json  = JsonParser(responseAs[String])
-        val error = json.extract[JsArray]('errors).elements.headOption
-        error.map(_.extract[String]('detail)) must beSome("Request entity expected but not supplied")
-        error.map(_.extract[String]('title)) must beSome("Request Entity Expected")
+        val error = json.extract[JsArray]("errors").elements.headOption
+        error.map(_.extract[String]("detail")) must beSome("Request entity expected but not supplied")
+        error.map(_.extract[String]("title")) must beSome("Request Entity Expected")
       }
     }
 
     "tooManyRanges should return 416 with proper jsonapi.org error object" in {
       Get("/tooManyRanges") ~> route ~> check {
-        status must_== RequestedRangeNotSatisfiable
+        status must_== RangeNotSatisfiable
         contentType must_== JSON
 
         val json  = JsonParser(responseAs[String])
-        val error = json.extract[JsArray]('errors).elements.headOption
-        error.map(_.extract[String]('detail)) must beSome("Request contains too many ranges")
-        error.map(_.extract[String]('title)) must beSome("Too Many Ranges")
+        val error = json.extract[JsArray]("errors").elements.headOption
+        error.map(_.extract[String]("detail")) must beSome("Request contains too many ranges")
+        error.map(_.extract[String]("title")) must beSome("Too Many Ranges")
       }
     }
 
     "unsatisfiableRange should return 400 with proper jsonapi.org error object" in {
       Get("/unsatisfiableRange") ~> route ~> check {
-        status must_== RequestedRangeNotSatisfiable
+        status must_== RangeNotSatisfiable
         contentType must_== JSON
 
         val json  = JsonParser(responseAs[String])
-        val error = json.extract[JsArray]('errors).elements.headOption
-        error.map(_.extract[String]('detail)) must beSome(
+        val error = json.extract[JsArray]("errors").elements.headOption
+        error.map(_.extract[String]("detail")) must beSome(
           "None of the following requested Ranges were satisfiable:\n1000-2000")
-        error.map(_.extract[String]('title)) must beSome("Unsatisfiable Range")
+        error.map(_.extract[String]("title")) must beSome("Unsatisfiable Range")
       }
     }
 
@@ -362,10 +363,10 @@ class AkkaExceptionHandlerSpec extends Specification with Directives with Specs2
         contentType must_== JSON
 
         val json  = JsonParser(responseAs[String])
-        val error = json.extract[JsArray]('errors).elements.headOption
-        error.map(_.extract[String]('detail)) must beSome(
+        val error = json.extract[JsArray]("errors").elements.headOption
+        error.map(_.extract[String]("detail")) must beSome(
           "Resource representation is only available with these Content-Types:\nContentType(application/vnd.api+json)")
-        error.map(_.extract[String]('title)) must beSome("Unaccepted Response Content Type")
+        error.map(_.extract[String]("title")) must beSome("Unaccepted Response Content Type")
       }
     }
 
@@ -375,10 +376,10 @@ class AkkaExceptionHandlerSpec extends Specification with Directives with Specs2
         contentType must_== JSON
 
         val json  = JsonParser(responseAs[String])
-        val error = json.extract[JsArray]('errors).elements.headOption
-        error.map(_.extract[String]('detail)) must beSome(
+        val error = json.extract[JsArray]("errors").elements.headOption
+        error.map(_.extract[String]("detail")) must beSome(
           "Resource representation is only available with these Content-Encodings:\nencodingX")
-        error.map(_.extract[String]('title)) must beSome("Unaccepted Response Encoding")
+        error.map(_.extract[String]("title")) must beSome("Unaccepted Response Encoding")
       }
     }
 
@@ -388,10 +389,10 @@ class AkkaExceptionHandlerSpec extends Specification with Directives with Specs2
         contentType must_== JSON
 
         val json  = JsonParser(responseAs[String])
-        val error = json.extract[JsArray]('errors).elements.headOption
-        error.map(_.extract[String]('detail)) must beSome(
+        val error = json.extract[JsArray]("errors").elements.headOption
+        error.map(_.extract[String]("detail")) must beSome(
           "There was a problem with the requests Content-Type:\napplication/vnd.api+json")
-        error.map(_.extract[String]('title)) must beSome("Unsupported Request Content-Type")
+        error.map(_.extract[String]("title")) must beSome("Unsupported Request Content-Type")
       }
     }
 
@@ -401,10 +402,10 @@ class AkkaExceptionHandlerSpec extends Specification with Directives with Specs2
         contentType must_== JSON
 
         val json  = JsonParser(responseAs[String])
-        val error = json.extract[JsArray]('errors).elements.headOption
-        error.map(_.extract[String]('detail)) must beSome(
+        val error = json.extract[JsArray]("errors").elements.headOption
+        error.map(_.extract[String]("detail")) must beSome(
           "The request Content-Encoding must be the following:\nencodingX")
-        error.map(_.extract[String]('title)) must beSome("Unsupported Request Encoding")
+        error.map(_.extract[String]("title")) must beSome("Unsupported Request Encoding")
       }
     }
 
@@ -414,9 +415,9 @@ class AkkaExceptionHandlerSpec extends Specification with Directives with Specs2
         contentType must_== JSON
 
         val json  = JsonParser(responseAs[String])
-        val error = json.extract[JsArray]('errors).elements.headOption
-        error.map(_.extract[String]('detail)) must beSome("messageX")
-        error.map(_.extract[String]('title)) must beSome("Validation Rejection")
+        val error = json.extract[JsArray]("errors").elements.headOption
+        error.map(_.extract[String]("detail")) must beSome("messageX")
+        error.map(_.extract[String]("title")) must beSome("Validation Rejection")
       }
     }
   }

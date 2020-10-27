@@ -34,7 +34,7 @@ package object model {
   type Attributes    = Map[String, JsValue]
   type Relationships = Map[String, RelationshipObject]
 
-  final implicit class JsonMapOps(val underlying: Map[String, JsValue]) extends AnyVal {
+  final implicit class JsonMapOps(private val underlying: Map[String, JsValue]) extends AnyVal {
     @inline def getAs[A](name: String)(implicit r: JsonReader[Option[A]]): Option[A] =
       underlying.get(name).flatMap(_.convertTo[Option[A]])
 

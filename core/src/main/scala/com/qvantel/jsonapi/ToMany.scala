@@ -27,7 +27,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.qvantel.jsonapi
 
 import cats.effect.IO
-import com.netaporter.uri.Uri
+import io.lemonlabs.uri.Url
+import io.lemonlabs.uri.typesafe.dsl._
 
 /**
   * Represents a relationship to zero or more objects of type A
@@ -69,7 +70,7 @@ object ToMany {
       }
   }
 
-  final case class PathReference[A](path: Option[Uri]) extends ToMany[A] {
+  final case class PathReference[A](path: Option[Url]) extends ToMany[A] {
     override def ids: Set[String] = Set.empty
 
     /** Loaded biased get method as a helper when you don't want to pattern match like crazy */
@@ -81,7 +82,7 @@ object ToMany {
              pt: PathToId[A],
              reader: JsonApiReader[A]): IO[List[A]] =
       path match {
-        case Some(uri) => jac.pathMany[A](uri)
+        case Some(url) => jac.pathMany[A](url)
         case None      => IO.pure(List.empty)
       }
   }
@@ -101,7 +102,7 @@ object ToMany {
 
   def reference[A]: ToMany[A]                                   = PathReference[A](None)
   def reference[A](ids: Set[String]): ToMany[A]                 = IdsReference[A](ids)
-  def reference[A](uri: Uri): ToMany[A]                         = PathReference[A](Some(uri))
-  def reference[A](uri: String): ToMany[A]                      = PathReference[A](Some(Uri.parse(uri)))
+  def reference[A](url: Url): ToMany[A]                         = PathReference[A](Some(url))
+  def reference[A](url: String): ToMany[A]                      = PathReference[A](Some(url))
   def loaded[A: Identifiable](entities: Iterable[A]): ToMany[A] = Loaded[A](entities)
 }

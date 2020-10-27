@@ -3,7 +3,6 @@ package com.qvantel.jsonapi
 import org.specs2.ScalaCheck
 import org.specs2.mutable.Specification
 import spray.json.{JsArray, JsNull, JsObject}
-import _root_.spray.json._
 import _root_.spray.json.DefaultJsonProtocol._
 import fs2.Stream
 

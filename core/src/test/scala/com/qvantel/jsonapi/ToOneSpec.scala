@@ -263,9 +263,9 @@ final class ToOneSpec extends Specification {
       import _root_.spray.json.lenses.JsonLenses._
 
       val modifiedArticleJson =
-        articleJson.update('relationships / 'author / 'data / 'type ! set[String]("wrong-type")).asJsObject
+        articleJson.update("relationships" / "author" / "data" / "type" ! set[String]("wrong-type")).asJsObject
       val modifiedArticleIncludes =
-        articleIncludesJson.map(_.update('type ! set[String]("wrong-type"))).map(_.asJsObject)
+        articleIncludesJson.map(_.update(Symbol("type") ! set[String]("wrong-type"))).map(_.asJsObject)
 
       implicitly[JsonApiFormat[Article]].read(modifiedArticleJson, modifiedArticleIncludes, Set("author"), "") must throwA[
         DeserializationException](message = "wrong type 'authors' expected but got 'wrong-type'")
@@ -275,8 +275,9 @@ final class ToOneSpec extends Specification {
       val maybeIncludedJson = implicitly[JsonApiFormat[Maybe]].included(maybe)
 
       val modifiedMaybeJson =
-        maybeJson.update('relationships / 'author / 'data / 'type ! set[String]("wrong-type")).asJsObject
-      val modifiedMaybeIncludes = maybeIncludedJson.map(_.update('type ! set[String]("wrong-type"))).map(_.asJsObject)
+        maybeJson.update("relationships" / "author" / "data" / "type" ! set[String]("wrong-type")).asJsObject
+      val modifiedMaybeIncludes =
+        maybeIncludedJson.map(_.update(Symbol("type") ! set[String]("wrong-type"))).map(_.asJsObject)
 
       implicitly[JsonApiFormat[Maybe]].read(modifiedMaybeJson, modifiedMaybeIncludes, Set("author"), "") must throwA[
         DeserializationException](message = "wrong type 'authors' expected but got 'wrong-type'")

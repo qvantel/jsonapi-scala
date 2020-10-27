@@ -26,23 +26,23 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.qvantel.jsonapi
 
-import com.netaporter.uri.Uri
-import com.netaporter.uri.dsl._
+import io.lemonlabs.uri.Url
+import io.lemonlabs.uri.typesafe.dsl._
 
 trait PathTo[A] {
-  def root: Uri
-  def entity(a: A): Uri = root
+  def root: Url
+  def entity(a: A): Url = root
 }
 
 object PathTo {
   def apply[A](implicit pt: PathTo[A]): PathTo[A] = pt
 
-  def byId[A](id: String)(implicit pti: PathToId[A]): Uri = pti.self(id)
+  def byId[A](id: String)(implicit pti: PathToId[A]): Url = pti.self(id)
 }
 
 abstract class PathToId[A: Identifiable] extends PathTo[A] {
-  def self(id: String): Uri      = root / id
-  override def entity(a: A): Uri = self(Identifiable[A].identify(a))
+  def self(id: String): Url      = root / id
+  override def entity(a: A): Url = self(Identifiable[A].identify(a))
 }
 
 object PathToId {

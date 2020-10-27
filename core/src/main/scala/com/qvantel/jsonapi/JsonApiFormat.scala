@@ -48,8 +48,8 @@ trait JsonApiReader[T] extends RootJsonReader[T] {
     import _root_.spray.json.lenses.JsonLenses._
 
     includes.map { json =>
-      val id  = json.extract[String]('id)
-      val tpe = json.extract[String]('type)
+      val id  = json.extract[String]("id")
+      val tpe = json.extract[String]("type")
 
       ((id, tpe), json)
     }.toMap

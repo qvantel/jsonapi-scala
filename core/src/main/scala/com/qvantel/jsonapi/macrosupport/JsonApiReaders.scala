@@ -186,7 +186,6 @@ trait JsonApiReaders extends JsonApiCommon {
           """
         } :+ cq"""Seq(_root_.spray.json.JsString($relIdTerm), _root_.spray.json.JsString($relTypeTerm)) => throw new _root_.spray.json.DeserializationException("relationship of type '" + $relTypeTerm + "' is not part of coproduct '" + ${containedType.toString} + "'")"""
 
-
       // to one types
       if (fieldType <:< toOneType) {
         q""" $name = $errorHandledToOneFields match { case ..$toOneCases } """
@@ -282,7 +281,7 @@ trait JsonApiReaders extends JsonApiCommon {
         val coproductTypeChecker =
           coproductTypes(containedType).map { cType =>
             cq"""
-              tpe if tpe == _root_.scala.Predef.implicitly[_root_.com.qvantel.jsonapi.ResourceType[$cType]].resourceType => Unit
+              tpe if tpe == _root_.scala.Predef.implicitly[_root_.com.qvantel.jsonapi.ResourceType[$cType]].resourceType => ()
             """
           } :+ cq"""tpe => throw new _root_.spray.json.DeserializationException("relationship of type '" + tpe + "' is not one of [" + $coproductTypeList.mkString(",") + "]")"""
 
@@ -369,7 +368,7 @@ trait JsonApiReaders extends JsonApiCommon {
     }
 
     val metaBits = attributes.find(_.name.toString == "meta") match {
-      case _root_.scala.Some(meta) =>
+      case _root_.scala.Some(_) =>
         List(q"""
           meta = $primaryJsObj.fields.get("meta").map { j =>
             j.asJsObject("expected meta to be a json object but got: " + j.compactPrint).fields.map { case (key, value) =>

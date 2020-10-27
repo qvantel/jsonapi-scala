@@ -30,7 +30,6 @@ import org.specs2.mutable._
 import shapeless.{:+:, CNil, Poly1}
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
-import com.qvantel.jsonapi
 
 class JsonOptionSpec extends Specification {
   var nullRef: AnyRef = null
@@ -64,7 +63,7 @@ class JsonOptionSpec extends Specification {
 
   "map" should {
     "work for JsonAbsent" in {
-      JsonOption(None).map(_.toString) must be equalTo JsonAbsent
+      JsonOption(None) must be equalTo JsonAbsent
     }
     "work for JsonNull" in {
       JsonOption(nullRef).map(_.toString) must be equalTo JsonNull

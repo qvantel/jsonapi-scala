@@ -22,8 +22,8 @@ class LinkSpec extends Specification {
     url1 must be equalTo url1.convertTo[Link].toJson
     url2 must be equalTo url2.convertTo[Link].toJson
 
-    url1.convertTo[Link].href.toString(Link.uriConfig) must be equalTo url
-    url2.convertTo[Link].href.toString(Link.uriConfig) must be equalTo url
+    url1.convertTo[Link].href.toString must be equalTo url
+    url2.convertTo[Link].href.toString must be equalTo url
   }
 
   "handle : in id correctly" >> {
@@ -43,7 +43,7 @@ class LinkSpec extends Specification {
     url1 must be equalTo url1.convertTo[Link].toJson
     url2 must be equalTo url2.convertTo[Link].toJson
 
-    url1.convertTo[Link].href.toString(Link.uriConfig) must be equalTo url
-    url2.convertTo[Link].href.toString(Link.uriConfig) must be equalTo url
+    url1.convertTo[Link].href.toString must be equalTo url
+    url2.convertTo[Link].href.toString must be equalTo url
   }
 }

@@ -49,7 +49,7 @@ trait AkkaExceptionHandlerTrait {
   val defaultAkkaRejectionHandler: RejectionHandler = RejectionHandler
     .newBuilder()
     .handle {
-      case AuthenticationFailedRejection(cause, challengeHeaders) =>
+      case AuthenticationFailedRejection(cause, _) =>
         val rejectionMessage = cause match {
           case CredentialsMissing  => "The resource requires authentication, which was not supplied with the request"
           case CredentialsRejected => "The supplied authentication is invalid"
@@ -105,11 +105,11 @@ trait AkkaExceptionHandlerTrait {
         completeJsonApiError(BadRequest, "Request Entity Expected", "Request entity expected but not supplied")
 
       case TooManyRangesRejection(_) =>
-        completeJsonApiError(RequestedRangeNotSatisfiable, "Too Many Ranges", "Request contains too many ranges")
+        completeJsonApiError(RangeNotSatisfiable, "Too Many Ranges", "Request contains too many ranges")
 
-      case UnsatisfiableRangeRejection(unsatisfiableRanges, actualEntityLength) =>
+      case UnsatisfiableRangeRejection(unsatisfiableRanges, _) =>
         completeJsonApiError(
-          RequestedRangeNotSatisfiable,
+          RangeNotSatisfiable,
           "Unsatisfiable Range",
           unsatisfiableRanges.mkString("None of the following requested Ranges were satisfiable:\n", "\n", "")
         )

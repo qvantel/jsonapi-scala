@@ -40,7 +40,7 @@ trait JsonApiWriters extends JsonApiCommon {
 
   private[this] def selfPathJson(t: c.Type, objName: TermName): c.Tree =
     q"""
-       _root_.scala.Predef.implicitly[_root_.spray.json.JsonWriter[_root_.com.netaporter.uri.Uri]].write(_root_.scala.Predef.implicitly[_root_.com.qvantel.jsonapi.PathTo[$t]].entity($objName))
+       _root_.scala.Predef.implicitly[_root_.spray.json.JsonWriter[_root_.io.lemonlabs.uri.Url]].write(_root_.scala.Predef.implicitly[_root_.com.qvantel.jsonapi.PathTo[$t]].entity($objName))
       """
 
   private[this] val emptyJsObjectSet: c.Tree =

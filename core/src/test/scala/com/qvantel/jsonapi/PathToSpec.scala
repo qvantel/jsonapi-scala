@@ -1,11 +1,11 @@
 package com.qvantel.jsonapi
 
 import org.specs2.mutable.Specification
-import com.netaporter.uri.dsl._
+import io.lemonlabs.uri.typesafe.dsl._
 import _root_.spray.json.DefaultJsonProtocol._
 
 class PathToSpec extends Specification {
-  implicit val apiRoot = ApiRoot(Some("foo" / "bar"))
+  implicit val apiRoot: ApiRoot = ApiRoot(Some("foo/bar"))
 
   @jsonApiResource final case class Test(id: String)
 

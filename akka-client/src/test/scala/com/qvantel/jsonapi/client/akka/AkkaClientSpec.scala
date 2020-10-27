@@ -6,21 +6,18 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import akka.actor.ActorSystem
 import akka.stream.ActorMaterializer
-import cats.instances.list._
 import cats.syntax.traverse._
 import cats.data.OptionT
 import cats.instances.list._
-import com.netaporter.uri.dsl._
-import org.specs2.concurrent.ExecutionEnv
+import io.lemonlabs.uri.typesafe.dsl._
 import org.specs2.matcher.MatcherMacros
 import org.specs2.mutable.Specification
 import org.specs2.specification.AfterAll
 
 import com.qvantel.jsonapi._
-import AkkaClient._
-import com.netaporter.uri.dsl._
+import com.qvantel.jsonapi.client.akka.AkkaClient._
 
-class AkkaClientSpec(implicit ee: ExecutionEnv) extends Specification with MatcherMacros with AfterAll {
+class AkkaClientSpec extends Specification with MatcherMacros with AfterAll {
   // this is an integration test.
   // to run these tests uncomment this and start a jsonapi.org compatible server in the url specified for the endpoint
   skipAll

@@ -44,8 +44,8 @@ object ResourceLinkage {
 
     override def read(json: JsValue): ResourceLinkage = json match {
       case JsNull      => ToOne(None)
-      case o: JsObject => ToOne(Some(json.convertTo[ResourceIdentifierObject]))
-      case a: JsArray  => ToMany(json.convertTo[Set[ResourceIdentifierObject]])
+      case _: JsObject => ToOne(Some(json.convertTo[ResourceIdentifierObject]))
+      case _: JsArray  => ToMany(json.convertTo[Set[ResourceIdentifierObject]])
       case invalid     => deserializationError(s"Invalid resource linkage: ‘$invalid’")
     }
   }

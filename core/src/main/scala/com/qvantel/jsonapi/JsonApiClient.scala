@@ -1,15 +1,15 @@
 package com.qvantel.jsonapi
 
 import cats.effect.IO
-import com.netaporter.uri.Uri
+import io.lemonlabs.uri.Url
 
 trait JsonApiClient {
   def one[A](id: String, include: Set[String] = Set.empty)(implicit pt: PathToId[A],
                                                            reader: JsonApiReader[A]): IO[Option[A]]
   def many[A](ids: Set[String], include: Set[String] = Set.empty)(implicit pt: PathToId[A],
                                                                   reader: JsonApiReader[A]): IO[List[A]]
-  def pathOne[A](path: Uri, include: Set[String] = Set.empty)(implicit reader: JsonApiReader[A]): IO[Option[A]]
-  def pathMany[A](path: Uri, include: Set[String] = Set.empty)(implicit reader: JsonApiReader[A]): IO[List[A]]
+  def pathOne[A](path: Url, include: Set[String] = Set.empty)(implicit reader: JsonApiReader[A]): IO[Option[A]]
+  def pathMany[A](path: Url, include: Set[String] = Set.empty)(implicit reader: JsonApiReader[A]): IO[List[A]]
   def filter[A](filter: String, include: Set[String] = Set.empty)(implicit pt: PathTo[A],
                                                                   reader: JsonApiReader[A]): IO[List[A]]
 

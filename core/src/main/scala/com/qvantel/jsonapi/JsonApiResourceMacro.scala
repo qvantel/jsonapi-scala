@@ -47,11 +47,11 @@ final class JsonApiResourceMacro(val c: WhiteboxContext) extends JsonApiCommon {
     val path = s"/$resourceTypeName"
 
     q"""implicit final val ${TermName(s"${name}PathTo")}: _root_.com.qvantel.jsonapi.PathToId[$name] = new _root_.com.qvantel.jsonapi.PathToId[$name] {
-          import _root_.com.netaporter.uri.dsl._
+          import _root_.io.lemonlabs.uri.typesafe.dsl._
 
-          override final val root: _root_.com.netaporter.uri.Uri =
+          override final val root: _root_.io.lemonlabs.uri.Url =
             _root_.scala.Predef.implicitly[_root_.com.qvantel.jsonapi.ApiRoot].apiRoot match {
-              case _root_.scala.Some(root) => root / $resourceTypeName
+              case _root_.scala.Some(root) => root.addPathPart($resourceTypeName)
               case _root_.scala.None => $path
             }
         }"""
@@ -61,11 +61,11 @@ final class JsonApiResourceMacro(val c: WhiteboxContext) extends JsonApiCommon {
     val path = s"/$resourceTypeName"
 
     q"""implicit final val ${TermName(s"${name}PathTo")}: _root_.com.qvantel.jsonapi.PathTo[$name] = new _root_.com.qvantel.jsonapi.PathTo[$name] {
-          import _root_.com.netaporter.uri.dsl._
+          import _root_.io.lemonlabs.uri.typesafe.dsl._
 
-          override final val root: _root_.com.netaporter.uri.Uri =
+          override final val root: _root_.io.lemonlabs.uri.Url =
             _root_.scala.Predef.implicitly[_root_.com.qvantel.jsonapi.ApiRoot].apiRoot match {
-              case _root_.scala.Some(root) => root / $resourceTypeName
+              case _root_.scala.Some(root) => root.addPathPart($resourceTypeName)
               case _root_.scala.None => $path
             }
         }"""

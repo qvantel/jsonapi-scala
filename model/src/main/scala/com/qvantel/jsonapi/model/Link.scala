@@ -28,37 +28,36 @@ package com.qvantel.jsonapi.model
 
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
-import com.netaporter.uri.Uri
-import com.netaporter.uri.Uri.parse
+import io.lemonlabs.uri.{Url => ScalaUrl}
+import io.lemonlabs.uri.config.UriConfig
+import io.lemonlabs.uri.typesafe.dsl._
 
 sealed abstract class Link {
-  def href: Uri
+  def href: ScalaUrl
 }
 
 object Link {
-  final case class Url(href: Uri)                          extends Link
-  final case class LinkObject(href: Uri, meta: MetaObject) extends Link
+  final case class Url(href: ScalaUrl)                          extends Link
+  final case class LinkObject(href: ScalaUrl, meta: MetaObject) extends Link
 
-  val uriConfig = com.qvantel.jsonapi.uriConfig
+  implicit val uriConfig: UriConfig = com.qvantel.jsonapi.uriConfig
 
   implicit object LinkJsonFormat extends JsonFormat[Link] {
     override def write(obj: Link): JsValue = obj match {
-      case Url(href) => JsString(href.toString(uriConfig))
+      case Url(href) => JsString(href.toString)
       case LinkObject(href, meta) =>
         if (meta.nonEmpty) {
-          JsObject("href" -> href.toString(uriConfig).toJson, "meta" -> meta.toJson)
+          JsObject("href" -> href.toString.toJson, "meta" -> meta.toJson)
         } else {
-          JsObject("href" -> href.toString(uriConfig).toJson)
+          JsObject("href" -> href.toString.toJson)
         }
     }
 
     override def read(json: JsValue): Link = json match {
-      case JsString(href) => Url(parse(href)(uriConfig))
+      case JsString(href) => Url(href)
       case JsObject(fields) =>
         LinkObject(
-          href = parse(
-            fields.get("href").map(_.convertTo[String]).getOrElse(deserializationError("Expected ‘href’ in Link")))(
-            uriConfig),
+          href = fields.get("href").map(_.convertTo[String]).getOrElse(deserializationError("Expected ‘href’ in Link")),
           meta = fields.get("meta").map(_.convertTo[MetaObject]).getOrElse(Map.empty)
         )
       case invalid => deserializationError(s"Expected Link as JsString or JsObject, got ‘$invalid’")
