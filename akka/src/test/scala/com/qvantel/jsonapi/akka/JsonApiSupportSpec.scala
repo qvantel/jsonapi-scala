@@ -36,8 +36,8 @@ import _root_.akka.http.scaladsl.server._
 import _root_.akka.http.scaladsl.testkit.Specs2RouteTest
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
-import com.netaporter.uri.Uri
-import com.netaporter.uri.dsl._
+import io.lemonlabs.uri.Url
+import io.lemonlabs.uri.typesafe.dsl._
 import org.specs2.mutable.Specification
 import shapeless._
 
@@ -62,7 +62,7 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest {
     implicit val resourceType: ResourceType[Root] = ResourceType[Root]("root")
     implicit val identifiable: Identifiable[Root] = Identifiable.by(_.id)
     implicit val pathTo: PathTo[Root] = new PathToId[Root] {
-      override def root: Uri = "/roots"
+      override def root: Url = "/roots"
     }
     implicit val format: JsonApiFormat[Root] = jsonApiFormat[Root]
   }
@@ -73,7 +73,7 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest {
     implicit val resourceType: ResourceType[Child] = ResourceType[Child]("child")
     implicit val identifiable: Identifiable[Child] = Identifiable.by(_.id)
     implicit val pathTo: PathTo[Child] = new PathToId[Child] {
-      override def root: Uri = "/children"
+      override def root: Url = "/children"
     }
     implicit val format: JsonApiFormat[Child] = jsonApiFormat[Child]
   }
@@ -84,7 +84,7 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest {
     implicit val resourceType: ResourceType[Article] = ResourceType[Article]("article")
     implicit val identifiable: Identifiable[Article] = Identifiable.by(_.id)
     implicit val pathTo: PathTo[Article] = new PathToId[Article] {
-      override def root: Uri = "/articles"
+      override def root: Url = "/articles"
     }
     implicit val format: JsonApiFormat[Article] = jsonApiFormat[Article]
   }
@@ -133,6 +133,35 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest {
           obj
         }
       }
+
+  def recursiveJsObjectComparsion(jsObject1: JsObject, jsObject2: JsObject): Boolean = {
+    def recursiveJsValueComparsion(jsValue1: JsValue, jsValue2: JsValue): Boolean =
+      (jsValue1, jsValue2) match {
+        case (fieldValue: JsObject, fieldValue2: JsObject) =>
+          fieldValue.fields.forall {
+            case (nestedFieldName, nestedFieldValue) if fieldValue2.fields.isDefinedAt(nestedFieldName) =>
+              recursiveJsValueComparsion(nestedFieldValue, fieldValue2.fields(nestedFieldName))
+            case _ => false
+          }
+        case (fieldValue: JsArray, fieldValue2: JsArray) =>
+          fieldValue.elements.forall { nestedField =>
+            fieldValue2.elements.exists(recursiveJsValueComparsion(_, nestedField))
+          }
+        case _ => jsValue1 == jsValue2
+      }
+
+    if (jsObject1.fields.forall {
+          case (fieldName, fieldValue) =>
+            recursiveJsValueComparsion(
+              fieldValue,
+              jsObject2.fields
+                .getOrElse(fieldName, throw new Exception(jsObject1.prettyPrint + " != " + jsObject2.prettyPrint)))
+        }) {
+      true
+    } else {
+      throw new Exception(jsObject1.prettyPrint + " != " + jsObject2.prettyPrint)
+    }
+  }
 
   "JsonApiSupport" should {
     "rawOne correctly prints jsonapi json for one entity" in {
@@ -246,7 +275,7 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest {
           |  }]
           |}
         """.stripMargin.parseJson.asJsObject
-      rawOne(data) must be equalTo json
+      recursiveJsObjectComparsion(rawOne(data), json)
     }
 
     "rawOne correctly prints jsonapi json for one entity with sparse fields defined" in {
@@ -325,7 +354,7 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest {
             "child"   -> List("fieldThatDoesNotExist"),
             "article" -> List("name"))
 
-      rawOne(data) must be equalTo json
+      recursiveJsObjectComparsion(rawOne(data), json)
     }
 
     "rawCollection correctly prints jsonapi json for two entities" in {
@@ -497,7 +526,7 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest {
           |  }]
           |}
         """.stripMargin.parseJson.asJsObject
-      rawCollection(Iterable(data, data2)) must be equalTo json
+      recursiveJsObjectComparsion(rawCollection(Iterable(data, data2)), json)
     }
 
     "rawCollection correctly prints jsonapi json for two entities with sparse fields defined" in {
@@ -605,7 +634,7 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest {
             "child"   -> List("fieldThatDoesNotExist"),
             "article" -> List("name"))
 
-      rawCollection(Iterable(data, data2)) must be equalTo json
+      recursiveJsObjectComparsion(rawCollection(Iterable(data, data2)), json)
     }
 
     "return correct media type" in {
@@ -623,34 +652,37 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest {
 
         val json = JsonParser(responseAs[String])
 
-        json.extract[String]('data / 'id) must_== data.id
+        json.extract[String](Symbol("data") / "id") must_== data.id
 
-        json.extract[String]('data / 'relationships / 'loaded / 'data / 'type) must_== Child.resourceType.resourceType
-        json.extract[String]('data / 'relationships / 'loaded / 'data / 'id) must_== child.id
-        json.extract[String]('data / 'relationships / 'loaded / 'links / 'related) must_== "/roots/1/loaded"
+        json.extract[String](Symbol("data") / "relationships" / "loaded" / "data" / "type") must_== Child.resourceType.resourceType
+        json.extract[String](Symbol("data") / "relationships" / "loaded" / "data" / "id") must_== child.id
+        json.extract[String](Symbol("data") / "relationships" / "loaded" / "links" / "related") must_== "/roots/1/loaded"
 
-        json.extract[String]('data / 'relationships / 'referenced / 'data / 'type) must_== Child.resourceType.resourceType
-        json.extract[String]('data / 'relationships / 'referenced / 'data / 'id) must_== "2"
-        json.extract[String]('data / 'relationships / 'referenced / 'links / 'related) must_== "/roots/1/referenced"
+        json.extract[String](Symbol("data") / "relationships" / "referenced" / "data" / "type") must_== Child.resourceType.resourceType
+        json.extract[String](Symbol("data") / "relationships" / "referenced" / "data" / "id") must_== "2"
+        json.extract[String](Symbol("data") / "relationships" / "referenced" / "links" / "related") must_== "/roots/1/referenced"
 
-        json.extract[String]('data / 'relationships / 'many / 'data / element(0) / 'type) must_== Child.resourceType.resourceType
-        json.extract[String]('data / 'relationships / 'many / 'data / element(0) / 'id) must_== "3"
-        json.extract[String]('data / 'relationships / 'many / 'data / element(1) / 'type) must_== Child.resourceType.resourceType
-        json.extract[String]('data / 'relationships / 'many / 'data / element(1) / 'id) must_== "4"
-        json.extract[String]('data / 'relationships / 'many / 'data / element(2) / 'type) must_== Child.resourceType.resourceType
-        json.extract[String]('data / 'relationships / 'many / 'data / element(2) / 'id) must_== "5"
-        json.extract[String]('data / 'relationships / 'many / 'links / 'related) must_== "/roots/1/many"
+        json.extract[String](Symbol("data") / "relationships" / "many" / "data" / element(0) / "type") must_== Child.resourceType.resourceType
+        json.extract[String](Symbol("data") / "relationships" / "many" / "data" / element(0) / "id") must_== "3"
+        json.extract[String](Symbol("data") / "relationships" / "many" / "data" / element(1) / "type") must_== Child.resourceType.resourceType
+        json.extract[String](Symbol("data") / "relationships" / "many" / "data" / element(1) / "id") must_== "4"
+        json.extract[String](Symbol("data") / "relationships" / "many" / "data" / element(2) / "type") must_== Child.resourceType.resourceType
+        json.extract[String](Symbol("data") / "relationships" / "many" / "data" / element(2) / "id") must_== "5"
+        json.extract[String](Symbol("data") / "relationships" / "many" / "links" / "related") must_== "/roots/1/many"
 
-        json.extract[String]('included / element(0) / 'id) must_== "55"
-        json.extract[String]('included / element(0) / 'type) must_== Article.resourceType.resourceType
-        json.extract[String]('included / element(1) / 'id) must_== "3"
-        json.extract[String]('included / element(1) / 'type) must_== Child.resourceType.resourceType
-        json.extract[String]('included / element(2) / 'id) must_== child.id
-        json.extract[String]('included / element(2) / 'type) must_== Child.resourceType.resourceType
-        json.extract[String]('included / element(3) / 'id) must_== "4"
-        json.extract[String]('included / element(3) / 'type) must_== Child.resourceType.resourceType
-        json.extract[String]('included / element(4) / 'id) must_== "5"
-        json.extract[String]('included / element(4) / 'type) must_== Child.resourceType.resourceType
+        val included: Seq[JsValue] = json.extract[JsArray]("included").elements
+
+        def checkIdAndType(id: String, `type`: String): Boolean =
+          included.exists { element =>
+            val fields = element.asJsObject.fields.toSeq
+            fields.contains("id" -> JsString(id)) && fields.contains("type" -> JsString(`type`))
+          }
+
+        checkIdAndType(child.id, Child.resourceType.resourceType) must_== true
+        checkIdAndType("3", Child.resourceType.resourceType) must_== true
+        checkIdAndType("4", Child.resourceType.resourceType) must_== true
+        checkIdAndType("5", Child.resourceType.resourceType) must_== true
+        checkIdAndType("55", Article.resourceType.resourceType) must_== true
       }
     }
 
@@ -713,7 +745,6 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest {
 
       Get("/sparse") ~> route ~> check {
         val json = JsonParser(responseAs[String])
-        println(json)
         json must be equalTo rawOne[Thang](thang)
       }
     }

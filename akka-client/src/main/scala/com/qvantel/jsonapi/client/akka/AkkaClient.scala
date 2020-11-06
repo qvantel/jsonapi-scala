@@ -10,16 +10,16 @@ import akka.http.scaladsl.model.headers.HttpEncodings
 import akka.http.scaladsl.unmarshalling.Unmarshaller._
 import akka.http.scaladsl.unmarshalling._
 import akka.stream.ActorMaterializer
-import cats.effect.IO
-import com.netaporter.uri
-import com.netaporter.uri.config.UriConfig
-import com.netaporter.uri.dsl._
+import cats.effect.{ContextShift, IO}
+import io.lemonlabs.uri.Url
+import io.lemonlabs.uri.typesafe.dsl._
 
 import com.qvantel.jsonapi._
 
 object AkkaClient {
   implicit def instance(implicit m: ActorMaterializer, system: ActorSystem, endpoint: ApiEndpoint): JsonApiClient = {
     import system.dispatcher
+    implicit val cs: ContextShift[IO] = IO.contextShift(system.dispatcher)
 
     def bodyToJsObject(resp: HttpResponse): IO[JsObject] =
       IO.fromFuture {
@@ -49,15 +49,14 @@ object AkkaClient {
       }
 
     new JsonApiClient {
-      implicit val config: UriConfig = uriConfig
 
       override def one[A](id: String, include: Set[String] = Set.empty)(implicit pt: PathToId[A],
                                                                         reader: JsonApiReader[A]): IO[Option[A]] =
         endpoint.config.flatMap { endpointConfig =>
-          val baseUri = endpointConfig.uri
-          val reqUri  = baseUri / pt.self(id)
+          val baseUrl = endpointConfig.url
+          val reqUrl  = baseUrl / pt.self(id).toString
 
-          mkRequest(addInclude(reqUri, include).toString, headers = httpHeaders(endpointConfig.headers))
+          mkRequest(addInclude(reqUrl, include).toString, headers = httpHeaders(endpointConfig.headers))
             .flatMap(respToEntity(_, include))
         }
 
@@ -69,35 +68,35 @@ object AkkaClient {
         ids.toList.traverse { id =>
           one(id, include).flatMap {
             case Some(entity) => IO.pure(entity)
-            case None         => IO.raiseError(ApiError.NoEntityForId(id, pt.root))
+            case None         => IO.raiseError(ApiError.NoEntityForId(id, pt.root.toString))
           }
         }
       }
 
-      override def pathOne[A](path: uri.Uri, include: Set[String])(implicit reader: JsonApiReader[A]) =
+      override def pathOne[A](path: Url, include: Set[String])(implicit reader: JsonApiReader[A]) =
         endpoint.config.flatMap { endpointConfig =>
-          val baseUri = endpointConfig.uri
-          val reqUri  = baseUri.copy(pathParts = path.pathParts)
+          val baseUrl: Url = endpointConfig.url
+          val reqUrl       = baseUrl.withPath(path.path)
 
-          mkRequest(addInclude(reqUri, include).toString, headers = httpHeaders(endpointConfig.headers))
+          mkRequest(addInclude(reqUrl, include).toString, headers = httpHeaders(endpointConfig.headers))
             .flatMap(respToEntity(_, include))
         }
 
-      override def pathMany[A](path: uri.Uri, include: Set[String])(implicit reader: JsonApiReader[A]) =
+      override def pathMany[A](path: Url, include: Set[String])(implicit reader: JsonApiReader[A]) =
         endpoint.config.flatMap { endpointConfig =>
-          val baseUri = endpointConfig.uri
-          val reqUri  = baseUri.copy(pathParts = path.pathParts)
+          val baseUrl = endpointConfig.url
+          val reqUrl  = baseUrl.withPath(path.path)
 
-          mkRequest(addInclude(reqUri, include).toString, headers = httpHeaders(endpointConfig.headers))
+          mkRequest(addInclude(reqUrl, include).toString, headers = httpHeaders(endpointConfig.headers))
             .flatMap(respoToEntities(_, include))
         }
 
       override def filter[A](filter: String, include: Set[String])(implicit pt: PathTo[A], reader: JsonApiReader[A]) =
         endpoint.config.flatMap { endpointConfig =>
-          val baseUri = endpointConfig.uri
-          val reqUri  = baseUri / pt.root ? ("filter" -> filter)
+          val baseUrl = endpointConfig.url
+          val reqUrl  = baseUrl / pt.root ? ("filter" -> filter)
 
-          mkRequest(addInclude(reqUri, include).toString, headers = httpHeaders(endpointConfig.headers))
+          mkRequest(addInclude(reqUrl, include).toString, headers = httpHeaders(endpointConfig.headers))
             .flatMap(respoToEntities(_, include))
         }
 
@@ -105,10 +104,10 @@ object AkkaClient {
                                                                       writer: JsonApiWriter[A],
                                                                       reader: JsonApiReader[Response]): IO[Response] =
         endpoint.config.flatMap { endpointConfig =>
-          val baseUri = endpointConfig.uri
-          val reqUri  = baseUri / pt.entity(entity)
+          val baseUrl = endpointConfig.url
+          val reqUrl  = baseUrl / pt.entity(entity).toString
 
-          mkRequest(reqUri.toString,
+          mkRequest(reqUrl.toString,
                     HttpMethods.POST,
                     HttpEntity(rawOne(entity).compactPrint),
                     httpHeaders(endpointConfig.headers)).flatMap { resp =>
@@ -124,10 +123,10 @@ object AkkaClient {
                                                                      writer: JsonApiWriter[A],
                                                                      reader: JsonApiReader[Response]): IO[Response] =
         endpoint.config.flatMap { endpointConfig =>
-          val baseUri = endpointConfig.uri
-          val reqUri  = baseUri / pt.entity(entity)
+          val baseUrl = endpointConfig.url
+          val reqUrl  = baseUrl / pt.entity(entity).toString
 
-          mkRequest(reqUri.toString,
+          mkRequest(reqUrl.toString,
                     HttpMethods.PUT,
                     HttpEntity(rawOne(entity).compactPrint),
                     httpHeaders(endpointConfig.headers)).flatMap { resp =>
@@ -143,10 +142,10 @@ object AkkaClient {
                                                                        writer: JsonApiWriter[A],
                                                                        reader: JsonApiReader[Response]): IO[Response] =
         endpoint.config.flatMap { endpointConfig =>
-          val baseUri = endpointConfig.uri
-          val reqUri  = baseUri / pt.entity(entity)
+          val baseUrl = endpointConfig.url
+          val reqUrl  = baseUrl / pt.entity(entity).toString
 
-          mkRequest(reqUri.toString,
+          mkRequest(reqUrl.toString,
                     HttpMethods.PATCH,
                     HttpEntity(rawOne(entity).compactPrint),
                     httpHeaders(endpointConfig.headers)).flatMap { resp =>
@@ -161,10 +160,10 @@ object AkkaClient {
       override def delete[A, Response](entity: A, include: Set[String])(implicit pt: PathTo[A],
                                                                         reader: JsonApiReader[Response]): IO[Response] =
         endpoint.config.flatMap { endpointConfig =>
-          val baseUri = endpointConfig.uri
-          val reqUri  = baseUri / pt.entity(entity)
+          val baseUrl = endpointConfig.url
+          val reqUrl  = baseUrl / pt.entity(entity).toString
 
-          mkRequest(reqUri.toString, HttpMethods.DELETE, headers = httpHeaders(endpointConfig.headers)).flatMap {
+          mkRequest(reqUrl.toString, HttpMethods.DELETE, headers = httpHeaders(endpointConfig.headers)).flatMap {
             resp =>
               if (resp.status.isSuccess()) {
                 bodyToJsObject(resp).map(readOne[Response])
@@ -176,7 +175,7 @@ object AkkaClient {
     }
   }
 
-  private[this] def addInclude(orig: uri.Uri, include: Set[String]): uri.Uri =
+  private[this] def addInclude(orig: Url, include: Set[String]): Url =
     if (include.isEmpty) {
       orig
     } else {
@@ -184,18 +183,19 @@ object AkkaClient {
     }
 
   private[this] def mkRequest(
-      reqUri: String,
+      reqUrl: String,
       method: HttpMethod = HttpMethods.GET,
       entity: RequestEntity = HttpEntity.Empty,
       headers: List[HttpHeader])(implicit m: ActorMaterializer, system: ActorSystem): IO[HttpResponse] = {
     import system.dispatcher
+    implicit val cs: ContextShift[IO] = IO.contextShift(system.dispatcher)
 
     IO.fromFuture {
       IO(
         Http()
           .singleRequest(
             HttpRequest(
-              uri = Uri(reqUri),
+              uri = Uri(reqUrl),
               headers = encodings ++ headers,
               method = method,
               entity = entity

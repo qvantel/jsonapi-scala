@@ -27,7 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.qvantel.jsonapi
 
 import _root_.spray.json.JsValue
-import com.netaporter.uri.Uri
+import io.lemonlabs.uri.Url
 
 trait Meta {
   def asJson: JsValue
@@ -39,7 +39,7 @@ trait MetaProfile {
 
   /** Uri pointing to the meta html documentation about this profile
     */
-  def link: Uri
+  def link: Url
 
   /** The "key" of the meta this profile is describing
     */

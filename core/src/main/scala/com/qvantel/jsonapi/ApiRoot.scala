@@ -26,10 +26,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.qvantel.jsonapi
 
-import com.netaporter.uri.Uri
+import io.lemonlabs.uri.Url
 
-final case class ApiRoot(apiRoot: Option[Uri])
+final case class ApiRoot(apiRoot: Option[Url])
 
 object ApiRoot {
-  def empty = ApiRoot(None)
+  def empty: ApiRoot = ApiRoot(None)
 }

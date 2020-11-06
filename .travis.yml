@@ -1,8 +1,8 @@
 language: scala
 scala:
-  - 2.12.10
+  - 2.13.3
 jdk:
-  - openjdk8
+  - openjdk11
 script:
   - sbt +clean scalafmt::test test:scalafmt::test sbt:scalafmt::test coverage +compile +test:compile +test coverageReport &&
     sbt coverageAggregate

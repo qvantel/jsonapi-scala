@@ -1,10 +1,10 @@
 package com.qvantel.jsonapi
 
-import com.netaporter.uri.dsl._
+import io.lemonlabs.uri.Uri
+import io.lemonlabs.uri.typesafe.dsl._
 import org.specs2.mutable._
 import spray.json.DefaultJsonProtocol._
 import spray.json._
-import com.netaporter.uri.Uri
 
 class PaginationSpec extends Specification {
   implicit val apiRoot: com.qvantel.jsonapi.ApiRoot = ApiRoot(Some("/api"))
@@ -16,7 +16,7 @@ class PaginationSpec extends Specification {
       implicit val pagination: JsonApiPagination.PaginationFunc =
         num => {
           num should be equalTo 1
-          JsonApiPagination(Uri.parse("/")).withNext("number" -> "2", "size" -> "5")
+          JsonApiPagination("/").withNext("number" -> "2", "size" -> "5")
         }
 
       val entities = Seq(Test("id", "attr"))
@@ -27,11 +27,11 @@ class PaginationSpec extends Specification {
       )
     }
 
-    "removes old pagination from original uri" >> {
+    "removes old pagination from original url" >> {
       implicit val pagination: JsonApiPagination.PaginationFunc =
         num => {
           num should be equalTo 3
-          JsonApiPagination(Uri.parse("/api/entity?page[size]=15"))
+          JsonApiPagination("/api/entity?page[size]=15")
             .withNext("number" -> "3", "size" -> "10")
             .withPrev("number" -> "1", "size" -> "10")
         }
@@ -48,7 +48,7 @@ class PaginationSpec extends Specification {
     "handle all kinds" >> {
       implicit val pagination: JsonApiPagination.PaginationFunc =
         _ =>
-          JsonApiPagination(Uri.parse("/api/entity?filter=(EQ id '1')&include=relB.relC&page[size]=15"))
+          JsonApiPagination("/api/entity?filter=(EQ id '1')&include=relB.relC&page[size]=15")
             .withNext("number" -> "3", "size" -> "10")
             .withPrev("number" -> "1", "size" -> "10")
             .withFirst("number" -> "1", "size" -> "10")
@@ -58,24 +58,33 @@ class PaginationSpec extends Specification {
       val json     = rawCollection(entities)
 
       json.getFields("links").head must be equalTo JsObject(
-        "prev" -> JsString("/api/entity?filter=(EQ%20id%20'1')&include=relB.relC&page%5Bnumber%5D=1&page%5Bsize%5D=10"),
-        "next" -> JsString("/api/entity?filter=(EQ%20id%20'1')&include=relB.relC&page%5Bnumber%5D=3&page%5Bsize%5D=10"),
+        "prev" -> JsString(
+          Uri
+            .parse("/api/entity?filter=(EQ%20id%20'1')&include=relB.relC&page%5Bnumber%5D=1&page%5Bsize%5D=10")
+            .toString),
+        "next" -> JsString(
+          Uri
+            .parse("/api/entity?filter=(EQ%20id%20'1')&include=relB.relC&page%5Bnumber%5D=3&page%5Bsize%5D=10")
+            .toString),
         "first" -> JsString(
-          "/api/entity?filter=(EQ%20id%20'1')&include=relB.relC&page%5Bnumber%5D=1&page%5Bsize%5D=10"),
+          Uri
+            .parse("/api/entity?filter=(EQ%20id%20'1')&include=relB.relC&page%5Bnumber%5D=1&page%5Bsize%5D=10")
+            .toString),
         "last" -> JsString(
-          "/api/entity?filter=(EQ%20id%20'1')&include=relB.relC&page%5Bnumber%5D=100&page%5Bsize%5D=10")
+          Uri
+            .parse("/api/entity?filter=(EQ%20id%20'1')&include=relB.relC&page%5Bnumber%5D=100&page%5Bsize%5D=10")
+            .toString)
       )
     }
 
     "defaults to empty pagination" >> {
       val entities = 1.to(3).map(i => Test(i.toString, "attr"))
       val json     = rawCollection(entities)
-      println(json.prettyPrint)
       json.getFields("links") must be(Seq.empty)
     }
 
-    "is empty when only original uri is set" >> {
-      implicit val pagination: JsonApiPagination.PaginationFunc = _ => JsonApiPagination(Uri.parse("/"))
+    "is empty when only original url is set" >> {
+      implicit val pagination: JsonApiPagination.PaginationFunc = _ => JsonApiPagination("/")
 
       val entities = Seq(Test("id", "attr"))
       val json     = rawCollection(entities)

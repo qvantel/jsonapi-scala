@@ -26,7 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.qvantel.jsonapi
 
-import com.netaporter.uri.Uri
+import io.lemonlabs.uri.Url
+import io.lemonlabs.uri.typesafe.dsl._
 import shapeless.Coproduct
 import shapeless.ops.coproduct.Inject
 
@@ -58,7 +59,7 @@ object PolyToMany {
     override def ids: Set[String] = relationships.map(_.id)
   }
 
-  final case class PathReference[A <: Coproduct](path: Option[Uri]) extends PolyToMany[A] {
+  final case class PathReference[A <: Coproduct](path: Option[Url]) extends PolyToMany[A] {
     override def relationships: Set[Rel] = Set.empty
 
     /** Loaded biased get method as a helper when you don't want to pattern match like crazy */
@@ -78,8 +79,8 @@ object PolyToMany {
   }
 
   def reference[A <: Coproduct]: PolyToMany[A]              = PathReference[A](None)
-  def reference[A <: Coproduct](uri: Uri): PolyToMany[A]    = PathReference[A](Some(uri))
-  def reference[A <: Coproduct](uri: String): PolyToMany[A] = PathReference[A](Some(Uri.parse(uri)))
+  def reference[A <: Coproduct](url: Url): PolyToMany[A]    = PathReference[A](Some(url))
+  def reference[A <: Coproduct](url: String): PolyToMany[A] = PathReference[A](Some(url))
   def reference[A <: Coproduct](rels: Set[(String, String)])(implicit crt: CoproductResourceType[A]): PolyToMany[A] = {
     val relationships = {
       val types = crt.apply

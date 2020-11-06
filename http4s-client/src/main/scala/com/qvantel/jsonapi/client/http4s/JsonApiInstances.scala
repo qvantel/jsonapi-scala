@@ -1,7 +1,5 @@
 package com.qvantel.jsonapi.client.http4s
 
-import scala.language.higherKinds
-
 import cats._
 import cats.effect._
 import cats.implicits._
@@ -16,21 +14,21 @@ final case class Include(include: Set[String])
 
 trait JsonApiInstances extends JsonApiInstancesLowPrio {
   implicit def jsonapiJsObjectDecoder[F[_]: Effect](implicit include: Include): EntityDecoder[F, JsObject] =
-    EntityDecoder.decodeBy(mediaType) { msg: Message[F] =>
+    EntityDecoder.decodeBy(mediaType) { msg =>
       EitherT {
         msg.as[String].map(s => s.parseJson.asJsObject.asRight[DecodeFailure])
       }
     }
 
   implicit def jsonapiDecoder[F[_]: Effect, A: JsonApiReader](implicit include: Include): EntityDecoder[F, A] =
-    EntityDecoder.decodeBy(mediaType) { msg: Message[F] =>
+    EntityDecoder.decodeBy(mediaType) { msg =>
       EitherT {
         msg.as[JsObject].map(json => readOne[A](json, include.include).asRight[DecodeFailure])
       }
     }
 
   implicit def jsonapiListDecoder[F[_]: Effect, A: JsonApiReader](
-      implicit include: Include): EntityDecoder[F, List[A]] = EntityDecoder.decodeBy(mediaType) { msg: Message[F] =>
+      implicit include: Include): EntityDecoder[F, List[A]] = EntityDecoder.decodeBy(mediaType) { msg =>
     EitherT {
       msg.as[JsObject].map(json => readCollection[A](json, include.include).toList.asRight[DecodeFailure])
     }
@@ -41,21 +39,21 @@ trait JsonApiInstancesLowPrio {
   val mediaType: MediaType = new MediaType("application", "vnd.api+json")
 
   implicit def jsonapiJsObjectDecoder[F[_]: Effect]: EntityDecoder[F, JsObject] =
-    EntityDecoder.decodeBy(mediaType) { msg: Message[F] =>
+    EntityDecoder.decodeBy(mediaType) { msg =>
       EitherT {
         msg.as[String].map(s => s.parseJson.asJsObject.asRight[DecodeFailure])
       }
     }
 
   implicit def jsonapiDecoder[F[_]: Effect, A: JsonApiReader]: EntityDecoder[F, A] =
-    EntityDecoder.decodeBy(mediaType) { msg: Message[F] =>
+    EntityDecoder.decodeBy(mediaType) { msg =>
       EitherT {
         msg.as[JsObject].map(json => readOne[A](json).asRight[DecodeFailure])
       }
     }
 
   implicit def jsonapiListDecoder[F[_]: Effect, A: JsonApiReader]: EntityDecoder[F, List[A]] =
-    EntityDecoder.decodeBy(mediaType) { msg: Message[F] =>
+    EntityDecoder.decodeBy(mediaType) { msg =>
       EitherT {
         msg.as[JsObject].map(json => readCollection[A](json).toList.asRight[DecodeFailure])
       }

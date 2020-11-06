@@ -225,8 +225,9 @@ final class ToManySpec extends Specification with MatcherMacros {
       import _root_.spray.json.lenses.JsonLenses._
 
       val modifiedJson =
-        articleJson.update('relationships / 'comments / 'data / * / 'type ! set[String]("wrong-type")).asJsObject
-      val modifiedIncludes = articleIncludesJson.map(_.update('type ! set[String]("wrong-type"))).map(_.asJsObject)
+        articleJson.update("relationships" / "comments" / "data" / * / "type" ! set[String]("wrong-type")).asJsObject
+      val modifiedIncludes =
+        articleIncludesJson.map(_.update(Symbol("type") ! set[String]("wrong-type"))).map(_.asJsObject)
 
       implicitly[JsonApiFormat[Article]].read(modifiedJson, modifiedIncludes, Set("comments"), "") must throwA[
         DeserializationException](message = "wrong type 'comments' expected but got 'wrong-type'")

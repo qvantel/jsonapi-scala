@@ -31,7 +31,9 @@ import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
 
 import com.qvantel.jsonapi.model.Link.Url
-import com.netaporter.uri.dsl._
+import com.qvantel.jsonapi.uriConfig
+import io.lemonlabs.uri.Uri
+import io.lemonlabs.uri.typesafe.dsl.stringToUri
 
 final class TopLevelSpec extends Specification {
   "JsonFormat" should {
@@ -158,14 +160,14 @@ final class TopLevelSpec extends Specification {
 
       one.`type` must be equalTo "articles"
       one.id must beSome("1")
-      one.attributes.getAs[String]('title) must beSome("JSON API paints my bikeshed!")
+      one.attributes.getAs[String]("title") must beSome("JSON API paints my bikeshed!")
       one.relationships must have size 2
       one.relationships must haveKey("author")
       one.relationships must haveKey("comments")
 
       two.`type` must be equalTo "articles"
       two.id must beSome("2")
-      two.attributes.getAs[String]('title) must beSome("JSON API paints my bikeshed! 2")
+      two.attributes.getAs[String]("title") must beSome("JSON API paints my bikeshed! 2")
       two.relationships must have size 2
       two.relationships must haveKey("author")
       two.relationships must haveKey("comments")
@@ -245,14 +247,14 @@ final class TopLevelSpec extends Specification {
 
       data.`type` must be equalTo "articles"
       data.id must beSome("1:1/1")
-      data.attributes.getAs[String]('title) must beSome("JSON API paints my bikeshed!")
+      data.attributes.getAs[String]("title") must beSome("JSON API paints my bikeshed!")
       data.relationships must have size 2
       data.relationships must haveKey("author")
       data.relationships must haveKey("comments")
       // check that id handling in links goes correctly
       data.relationships.get("author").map(_.links.values.map(_.href.toString())).getOrElse(List.empty) must contain(
-        "http://example.com/articles/1:1%251/relationships/author",
-        "http://example.com/articles/1:1%251/author"
+        Uri.parse("http://example.com/articles/1:1%251/relationships/author").toString,
+        Uri.parse("http://example.com/articles/1:1%251/author").toString
       )
       // and looping it through its own parser results in the same thing
       data.relationships.get("author").map(_.links.values.toList) must be equalTo data.relationships
@@ -307,7 +309,7 @@ final class TopLevelSpec extends Specification {
 
       data.`type` must be equalTo "articles"
       data.id must beSome("1")
-      data.attributes.getAs[String]('title) must beSome("JSON API paints my bikeshed!")
+      data.attributes.getAs[String]("title") must beSome("JSON API paints my bikeshed!")
       data.relationships must have size 2
       data.relationships must haveKey("author")
       data.relationships must haveKey("comments")
@@ -686,7 +688,7 @@ final class TopLevelSpec extends Specification {
 
       data.`type` must be equalTo "articles"
       data.id must beSome("1")
-      data.attributes.getAs[String]('title) must beSome("JSON API paints my bikeshed!")
+      data.attributes.getAs[String]("title") must beSome("JSON API paints my bikeshed!")
       data.relationships must have size 2
       data.relationships must haveKey("author")
       data.relationships must haveKey("comments")
@@ -694,7 +696,6 @@ final class TopLevelSpec extends Specification {
 
       val selfLink = data.links.getOrElse("self", "error")
       selfLink must_== Url("http://example.com/articles/1%7C5:12%7Ccomments")
-
     }
   }
 }

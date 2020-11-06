@@ -27,15 +27,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.qvantel.jsonapi
 
 import shapeless.Coproduct
-import com.netaporter.uri.Uri
-import com.netaporter.uri.dsl._
+import io.lemonlabs.uri.Url
+import io.lemonlabs.uri.typesafe.dsl._
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
 
 object Link {
   private[this] def links[P](parent: P, name: String)(implicit pathToParent: PathTo[P],
                                                       pid: Identifiable[P]): JsObject =
-    JsObject("related" -> implicitly[JsonWriter[Uri]].write(pathToParent.entity(parent) / name))
+    JsObject("related" -> implicitly[JsonWriter[Url]].write(pathToParent.entity(parent) / name))
 
   def to[A, P](parent: P, relation: ToOne[A], name: String)(implicit identifiable: Identifiable[A],
                                                             pid: Identifiable[P],
@@ -135,7 +135,7 @@ object Link {
       case PolyToOne.Reference(id, rt) =>
         JsObject("data" -> resourceLinkage(rt, id), "links" -> links(parent, name))
 
-      case PolyToOne.Loaded(entity, id, rt) =>
+      case PolyToOne.Loaded(_, id, rt) =>
         JsObject("data" -> resourceLinkage(rt, id), "links" -> links(parent, name))
     }
   }
@@ -151,7 +151,7 @@ object Link {
       case Some(PolyToOne.Reference(id, rt)) =>
         JsObject("data" -> resourceLinkage(rt, id), "links" -> links(parent, name))
 
-      case Some(PolyToOne.Loaded(entity, id, rt)) =>
+      case Some(PolyToOne.Loaded(_, id, rt)) =>
         JsObject("data" -> resourceLinkage(rt, id), "links" -> links(parent, name))
 
       case _ =>
@@ -170,7 +170,7 @@ object Link {
       case JsonSome(PolyToOne.Reference(id, rt)) =>
         JsObject("data" -> resourceLinkage(rt, id), "links" -> links(parent, name))
 
-      case JsonSome(PolyToOne.Loaded(entity, id, rt)) =>
+      case JsonSome(PolyToOne.Loaded(_, id, rt)) =>
         JsObject("data" -> resourceLinkage(rt, id), "links" -> links(parent, name))
 
       case JsonNull =>
@@ -292,7 +292,7 @@ object Link {
       case PolyToOne.Reference(id, rt) =>
         JsObject("data" -> resourceLinkage(rt, id))
 
-      case PolyToOne.Loaded(entity, id, rt) =>
+      case PolyToOne.Loaded(_, id, rt) =>
         JsObject("data" -> resourceLinkage(rt, id))
     }
   }
@@ -306,7 +306,7 @@ object Link {
       case Some(PolyToOne.Reference(id, rt)) =>
         JsObject("data" -> resourceLinkage(rt, id))
 
-      case Some(PolyToOne.Loaded(entity, id, rt)) =>
+      case Some(PolyToOne.Loaded(_, id, rt)) =>
         JsObject("data" -> resourceLinkage(rt, id))
 
       case _ =>
@@ -323,7 +323,7 @@ object Link {
       case JsonSome(PolyToOne.Reference(id, rt)) =>
         JsObject("data" -> resourceLinkage(rt, id))
 
-      case JsonSome(PolyToOne.Loaded(entity, id, rt)) =>
+      case JsonSome(PolyToOne.Loaded(_, id, rt)) =>
         JsObject("data" -> resourceLinkage(rt, id))
 
       case JsonNull =>

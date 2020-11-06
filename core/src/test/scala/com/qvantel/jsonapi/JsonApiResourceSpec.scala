@@ -26,11 +26,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.qvantel.jsonapi
 
-import _root_.com.netaporter.uri.dsl._
 import org.specs2.ScalaCheck
 import org.specs2.mutable.Specification
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
+import io.lemonlabs.uri.typesafe.dsl.stringToUri
 
 import com.qvantel.jsonapi.Helpers._
 
@@ -428,18 +428,18 @@ final class JsonApiResourceSpec extends Specification with ScalaCheck {
     }
   }
 
-  "'/' in id should be escaped correctly in the urls" >> {
+  "work for all allowed characters in a JSON:API resource ID" >> {
     @jsonApiResource final case class Test(id: String, many: Option[ToOne[Test]], one: ToMany[Test])
 
-    val t = Test("foo/bar", None, ToMany.reference)
+    val t = Test("foo-bar_ baz", None, ToMany.reference)
 
     val json = rawOne[Test](t)
 
     import _root_.spray.json.lenses.JsonLenses._
     import _root_.spray.json.DefaultJsonProtocol._
 
-    json.extract[String]('data / 'links / 'self) must be equalTo "/tests/foo%2Fbar"
-    json.extract[String]('data / 'relationships / 'one / 'links / 'related) must be equalTo "/tests/foo%2Fbar/one"
-    json.extract[String]('data / 'relationships / 'many / 'links / 'related) must be equalTo "/tests/foo%2Fbar/many"
+    json.extract[String]("data" / "links" / "self") must be equalTo "/tests/foo-bar_%20baz"
+    json.extract[String]("data" / "relationships" / "one" / "links" / "related") must be equalTo "/tests/foo-bar_%20baz/one"
+    json.extract[String]("data" / "relationships" / "many" / "links" / "related") must be equalTo "/tests/foo-bar_%20baz/many"
   }
 }

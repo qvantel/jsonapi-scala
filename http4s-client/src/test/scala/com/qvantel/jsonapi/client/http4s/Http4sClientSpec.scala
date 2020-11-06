@@ -7,9 +7,9 @@ import cats.instances.option._
 import cats.syntax.traverse._
 import cats.data.OptionT
 import cats.effect.IO
+import io.lemonlabs.uri.typesafe.dsl._
 import org.specs2.matcher.MatcherMacros
 import org.specs2.mutable.Specification
-import com.netaporter.uri.dsl._
 import org.http4s.{HttpService, QueryParamDecoder, QueryParameterValue}
 import org.http4s.client.Client
 import org.http4s.dsl.io._
@@ -21,9 +21,9 @@ import com.qvantel.jsonapi.client.http4s.JsonApiInstances._
 class Http4sClientSpec extends Specification with MatcherMacros {
 
   val billingAccounts = Map(
-    "ba1"             -> BillingAccount("ba1", "ba1", "foobar", None, ToOne.reference("ca1")),
-    "ba2"             -> BillingAccount("ba2", "ba1", "foobar", None, ToOne.reference("ca1")),
-    "foo & bar / baz" -> BillingAccount("foo & bar / baz", "ba1", "foobar", None, ToOne.reference("ca1"))
+    "ba1"          -> BillingAccount("ba1", "ba1", "foobar", None, ToOne.reference("ca1")),
+    "ba2"          -> BillingAccount("ba2", "ba1", "foobar", None, ToOne.reference("ca1")),
+    "foo-bar_ baz" -> BillingAccount("foo-bar_ baz", "ba1", "foobar", None, ToOne.reference("ca1"))
   )
 
   val customerAccounts = Map(
@@ -32,14 +32,14 @@ class Http4sClientSpec extends Specification with MatcherMacros {
 
   object IncludeQueryParamMatcher extends QueryParamDecoderMatcher[Set[String]]("include") {
     val name = "include"
-    override def unapplySeq(params: Map[String, Seq[String]]): Option[Seq[Set[String]]] =
+    override def unapplySeq(params: Map[String, collection.Seq[String]]): Option[Seq[Set[String]]] =
       params
         .get(name)
         .flatMap(values =>
           values.toList.traverse(s =>
             QueryParamDecoder[Set[String]].decode(QueryParameterValue(s)).toOption.orElse(Some(Set.empty[String]))))
 
-    override def unapply(params: Map[String, Seq[String]]): Option[Set[String]] =
+    override def unapply(params: Map[String, collection.Seq[String]]): Option[Set[String]] =
       params
         .get(name)
         .flatMap(_.headOption)
@@ -57,8 +57,8 @@ class Http4sClientSpec extends Specification with MatcherMacros {
 
   val service: HttpService[IO] = HttpService[IO] {
     case GET -> Root / "billing-accounts" :? FilterQueryParamMatcher(filter) =>
-      if (filter == """(OR (EQ id "ba1") (EQ id "foo & bar / baz") )""") {
-        Ok(List(billingAccounts("ba1"), billingAccounts("foo & bar / baz")))
+      if (filter == """(OR (EQ id "ba1") (EQ id "foo-bar_ baz") )""") {
+        Ok(List(billingAccounts("ba1"), billingAccounts("foo-bar_ baz")))
       } else {
         Ok(List.empty[CustomerAccount])
       }
@@ -126,9 +126,9 @@ class Http4sClientSpec extends Specification with MatcherMacros {
   }
 
   "make sure weird characters in id work correctly" >> {
-    val req = jac.one[BillingAccount]("""foo & bar / baz""").unsafeRunSync()
+    val req = jac.one[BillingAccount]("foo-bar_ baz").unsafeRunSync()
 
-    req must beSome(matchA[BillingAccount].id("foo & bar / baz"))
+    req must beSome(matchA[BillingAccount].id("foo-bar_ baz"))
   }
 
   "one with include" >> {
@@ -179,11 +179,11 @@ class Http4sClientSpec extends Specification with MatcherMacros {
   }
 
   "filter" >> {
-    val req = jac.filter[BillingAccount]("""(OR (EQ id "ba1") (EQ id "foo & bar / baz") )""").unsafeRunSync()
+    val req = jac.filter[BillingAccount]("""(OR (EQ id "ba1") (EQ id "foo-bar_ baz") )""").unsafeRunSync()
 
     req must contain(
       matchA[BillingAccount].id("ba1"),
-      matchA[BillingAccount].id("foo & bar / baz")
+      matchA[BillingAccount].id("foo-bar_ baz")
     )
   }
 
@@ -193,7 +193,7 @@ class Http4sClientSpec extends Specification with MatcherMacros {
     req must contain(
       matchA[BillingAccount].id("ba1"),
       matchA[BillingAccount].id("ba2"),
-      matchA[BillingAccount].id("foo & bar / baz")
+      matchA[BillingAccount].id("foo-bar_ baz")
     )
   }
 

@@ -86,7 +86,7 @@ object RelatedResponse {
     def apply[A](a: A): One[A] = Result(a)
   }
 
-  private[this] sealed trait Many[+A] extends RelatedResponse[A]
+  private[this] sealed trait Many[A] extends RelatedResponse[A]
 
   private[this] object ToMany {
     final class Empty[A] extends Many[A] {

@@ -29,22 +29,24 @@ package com.qvantel
 import scala.language.experimental.macros
 
 import scala.annotation.compileTimeOnly
-import shapeless.{:+:, CNil, Coproduct, Inl, Inr}
-import com.netaporter.uri.Uri
-import _root_.spray.json._
+
 import _root_.spray.json.DefaultJsonProtocol._
-import com.netaporter.uri.config.UriConfig
-import com.netaporter.uri.encoding.percentEncode
+import _root_.spray.json._
+import io.lemonlabs.uri.Url
+import io.lemonlabs.uri.config.UriConfig
+import io.lemonlabs.uri.encoding.PercentEncoder
+import io.lemonlabs.uri.typesafe.dsl._
+import shapeless.{:+:, CNil, Coproduct, Inl, Inr}
 
 package object jsonapi {
   type NameMangler = String => String
 
-  val uriConfig: UriConfig = UriConfig(encoder = percentEncode ++ '/' ++ '"')
+  implicit val uriConfig: UriConfig = UriConfig(encoder = PercentEncoder() ++ '"')
 
-  implicit object PathJsonFormat extends JsonFormat[Uri] {
-    override def write(obj: Uri): JsValue = JsString(obj.toString(uriConfig))
-    override def read(json: JsValue): Uri = json match {
-      case JsString(s) => Uri.parse(s)
+  implicit object PathJsonFormat extends JsonFormat[Url] {
+    override def write(obj: Url): JsValue = JsString(obj.toString)
+    override def read(json: JsValue): Url = json match {
+      case JsString(s) => s
       case other       => deserializationError(s"Expected Path as JsString but got ‘$other’")
     }
   }
@@ -105,7 +107,7 @@ package object jsonapi {
       case JsonApiPagination.Empty => obj
       case paging =>
         val oldLinks: Map[String, JsValue]  = obj.fields.get("links").map(_.asJsObject.fields).getOrElse(Map.empty)
-        val pageLinks: Map[String, JsValue] = paging.allLinksAsUris.mapValues(uri => JsString(uri.toString()))
+        val pageLinks: Map[String, JsValue] = paging.allLinksAsUrls.mapValues(url => JsString(url.toString())).toMap
         val links: Map[String, JsValue]     = Map("links" -> JsObject(oldLinks ++ pageLinks))
         JsObject(obj.fields ++ links)
     }

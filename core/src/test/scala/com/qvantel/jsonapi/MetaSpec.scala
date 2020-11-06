@@ -26,7 +26,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package com.qvantel.jsonapi
 
-import _root_.com.netaporter.uri.dsl._
+import io.lemonlabs.uri.Url
+import io.lemonlabs.uri.typesafe.dsl._
 import org.specs2.mutable._
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
@@ -36,9 +37,9 @@ class MetaSpec extends Specification {
 
   @jsonApiResource final case class Test(id: String, meta: Map[String, Meta])
 
-  val versioned = new MetaProfile {
-    override def alias = "versioned"
-    override def link  = "/versioned.html"
+  val versioned: MetaProfile = new MetaProfile {
+    override def alias     = "versioned"
+    override def link: Url = "/versioned.html"
   }
 
   "meta parsing and writing" >> {

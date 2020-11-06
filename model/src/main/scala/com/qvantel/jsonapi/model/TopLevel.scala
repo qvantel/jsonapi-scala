@@ -191,7 +191,7 @@ object TopLevel {
         case Some(JsObject(_)) => SingleJsonFormat.read(json)
         case Some(JsNull)      => SingleJsonFormat.read(json)
         case None              => deserializationError(s"Missing ‘data’ in resource object")
-        case invalid           => deserializationError(s"Invalid ‘data’ in resource object")
+        case _                 => deserializationError(s"Invalid ‘data’ in resource object")
       })
     }
 
@@ -199,7 +199,7 @@ object TopLevel {
       obj match {
         case s: Single     => s.included.values.map(_.toJson.asJsObject).toSet
         case c: Collection => c.included.values.map(_.toJson.asJsObject).toSet
-        case e: Errors     => Set.empty
+        case _: Errors     => Set.empty
       }
 
     override def read(primary: JsValue,

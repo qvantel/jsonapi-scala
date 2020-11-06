@@ -25,6 +25,44 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+val scala213 = Seq(
+  "-deprecation", // Emit warning and location for usages of deprecated APIs.
+  "-encoding",
+  "utf-8", // Specify character encoding used by source files.
+  "-explaintypes", // Explain type errors in more detail.
+  "-feature", // Emit warning and location for usages of features that should be imported explicitly.
+  "-language:existentials", // Existential types (besides wildcard types) can be written and inferred
+  "-language:experimental.macros", // Allow macro definition (besides implementation and application)
+  "-language:higherKinds", // Allow higher-kinded types
+  "-language:implicitConversions", // Allow definition of implicit functions called views
+  "-unchecked", // Enable additional warnings where generated code depends on assumptions.
+  "-Xcheckinit", // Wrap field accessors to throw an exception on uninitialized access.
+  "-Xlint:adapted-args", // Warn if an argument list is modified to match the receiver.
+  "-Xlint:constant", // Evaluation of a constant arithmetic expression results in an error.
+  "-Xlint:delayedinit-select", // Selecting member of DelayedInit.
+  "-Xlint:doc-detached", // A Scaladoc comment appears to be detached from its element.
+  "-Xlint:inaccessible", // Warn about inaccessible types in method signatures.
+  "-Xlint:infer-any", // Warn when a type argument is inferred to be `Any`.
+  "-Xlint:missing-interpolator", // A string literal appears to be missing an interpolator id.
+  "-Xlint:nullary-unit", // Warn when nullary methods return Unit.
+  "-Xlint:option-implicit", // Option.apply used implicit view.
+  "-Xlint:package-object-classes", // Class or object defined in package object.
+  "-Xlint:poly-implicit-overload", // Parameterized overloaded implicit methods are not visible as view bounds.
+  "-Xlint:private-shadow", // A private field (or class parameter) shadows a superclass field.
+  "-Xlint:stars-align", // Pattern sequence wildcard must align with sequence component.
+  "-Xlint:type-parameter-shadow", // A local type parameter shadows a type already in scope.
+  "-Ywarn-dead-code", // Warn when dead code is identified.
+  "-Ywarn-extra-implicit", // Warn when more than one implicit parameter section is defined.
+  "-Ywarn-numeric-widen", // Warn when numerics are widened.
+  "-Ywarn-unused:implicits", // Warn if an implicit parameter is unused.
+  "-Ywarn-unused:imports", // Warn if an import selector is not referenced.
+  "-Ywarn-unused:locals", // Warn if a local definition is unused.
+  "-Ywarn-unused:params", // Warn if a value parameter is unused.
+  "-Ywarn-unused:patvars", // Warn if a variable bound in a pattern is unused.
+  "-Ywarn-unused:privates", // Warn if a private member is unused.
+  "-Ywarn-value-discard" // Warn when non-Unit expression results are unused.
+)
+
 val scala212 = Seq(
   "-deprecation", // Emit warning and location for usages of deprecated APIs.
   "-encoding",
@@ -73,50 +111,9 @@ val scala212 = Seq(
   "-Ywarn-value-discard" // Warn when non-Unit expression results are unused.
 )
 
-val scala211 = Seq(
-  "-deprecation",
-  "-feature",
-  "-target:jvm-1.8",
-  "-unchecked",
-  "-encoding",
-  "utf-8",
-  // advanced
-  "-Xcheckinit",
-  "-Xfuture",
-  "-Xlint:_",
-  "-Xlog-reflective-calls",
-  "-Xlog-free-terms",
-  "-Xlog-free-types",
-  "-Xmax-classfile-name",
-  "130",
-  "-Xverify",
-  // private
-  "-Ybreak-cycles",
-  "-Yclosure-elim",
-  "-Yconst-opt",
-  "-Ydead-code",
-  "-Ydelambdafy:method",
-  "-Yinline",
-  "-Yinline-handlers",
-  "-Yinline-warnings",
-  "-Yno-adapted-args",
-  "-Ywarn-dead-code",
-  "-Ywarn-inaccessible",
-  "-Ywarn-infer-any",
-  "-Ywarn-nullary-override",
-  "-Ywarn-nullary-unit",
-  "-Ywarn-numeric-widen",
-  "-Ywarn-unused",
-  "-Ywarn-unused-import",
-  "-Ywarn-value-discard",
-  "-Ypartial-unification",
-  //  "-Ymacro-debug-lite",
-  ""
-)
-
 description in ThisBuild := "jsonapi.org scala implementation"
 
-version in ThisBuild := "9.3.0"
+version in ThisBuild := "10.0.0"
 
 startYear in ThisBuild := Some(2015)
 
@@ -166,12 +163,13 @@ testOptions in Test in ThisBuild ++= Seq(
 
 javacOptions in ThisBuild ++= Seq("-deprecation", "-g", "-source", "8", "-target", "8", "-Xlint")
 
+val specs2Version = "4.10.5"
 val testDeps = Seq(
   // testing related
-  "org.specs2" %% "specs2-core"          % "4.8.1" % Test,
-  "org.specs2" %% "specs2-junit"         % "4.8.1" % Test,
-  "org.specs2" %% "specs2-scalacheck"    % "4.8.1" % Test,
-  "org.specs2" %% "specs2-matcher-extra" % "4.8.1" % Test
+  "org.specs2" %% "specs2-core"          % specs2Version % Test,
+  "org.specs2" %% "specs2-junit"         % specs2Version % Test,
+  "org.specs2" %% "specs2-scalacheck"    % specs2Version % Test,
+  "org.specs2" %% "specs2-matcher-extra" % specs2Version % Test
 )
 
 wartremoverErrors in (Compile, compile) ++= (Warts.unsafe.toSet -- Set(Wart.Any,
@@ -181,33 +179,30 @@ wartremoverErrors in (Compile, compile) ++= (Warts.unsafe.toSet -- Set(Wart.Any,
                                                                        Wart.DefaultArguments,
                                                                        Wart.Throw)).toSeq
 lazy val scalafixSettings =
-  Seq(addCompilerPlugin(scalafixSemanticdb),
-      scalacOptions ++= Seq("-Yrangepos", "-Ywarn-unused-import", "-P:semanticdb:failures:warning"))
+  Seq(addCompilerPlugin(scalafixSemanticdb), scalacOptions ++= Seq("-Yrangepos", "-P:semanticdb:failures:warning"))
 
 lazy val core = (project in file("core"))
+  .enablePlugins(MacrosCompiler)
   .settings(scalafixSettings)
   .settings(
     name := "jsonapi-scala-core",
-    scalaVersion := "2.11.12",
-    crossScalaVersions := Seq("2.11.12", "2.12.10"),
+    scalaVersion := "2.13.3",
+    crossScalaVersions := Seq("2.12.10", "2.13.3"),
     scalacOptions ++= {
-      if (scalaVersion.value startsWith "2.11.") {
-        scala211
-      } else {
+      if (scalaVersion.value startsWith "2.12.") {
         scala212
-      }
+      } else
+        scala213
     },
     libraryDependencies ++= Seq(
-      "org.scala-lang" % "scala-reflect" % scalaVersion.value,
-      compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
+      "org.scala-lang"   % "scala-reflect"    % scalaVersion.value,
       "com.chuusai"      %% "shapeless"       % "2.3.3",
-      "com.qvantel"      %% "scala-inflector" % "1.3.6",
+      "com.qvantel"      %% "scala-inflector" % "1.4.0",
       "io.spray"         %% "spray-json"      % "1.3.5",
-      "io.lemonlabs"     %% "scala-uri"       % "0.5.7",
-      "net.virtual-void" %% "json-lenses"     % "0.6.2" excludeAll
-        ExclusionRule(organization = "org.parboiled", name = "parboiled-scala_2.11"),
-      "org.typelevel" %% "cats-effect" % "1.4.0",
-      "co.fs2"        %% "fs2-io"      % "1.0.5"
+      "io.lemonlabs"     %% "scala-uri"       % "3.0.0",
+      "org.typelevel"    %% "cats-effect"     % "2.2.0",
+      "co.fs2"           %% "fs2-io"          % "2.4.4",
+      "net.virtual-void" %% "json-lenses"     % "0.6.2"
     ) ++ testDeps
   )
 
@@ -216,122 +211,98 @@ lazy val model = (project in file("model"))
   .settings(scalafixSettings)
   .settings(
     name := "jsonapi-scala-model",
-    scalaVersion := "2.11.12",
-    crossScalaVersions := Seq("2.11.12", "2.12.10"),
+    scalaVersion := "2.13.3",
+    crossScalaVersions := Seq("2.12.10", "2.13.3"),
     scalacOptions ++= {
-      if (scalaVersion.value startsWith "2.11.") {
-        scala211
-      } else {
+      if (scalaVersion.value startsWith "2.12.") {
         scala212
-      }
+      } else
+        scala213
     },
     libraryDependencies ++= testDeps
   )
 
-lazy val spray = (project in file("spray"))
-  .dependsOn(core, model)
-  .settings(scalafixSettings)
-  .settings(
-    name := "jsonapi-scala-spray",
-    scalaVersion := "2.11.12",
-    crossScalaVersions := Seq("2.11.12"),
-    scalacOptions ++= scala211,
-    libraryDependencies ++= Seq(
-      compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
-      "io.spray" %% "spray-httpx"  % "1.3.4",
-      "io.spray" %% "spray-client" % "1.3.4" excludeAll
-        ExclusionRule(organization = "com.typesafe.akka", name = "akka-actor_2.11"),
-      "io.spray" %% "spray-routing-shapeless23" % "1.3.4" excludeAll
-        ExclusionRule(organization = "com.chuusai", name = "shapeless_2.11"),
-      "com.typesafe.akka" %% "akka-actor" % "2.4.20" excludeAll (ExclusionRule(organization = "com.typesafe.akka",
-                                                                               name = "akka-cluster_2.11"),
-      ExclusionRule(organization = "com.typesafe.akka", name = "akka-remote_2.11")),
-      "io.spray"          %% "spray-testkit"             % "1.3.4"  % "test",
-      "com.typesafe.akka" %% "akka-testkit"              % "2.4.20" % "test",
-      "io.spray"          %% "spray-routing-shapeless23" % "1.3.4"  % "test"
-    ) ++ testDeps
-  )
+val akkaVersion     = "2.5.31"
+val akkaHttpVersion = "10.1.11"
 
 lazy val akkaClient = (project in file("akka-client"))
   .dependsOn(core)
+  .enablePlugins(MacrosCompiler)
   .settings(scalafixSettings)
   .settings(
     name := "jsonapi-scala-akka-client",
-    scalaVersion := "2.11.12",
-    crossScalaVersions := Seq("2.11.12", "2.12.10"),
+    scalaVersion := "2.13.3",
+    crossScalaVersions := Seq("2.12.10", "2.13.3"),
     scalacOptions ++= {
-      if (scalaVersion.value startsWith "2.11.") {
-        scala211
-      } else {
+      if (scalaVersion.value startsWith "2.12.") {
         scala212
-      }
+      } else
+        scala213
     },
     libraryDependencies ++= Seq(
-      compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
-      "com.typesafe.akka" %% "akka-stream"          % "2.5.31"  % Provided,
-      "com.typesafe.akka" %% "akka-actor"           % "2.5.31"  % Provided,
-      "com.typesafe.akka" %% "akka-http"            % "10.1.11" % Provided,
-      "com.typesafe.akka" %% "akka-http-spray-json" % "10.1.11" % Provided
-    ) ++ testDeps
-  )
-
-val http4sVersion = "0.20.13"
-
-lazy val http4sClient = (project in file("http4s-client"))
-  .dependsOn(core)
-  .settings(scalafixSettings)
-  .settings(
-    name := "jsonapi-scala-http4s-client",
-    scalaVersion := "2.11.12",
-    crossScalaVersions := Seq("2.11.12", "2.12.10"),
-    scalacOptions ++= {
-      if (scalaVersion.value startsWith "2.11.") {
-        scala211
-      } else {
-        scala212
-      }
-    },
-    libraryDependencies ++= Seq(
-      compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
-      "org.http4s" %% "http4s-dsl"          % http4sVersion,
-      "org.http4s" %% "http4s-blaze-client" % http4sVersion,
-      "org.http4s" %% "http4s-blaze-server" % http4sVersion % Test
+      "com.typesafe.akka" %% "akka-stream"          % akkaVersion     % Provided,
+      "com.typesafe.akka" %% "akka-actor"           % akkaVersion     % Provided,
+      "com.typesafe.akka" %% "akka-http"            % akkaHttpVersion % Provided,
+      "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion % Provided
     ) ++ testDeps
   )
 
 lazy val akka = (project in file("akka"))
   .dependsOn(core, model)
+  .enablePlugins(MacrosCompiler)
   .settings(scalafixSettings)
   .settings(
     name := "jsonapi-scala-akka",
-    scalaVersion := "2.11.12",
-    crossScalaVersions := Seq("2.11.12", "2.12.10"),
+    scalaVersion := "2.13.3",
+    crossScalaVersions := Seq("2.12.10", "2.13.3"),
     scalacOptions ++= {
-      if (scalaVersion.value startsWith "2.11.") {
-        scala211
-      } else {
+      if (scalaVersion.value startsWith "2.12.") {
         scala212
-      }
+      } else
+        scala213
     },
     libraryDependencies ++= Seq(
-      compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
-      "com.typesafe.akka" %% "akka-actor" % "2.5.31" % Provided excludeAll (
-        ExclusionRule(organization = "com.typesafe.akka", name = "akka-cluster_2.11"),
-        ExclusionRule(organization = "com.typesafe.akka", name = "akka-remote_2.11")
+      "com.typesafe.akka" %% "akka-actor" % akkaVersion % Provided excludeAll (
+        ExclusionRule(organization = "com.typesafe.akka", name = "akka-cluster"),
+        ExclusionRule(organization = "com.typesafe.akka", name = "akka-remote")
       ),
-      "com.typesafe.akka" %% "akka-stream"       % "2.5.31"  % Provided,
-      "com.typesafe.akka" %% "akka-http"         % "10.1.11" % Provided,
-      "com.typesafe.akka" %% "akka-http-core"    % "10.1.11" % Provided,
-      "com.typesafe.akka" %% "akka-http-testkit" % "10.1.11" % Test,
-      "org.scalatest"     %% "scalatest"         % "3.0.8"   % Test,
-      "com.typesafe.akka" %% "akka-testkit"      % "2.5.31"  % Test
+      "com.typesafe.akka" %% "akka-stream"       % akkaVersion     % Provided,
+      "com.typesafe.akka" %% "akka-http"         % akkaHttpVersion % Provided,
+      "com.typesafe.akka" %% "akka-http-core"    % akkaHttpVersion % Provided,
+      "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % Test,
+      "com.typesafe.akka" %% "akka-testkit"      % akkaVersion     % Test,
+      "org.scalatest"     %% "scalatest"         % "3.2.2"         % Test
     ) ++ testDeps
   )
 
+lazy val http4sClient = (project in file("http4s-client"))
+  .dependsOn(core)
+  .enablePlugins(MacrosCompiler)
+  .settings(scalafixSettings)
+  .settings(
+    name := "jsonapi-scala-http4s-client",
+    scalaVersion := "2.13.3",
+    crossScalaVersions := Seq("2.12.10", "2.13.3"),
+    scalacOptions ++= {
+      if (scalaVersion.value startsWith "2.12.") {
+        scala212
+      } else
+        scala213
+    },
+    libraryDependencies ++= {
+      val http4sVersion = "0.21.8"
+      Seq(
+        "org.http4s" %% "http4s-dsl"          % http4sVersion,
+        "org.http4s" %% "http4s-blaze-client" % http4sVersion,
+        "org.http4s" %% "http4s-blaze-server" % http4sVersion % Test
+      )
+    } ++ testDeps
+  )
+
 lazy val root = (project in file("."))
-  .aggregate(core, model, spray, akkaClient, http4sClient, akka)
+  .aggregate(core, model, akkaClient, http4sClient, akka)
   .settings(
     publishArtifact := false,
     name := "jsonapi-scala",
-    scalaVersion := "2.11.12"
+    scalaVersion := "2.13.3"
   )

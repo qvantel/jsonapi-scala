@@ -30,8 +30,8 @@ import org.specs2.ScalaCheck
 import org.specs2.mutable.Specification
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json.{JsObject, JsonParser}
-import com.netaporter.uri.Uri
-import com.netaporter.uri.dsl._
+import io.lemonlabs.uri.Url
+import io.lemonlabs.uri.typesafe.dsl.stringToUri
 
 import com.qvantel.jsonapi.Helpers._
 
@@ -158,7 +158,7 @@ final class MacrosSpec extends Specification with ScalaCheck {
       implicit val resourceType: com.qvantel.jsonapi.ResourceType[Root] = ResourceType[Root]("root")
 
       implicit val pathTo: PathTo[Root] = new PathToId[Root] {
-        override final def root: Uri = "/roots"
+        override final def root: Url = "/roots"
       }
 
       val format = jsonApiFormat[Root]
@@ -167,11 +167,11 @@ final class MacrosSpec extends Specification with ScalaCheck {
 
       val json = format.write(data)
 
-      json.extract[String]('attributes / "name-mangling") must_== data.nameMangling
-      json.extract[String]('id) must_== "1"
-      json.extract[String]('type) must_== "root"
+      json.extract[String]("attributes" / "name-mangling") must_== data.nameMangling
+      json.extract[String]("id") must_== "1"
+      json.extract[String]("type") must_== "root"
       // check that attributes are ordered
-      json.extract[JsObject]('attributes) must_== JsonParser(
+      json.extract[JsObject]("attributes") must_== JsonParser(
         """{"a-field":"a field","b-field":3,"c-field":3.2,"name-mangling":"test data","r-field":false}""")
     }
 
@@ -189,7 +189,7 @@ final class MacrosSpec extends Specification with ScalaCheck {
       implicit val resourceType: com.qvantel.jsonapi.ResourceType[Root] = ResourceType[Root]("root")
 
       implicit val pathTo: PathTo[Root] = new PathToId[Root] {
-        override final def root: Uri = "/roots"
+        override final def root: Url = "/roots"
       }
 
       val format = jsonApiFormat[Root]
@@ -199,11 +199,11 @@ final class MacrosSpec extends Specification with ScalaCheck {
 
       val json = format.write(data, sparseFields)
 
-      json.extract[String]('attributes / "name-mangling") must_== data.nameMangling
-      json.extract[String]('id) must_== "1"
-      json.extract[String]('type) must_== "root"
+      json.extract[String]("attributes" / "name-mangling") must_== data.nameMangling
+      json.extract[String]("id") must_== "1"
+      json.extract[String]("type") must_== "root"
       // check that attributes are ordered
-      json.extract[JsObject]('attributes) must_== JsonParser(
+      json.extract[JsObject]("attributes") must_== JsonParser(
         """{"b-field":3,"name-mangling":"test data","r-field":false}""")
     }
 
@@ -216,7 +216,7 @@ final class MacrosSpec extends Specification with ScalaCheck {
       object End {
         implicit lazy val endResourceType: com.qvantel.jsonapi.ResourceType[End] = ResourceType[End]("end")
         implicit lazy val endPathTo: PathTo[End] = new PathToId[End] {
-          override final def root: Uri = "/end"
+          override final def root: Url = "/end"
         }
         implicit lazy val endFormat: com.qvantel.jsonapi.JsonApiFormat[End] = jsonApiFormat[End]
         implicit lazy val endIncludes: Includes[End]                        = includes[End]
@@ -225,7 +225,7 @@ final class MacrosSpec extends Specification with ScalaCheck {
       object Leaf {
         implicit lazy val leafResourceType: com.qvantel.jsonapi.ResourceType[Leaf] = ResourceType[Leaf]("leaves")
         implicit lazy val leafPathTo: PathTo[Leaf] = new PathToId[Leaf] {
-          override final def root: Uri = "/leaves"
+          override final def root: Url = "/leaves"
         }
         implicit lazy val leafFormat: com.qvantel.jsonapi.JsonApiFormat[Leaf] = jsonApiFormat[Leaf]
         implicit lazy val leafIncludes: Includes[Leaf]                        = includes[Leaf]
@@ -234,7 +234,7 @@ final class MacrosSpec extends Specification with ScalaCheck {
       object Child {
         implicit lazy val childResourceType: com.qvantel.jsonapi.ResourceType[Child] = ResourceType[Child]("children")
         implicit lazy val childPathTo: PathTo[Child] = new PathToId[Child] {
-          override final def root: Uri = "/children"
+          override final def root: Url = "/children"
         }
         implicit lazy val childFormat: com.qvantel.jsonapi.JsonApiFormat[Child] = jsonApiFormat[Child]
         implicit lazy val childIncludes: Includes[Child]                        = includes[Child]
@@ -243,7 +243,7 @@ final class MacrosSpec extends Specification with ScalaCheck {
       object Root {
         implicit lazy val rootResourceType: com.qvantel.jsonapi.ResourceType[Root] = ResourceType[Root]("roots")
         implicit lazy val rootPathTo: PathTo[Root] = new PathToId[Root] {
-          override final def root: Uri = "/roots"
+          override final def root: Url = "/roots"
         }
         implicit lazy val rootFormat: com.qvantel.jsonapi.JsonApiFormat[Root] = jsonApiFormat[Root]
         implicit lazy val rootIncludes: Includes[Root]                        = includes[Root]
@@ -260,19 +260,19 @@ final class MacrosSpec extends Specification with ScalaCheck {
 
       import _root_.spray.json.lenses.JsonLenses._
 
-      json.extract[String]('attributes / "name-mangling") must_== root.nameMangling
-      json.extract[String]('id) must_== "1"
-      json.extract[String]('type) must_== "roots"
+      json.extract[String]("attributes" / "name-mangling") must_== root.nameMangling
+      json.extract[String]("id") must_== "1"
+      json.extract[String]("type") must_== "roots"
 
-      json.extract[String]('relationships / 'child / 'data / 'id) must_== child.id
+      json.extract[String]("relationships" / "child" / "data" / "id") must_== child.id
 
       val includedJson = Root.rootFormat.included(root)
 
-      includedJson.exists(_.extract[String]('id) == "5") must_== true
-      includedJson.exists(_.extract[String]('id) == "30") must_== true
-      includedJson.exists(_.extract[String]('id) == "3") must_== true
-      includedJson.exists(_.extract[String]('id) == "2") must_== true
-      includedJson.exists(_.extract[String]('id) == "666") must_== true
+      includedJson.exists(_.extract[String]("id") == "5") must_== true
+      includedJson.exists(_.extract[String]("id") == "30") must_== true
+      includedJson.exists(_.extract[String]("id") == "3") must_== true
+      includedJson.exists(_.extract[String]("id") == "2") must_== true
+      includedJson.exists(_.extract[String]("id") == "666") must_== true
     }
   }
 }

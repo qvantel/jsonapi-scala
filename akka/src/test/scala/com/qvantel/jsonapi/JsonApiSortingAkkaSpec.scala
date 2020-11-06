@@ -32,7 +32,7 @@ import org.specs2.mutable._
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
 import _root_.akka.http.scaladsl.testkit.Specs2RouteTest
-import com.netaporter.uri.dsl._
+import io.lemonlabs.uri.typesafe.dsl._
 
 final class JsonApiSortingAkkaSpec extends Specification with Specs2RouteTest {
   def actorRefFactory = system
