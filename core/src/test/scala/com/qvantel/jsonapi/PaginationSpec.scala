@@ -59,21 +59,13 @@ class PaginationSpec extends Specification {
 
       json.getFields("links").head must be equalTo JsObject(
         "prev" -> JsString(
-          Uri
-            .parse("/api/entity?filter=(EQ%20id%20'1')&include=relB.relC&page%5Bnumber%5D=1&page%5Bsize%5D=10")
-            .toString),
+          "/api/entity?filter=%28EQ%20id%20%271%27%29&include=relB.relC&page%5Bnumber%5D=1&page%5Bsize%5D=10"),
         "next" -> JsString(
-          Uri
-            .parse("/api/entity?filter=(EQ%20id%20'1')&include=relB.relC&page%5Bnumber%5D=3&page%5Bsize%5D=10")
-            .toString),
+          "/api/entity?filter=%28EQ%20id%20%271%27%29&include=relB.relC&page%5Bnumber%5D=3&page%5Bsize%5D=10"),
         "first" -> JsString(
-          Uri
-            .parse("/api/entity?filter=(EQ%20id%20'1')&include=relB.relC&page%5Bnumber%5D=1&page%5Bsize%5D=10")
-            .toString),
+          "/api/entity?filter=%28EQ%20id%20%271%27%29&include=relB.relC&page%5Bnumber%5D=1&page%5Bsize%5D=10"),
         "last" -> JsString(
-          Uri
-            .parse("/api/entity?filter=(EQ%20id%20'1')&include=relB.relC&page%5Bnumber%5D=100&page%5Bsize%5D=10")
-            .toString)
+          "/api/entity?filter=%28EQ%20id%20%271%27%29&include=relB.relC&page%5Bnumber%5D=100&page%5Bsize%5D=10")
       )
     }
 
