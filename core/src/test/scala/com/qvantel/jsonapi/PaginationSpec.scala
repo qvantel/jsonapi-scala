@@ -58,12 +58,14 @@ class PaginationSpec extends Specification {
       val json     = rawCollection(entities)
 
       json.getFields("links").head must be equalTo JsObject(
-        "prev" -> JsString("/api/entity?filter=(EQ%20id%20'1')&include=relB.relC&page%5Bnumber%5D=1&page%5Bsize%5D=10"),
-        "next" -> JsString("/api/entity?filter=(EQ%20id%20'1')&include=relB.relC&page%5Bnumber%5D=3&page%5Bsize%5D=10"),
+        "prev" -> JsString(
+          "/api/entity?filter=%28EQ%20id%20%271%27%29&include=relB.relC&page%5Bnumber%5D=1&page%5Bsize%5D=10"),
+        "next" -> JsString(
+          "/api/entity?filter=%28EQ%20id%20%271%27%29&include=relB.relC&page%5Bnumber%5D=3&page%5Bsize%5D=10"),
         "first" -> JsString(
-          "/api/entity?filter=(EQ%20id%20'1')&include=relB.relC&page%5Bnumber%5D=1&page%5Bsize%5D=10"),
+          "/api/entity?filter=%28EQ%20id%20%271%27%29&include=relB.relC&page%5Bnumber%5D=1&page%5Bsize%5D=10"),
         "last" -> JsString(
-          "/api/entity?filter=(EQ%20id%20'1')&include=relB.relC&page%5Bnumber%5D=100&page%5Bsize%5D=10")
+          "/api/entity?filter=%28EQ%20id%20%271%27%29&include=relB.relC&page%5Bnumber%5D=100&page%5Bsize%5D=10")
       )
     }
 
