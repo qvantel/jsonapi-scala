@@ -105,7 +105,7 @@ package object jsonapi {
       case JsonApiPagination.Empty => obj
       case paging =>
         val oldLinks: Map[String, JsValue]  = obj.fields.get("links").map(_.asJsObject.fields).getOrElse(Map.empty)
-        val pageLinks: Map[String, JsValue] = paging.allLinksAsUris.mapValues(uri => JsString(uri.toString()))
+        val pageLinks: Map[String, JsValue] = paging.allLinksAsUris.mapValues(uri => PathJsonFormat.write(uri))
         val links: Map[String, JsValue]     = Map("links" -> JsObject(oldLinks ++ pageLinks))
         JsObject(obj.fields ++ links)
     }
