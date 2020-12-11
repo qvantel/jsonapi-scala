@@ -713,7 +713,6 @@ final class JsonApiSupportSpec extends Specification with Specs2RouteTest {
 
       Get("/sparse") ~> route ~> check {
         val json = JsonParser(responseAs[String])
-        println(json)
         json must be equalTo rawOne[Thang](thang)
       }
     }

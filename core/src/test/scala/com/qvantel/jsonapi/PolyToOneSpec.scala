@@ -246,6 +246,63 @@ final class PolyToOneSpec extends Specification {
       rawOne(t) must be equalTo rawJson
     }
 
+    "skip printing out data for JsonAbsent case of JsonOption[PolyToOne[X]]" in {
+      @jsonApiResource final case class Test(id: String, opt: JsonOption[PolyToOne[Author]])
+
+      val t = Test("id", JsonAbsent)
+
+      val rawJson =
+        """
+          |{
+          |  "data": {
+          |    "relationships": {
+          |      "opt": {
+          |        "links": {
+          |          "related": "/tests/id/opt"
+          |        }
+          |      }
+          |    },
+          |    "links": {
+          |      "self": "/tests/id"
+          |    },
+          |    "id": "id",
+          |    "type": "tests"
+          |  }
+          |}
+        """.stripMargin.parseJson.asJsObject
+
+      rawOne(t) must be equalTo rawJson
+    }
+
+    "print out data as null for JsonNull case of JsonOption[PolyToOne[X]]" in {
+      @jsonApiResource final case class Test(id: String, opt: JsonOption[PolyToOne[Author]])
+
+      val t = Test("id", JsonNull)
+
+      val rawJson =
+        """
+          |{
+          |  "data": {
+          |    "relationships": {
+          |      "opt": {
+          |        "links": {
+          |          "related": "/tests/id/opt"
+          |        },
+          |        "data": null
+          |      }
+          |    },
+          |    "links": {
+          |      "self": "/tests/id"
+          |    },
+          |    "id": "id",
+          |    "type": "tests"
+          |  }
+          |}
+        """.stripMargin.parseJson.asJsObject
+
+      rawOne(t) must be equalTo rawJson
+    }
+
     "correctly write sparse fieldsets (while supporting inclusion of the relationship even if it is not included in the sparse fieldset)" >> {
       implicit val sparseFields: Map[String, List[String]] = Map("articles" -> List("title"))
       val article                                          = Article("1", "boom", PolyToOne.loaded[Author, Person](Person("test-id", "mario")))
@@ -297,5 +354,29 @@ final class PolyToOneSpec extends Specification {
     includes.includesAllowed("foo", "notlooped", "looped.brake.looped", "looped.foo.brake") must beFalse
 
     includes.includesAllowed("looped", "notlooped") must beFalse
+  }
+
+  "read and write JsonOption relationship" in {
+    @jsonApiResource("test", "no-id") final case class Test(name: String, x: JsonOption[PolyToOne[Author]])
+
+    val t      = Test("name", JsonAbsent)
+    val json   = rawOne(t)
+    val parsed = readOne[Test](json)
+    parsed must be equalTo t
+
+    val t2      = Test("name", JsonNull)
+    val json2   = rawOne(t2)
+    val parsed2 = readOne[Test](json2)
+    parsed2 must be equalTo (t2)
+
+    val t3      = Test("name", JsonSome(PolyToOne.reference[Author, Person]("test")))
+    val json3   = rawOne(t3)
+    val parsed3 = readOne[Test](json3)
+    parsed3 must be equalTo t3
+
+    val t4      = Test("name", JsonSome(PolyToOne.loaded[Author, Person](Person("2", "2"))))
+    val json4   = rawOne(t4)
+    val parsed4 = readOne[Test](json4, Set("x"))
+    parsed4 must be equalTo t4
   }
 }

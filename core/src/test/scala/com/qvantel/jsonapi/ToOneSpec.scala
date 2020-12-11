@@ -348,7 +348,7 @@ final class ToOneSpec extends Specification {
       rawOne(t) must be equalTo rawJson
     }
 
-    "print out data as null for JsonAbsent case of JsonOption[ToOne[X]]" in {
+    "skip printing out data for JsonAbsent case of JsonOption[ToOne[X]]" in {
       @jsonApiResource final case class Test(id: String, opt: JsonOption[ToOne[Test]])
 
       val t = Test("id", JsonAbsent)
@@ -376,7 +376,7 @@ final class ToOneSpec extends Specification {
       rawOne(t) must be equalTo rawJson
     }
 
-    "print out data as null for JsonAbsent case of JsonOption[ToOne[X]]" in {
+    "print out data as null for JsonNull case of JsonOption[ToOne[X]]" in {
       @jsonApiResource final case class Test(id: String, opt: JsonOption[ToOne[Test]])
 
       val t = Test("id", JsonNull)
@@ -479,5 +479,10 @@ final class ToOneSpec extends Specification {
     val json3   = rawOne(t3)
     val parsed3 = readOne[Test](json3)
     parsed3 must be equalTo t3
+
+    val t4      = Test("name", JsonSome(ToOne.loaded(Author("id", "name"))))
+    val json4   = rawOne(t4)
+    val parsed4 = readOne[Test](json4, Set("x"))
+    parsed4 must be equalTo t4
   }
 }
