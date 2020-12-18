@@ -72,7 +72,6 @@ class PaginationSpec extends Specification {
     "defaults to empty pagination" >> {
       val entities = 1.to(3).map(i => Test(i.toString, "attr"))
       val json     = rawCollection(entities)
-      println(json.prettyPrint)
       json.getFields("links") must be(Seq.empty)
     }
 
