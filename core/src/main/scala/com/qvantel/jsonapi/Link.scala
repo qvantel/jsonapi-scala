@@ -32,6 +32,8 @@ import io.lemonlabs.uri.typesafe.dsl._
 import _root_.spray.json.DefaultJsonProtocol._
 import _root_.spray.json._
 
+import scala.reflect.ClassTag
+
 object Link {
   private[this] def links[P](parent: P, name: String)(implicit pathToParent: PathTo[P],
                                                       pid: Identifiable[P]): JsObject =
@@ -125,6 +127,37 @@ object Link {
         JsObject("data" -> JsArray(resourceLinkage.toVector), "links" -> links(parent, name))
     }
 
+  def to[A, P](parent: P, maybeRelation: JsonOption[ToMany[A]], name: String)(implicit identifiable: Identifiable[A],
+                                                                              pid: Identifiable[P],
+                                                                              rt: ResourceType[A],
+                                                                              pathTo: PathTo[A],
+                                                                              pathToParent: PathTo[P],
+                                                                              tag: ClassTag[ToMany[A]]): JsValue =
+    maybeRelation match {
+      case JsonSome(ToMany.IdsReference(ids)) =>
+        val linksTuple: (String, JsValue) = "links" -> links(parent, name)
+        val resourceLinkage = ids.map { id =>
+          JsObject(
+            "type" -> implicitly[ResourceType[A]].resourceType.toJson,
+            "id"   -> id.toJson
+          )
+        }
+        val data: (String, JsValue) = "data" -> JsArray(resourceLinkage.toVector)
+        JsObject(Map(linksTuple, data))
+      case JsonSome(ToMany.PathReference(Some(path))) =>
+        JsObject("links" -> JsObject("related" -> path.toJson))
+      case JsonSome(ToMany.Loaded(entities)) =>
+        val resourceLinkage = entities map { entity =>
+          JsObject("type" -> implicitly[ResourceType[A]].resourceType.toJson,
+                   "id"   -> identifiable.identify(entity).toJson)
+        }
+        JsObject("data" -> JsArray(resourceLinkage.toVector), "links" -> links(parent, name))
+      case JsonNull =>
+        JsObject("data" -> JsNull, "links" -> links(parent, name))
+      case _ =>
+        JsObject("links" -> links(parent, name))
+    }
+
   def to[A <: Coproduct, P](parent: P, relation: PolyToOne[A], name: String)(implicit identifiable: PolyIdentifiable[A],
                                                                              pid: Identifiable[P],
                                                                              pathToParent: PathTo[P]): JsValue = {
@@ -211,6 +244,40 @@ object Link {
         JsObject("data" -> JsArray(resourceLinkage.toVector), "links" -> links(parent, name))
     }
 
+  def to[A <: Coproduct, P](parent: P, maybeRelation: JsonOption[PolyToMany[A]], name: String)(
+      implicit identifiable: PolyIdentifiable[A],
+      pid: Identifiable[P],
+      pathToParent: PathTo[P],
+      tag: ClassTag[PolyToMany[A]]): JsValue =
+    maybeRelation match {
+      case JsonSome(PolyToMany.IdsReference(rels)) =>
+        val linksTuple: (String, JsValue) = "links" -> links(parent, name)
+        val resourceLinkage = rels.map { rel =>
+          JsObject(
+            "type" -> rel.resourceType.toJson,
+            "id"   -> rel.id.toJson
+          )
+        }
+        val data: (String, JsValue) = "data" -> JsArray(resourceLinkage.toVector)
+        JsObject(Map(linksTuple, data))
+
+      case JsonSome(PolyToMany.PathReference(Some(path))) =>
+        JsObject("links" -> JsObject("related" -> path.toJson))
+
+      case JsonSome(PolyToMany.Loaded(entities)) =>
+        val resourceLinkage = entities map { entity =>
+          JsObject("type" -> identifiable.resourceType(entity).toJson, "id" -> identifiable.identify(entity).toJson)
+        }
+
+        JsObject("data" -> JsArray(resourceLinkage.toVector), "links" -> links(parent, name))
+
+      case JsonNull =>
+        JsObject("data" -> JsNull, "links" -> links(parent, name))
+
+      case _ =>
+        JsObject("links" -> links(parent, name))
+    }
+
   def toNoParentPath[A, P](parent: P, relation: ToOne[A], name: String)(implicit identifiable: Identifiable[A],
                                                                         rt: ResourceType[A],
                                                                         pathTo: PathTo[A]): JsValue = {
@@ -281,6 +348,43 @@ object Link {
                    "id"   -> identifiable.identify(entity).toJson)
         }
         JsObject("data" -> JsArray(resourceLinkage.toVector))
+    }
+
+  def toNoParentPath[A, P](parent: P, maybeRelation: JsonOption[ToMany[A]], name: String)(
+      implicit identifiable: Identifiable[A],
+      rt: ResourceType[A],
+      pathTo: PathTo[A],
+      tag: ClassTag[ToMany[A]]): JsValue =
+    maybeRelation match {
+      case JsonSome(ToMany.IdsReference(ids)) =>
+        val resourceLinkage = ids.map { id =>
+          JsObject(
+            "type" -> implicitly[ResourceType[A]].resourceType.toJson,
+            "id"   -> id.toJson
+          )
+        }
+        JsObject("data" -> JsArray(resourceLinkage.toVector))
+
+      case JsonSome(ToMany.PathReference(Some(path))) =>
+        JsObject("links" -> JsObject("related" -> path.toJson))
+
+      case JsonSome(ToMany.PathReference(None)) =>
+        // not 100% sure what to do in this case
+        JsObject("data" -> JsArray.empty)
+
+      case JsonSome(ToMany.Loaded(entities)) =>
+        val resourceLinkage = entities map { entity =>
+          JsObject("type" -> implicitly[ResourceType[A]].resourceType.toJson,
+                   "id"   -> identifiable.identify(entity).toJson)
+        }
+        JsObject("data" -> JsArray(resourceLinkage.toVector))
+
+      case JsonNull =>
+        JsObject("data" -> JsNull)
+
+      case JsonAbsent =>
+        // not 100% sure what to do in this case
+        JsObject("data" -> JsArray.empty)
     }
 
   def toNoParentPath[A <: Coproduct, P](parent: P, relation: PolyToOne[A], name: String)(
@@ -359,5 +463,40 @@ object Link {
         }
 
         JsObject("data" -> JsArray(resourceLinkage.toVector))
+    }
+
+  def toNoParentPath[A <: Coproduct, P](parent: P, maybeRelation: JsonOption[PolyToMany[A]], name: String)(
+      implicit identifiable: PolyIdentifiable[A],
+      tag: ClassTag[PolyToMany[A]]): JsValue =
+    maybeRelation match {
+      case JsonSome(PolyToMany.IdsReference(rels)) =>
+        val resourceLinkage = rels.map { rel =>
+          JsObject(
+            "type" -> rel.resourceType.toJson,
+            "id"   -> rel.id.toJson
+          )
+        }
+        JsObject("data" -> JsArray(resourceLinkage.toVector))
+
+      case JsonSome(PolyToMany.PathReference(Some(path))) =>
+        JsObject("links" -> JsObject("related" -> path.toJson))
+
+      case JsonSome(PolyToMany.PathReference(None)) =>
+        // not 100% sure what to do in this case
+        JsObject("data" -> JsArray.empty)
+
+      case JsonSome(PolyToMany.Loaded(entities)) =>
+        val resourceLinkage = entities map { entity =>
+          JsObject("type" -> identifiable.resourceType(entity).toJson, "id" -> identifiable.identify(entity).toJson)
+        }
+
+        JsObject("data" -> JsArray(resourceLinkage.toVector))
+
+      case JsonNull =>
+        JsObject("data" -> JsNull)
+
+      case JsonAbsent =>
+        // not 100% sure what to do in this case
+        JsObject("data" -> JsArray.empty)
     }
 }

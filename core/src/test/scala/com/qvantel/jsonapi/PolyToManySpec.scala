@@ -271,6 +271,63 @@ final class PolyToManySpec extends Specification {
   }
 
   "write" should {
+    "skip printing out data for JsonAbsent case of JsonOption[PolyToMany[X]]" in {
+      @jsonApiResource final case class Test(id: String, opt: JsonOption[PolyToMany[Author]])
+
+      val t = Test("id", JsonAbsent)
+
+      val rawJson =
+        """
+          |{
+          |  "data": {
+          |    "relationships": {
+          |      "opt": {
+          |        "links": {
+          |          "related": "/tests/id/opt"
+          |        }
+          |      }
+          |    },
+          |    "links": {
+          |      "self": "/tests/id"
+          |    },
+          |    "id": "id",
+          |    "type": "tests"
+          |  }
+          |}
+        """.stripMargin.parseJson.asJsObject
+
+      rawOne(t) must be equalTo rawJson
+    }
+
+    "print out data as null for JsonNull case of JsonOption[PolyToMany[X]]" in {
+      @jsonApiResource final case class Test(id: String, opt: JsonOption[PolyToMany[Author]])
+
+      val t = Test("id", JsonNull)
+
+      val rawJson =
+        """
+          |{
+          |  "data": {
+          |    "relationships": {
+          |      "opt": {
+          |        "links": {
+          |          "related": "/tests/id/opt"
+          |        },
+          |        "data": null
+          |      }
+          |    },
+          |    "links": {
+          |      "self": "/tests/id"
+          |    },
+          |    "id": "id",
+          |    "type": "tests"
+          |  }
+          |}
+        """.stripMargin.parseJson.asJsObject
+
+      rawOne(t) must be equalTo rawJson
+    }
+
     "correctly write sparse fieldsets (while supporting inclusion of the relationships even if it is not included in the sparse fieldset)" in {
       implicit val sparseFields: Map[String, List[String]] = Map("articles" -> List("title"))
       val article =
@@ -336,5 +393,30 @@ final class PolyToManySpec extends Specification {
     includes.includesAllowed("foo", "notlooped", "looped.brake.looped", "looped.foo.brake") must beFalse
 
     includes.includesAllowed("looped", "notlooped") must beFalse
+  }
+
+  "read and write JsonOption relationship" in {
+    @jsonApiResource("test", "no-id") final case class Test(name: String, x: JsonOption[PolyToMany[Author]])
+
+    val t      = Test("name", JsonAbsent)
+    val json   = rawOne(t)
+    val parsed = readOne[Test](json)
+    parsed must be equalTo t
+
+    val t2      = Test("name", JsonNull)
+    val json2   = rawOne(t2)
+    val parsed2 = readOne[Test](json2)
+    parsed2 must be equalTo (t2)
+
+    val t3      = Test("name", JsonSome(PolyToMany.reference[Author](Set(("test", "people")))))
+    val json3   = rawOne(t3)
+    val parsed3 = readOne[Test](json3)
+    parsed3 must be equalTo t3
+
+    val authors = Seq(Coproduct[Author](Person("1", "1")), Coproduct[Author](Person("2", "2")))
+    val t4      = Test("name", JsonSome(PolyToMany.loaded(authors)))
+    val json4   = rawOne(t4)
+    val parsed4 = readOne[Test](json4, Set("x"))
+    parsed4 must be equalTo t4
   }
 }

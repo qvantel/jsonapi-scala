@@ -34,14 +34,16 @@ import com.qvantel.jsonapi._
 trait JsonApiCommon extends Tools {
   import c.universe._
 
-  val toOneType: c.universe.Type                 = typeOf[ToOne[_]]
-  val optionalToOneType: c.universe.Type         = typeOf[Option[ToOne[_]]]
-  val jsonOptionalToOneType: c.universe.Type     = typeOf[JsonOption[ToOne[_]]]
-  val toManyType: c.universe.Type                = typeOf[ToMany[_]]
-  val polyToOneType: c.universe.Type             = typeOf[PolyToOne[_]]
-  val optionalPolyToOneType: c.universe.Type     = typeOf[Option[PolyToOne[_]]]
-  val jsonOptionalPolyToOneType: c.universe.Type = typeOf[JsonOption[PolyToOne[_]]]
-  val polyToManyType: c.universe.Type            = typeOf[PolyToMany[_]]
+  val toOneType: c.universe.Type                  = typeOf[ToOne[_]]
+  val optionalToOneType: c.universe.Type          = typeOf[Option[ToOne[_]]]
+  val jsonOptionalToOneType: c.universe.Type      = typeOf[JsonOption[ToOne[_]]]
+  val toManyType: c.universe.Type                 = typeOf[ToMany[_]]
+  val jsonOptionalToManyType: c.universe.Type     = typeOf[JsonOption[ToMany[_]]]
+  val polyToOneType: c.universe.Type              = typeOf[PolyToOne[_]]
+  val optionalPolyToOneType: c.universe.Type      = typeOf[Option[PolyToOne[_]]]
+  val jsonOptionalPolyToOneType: c.universe.Type  = typeOf[JsonOption[PolyToOne[_]]]
+  val polyToManyType: c.universe.Type             = typeOf[PolyToMany[_]]
+  val jsonOptionalPolyToManyType: c.universe.Type = typeOf[JsonOption[PolyToMany[_]]]
 
   val optionType: c.universe.Type     = typeOf[Option[_]]
   val jsonOptionType: c.universe.Type = typeOf[JsonOption[_]]
@@ -68,7 +70,12 @@ trait JsonApiCommon extends Tools {
   def resolveContainedType(t: c.Type): c.Type =
     if (t <:< toOneType || t <:< toManyType || t <:< polyToOneType || t <:< polyToManyType) {
       t.typeArgs.headOption.getOrElse(c.abort(c.enclosingPosition, s"$t typeArgs is empty"))
-    } else if (t <:< optionalToOneType || t <:< jsonOptionalToOneType || t <:< optionalPolyToOneType || t <:< jsonOptionalPolyToOneType) {
+    } else if (t <:< optionalToOneType ||
+               t <:< jsonOptionalToOneType ||
+               t <:< jsonOptionalToManyType ||
+               t <:< optionalPolyToOneType ||
+               t <:< jsonOptionalPolyToOneType ||
+               t <:< jsonOptionalPolyToManyType) {
       t.typeArgs.headOption
         .getOrElse(c.abort(c.enclosingPosition, s"$t typeArgs is empty"))
         .typeArgs
@@ -106,9 +113,11 @@ trait JsonApiCommon extends Tools {
       fieldType <:< optionalToOneType ||
       fieldType <:< jsonOptionalToOneType ||
       fieldType <:< toManyType ||
+      fieldType <:< jsonOptionalToManyType ||
       fieldType <:< polyToOneType ||
       fieldType <:< optionalPolyToOneType ||
       fieldType <:< jsonOptionalPolyToOneType ||
-      fieldType <:< polyToManyType
+      fieldType <:< polyToManyType ||
+      fieldType <:< jsonOptionalPolyToManyType
     }
 }

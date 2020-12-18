@@ -508,6 +508,98 @@ class JsonOptionSpec extends Specification {
     readOne[JsonMaybe](rawOne(dataAbsentJsonOptionalObj), Set("author")) must be equalTo dataAbsentJsonOptionalObj
   }
 
+  "json option to many relation read and write" in {
+    implicit val apiRoot: com.qvantel.jsonapi.ApiRoot = ApiRoot.empty
+
+    @jsonApiResource final case class Author(id: String, name: String)
+    @jsonApiResource final case class JsonMaybe(id: String, authors: JsonOption[ToMany[Author]])
+
+    @jsonApiResource final case class Nested(id: String, authors: JsonOption[ToMany[Author]])
+    @jsonApiResource final case class NestedJsonMaybe(id: String, authors: JsonOption[ToMany[Nested]])
+
+    val properJsonOptional =
+      """
+        |{
+        |  "id": "test",
+        |  "type": "json-maybes",
+        |  "relationships": {
+        |    "authors": {
+        |      "data": [{
+        |        "id": "test",
+        |        "type": "authors"
+        |      }]
+        |    }
+        |  }
+        |}
+      """.stripMargin.parseJson
+
+    val missingDataJsonOptional =
+      """
+        |{
+        |  "id": "test",
+        |  "type": "json-maybes",
+        |  "relationships": {
+        |    "authors": {
+        |    }
+        |  }
+        |}
+      """.stripMargin.parseJson
+
+    val dataNullJsonOptional =
+      """
+        |{
+        |  "id": "test",
+        |  "type": "json-maybes",
+        |  "relationships": {
+        |    "authors": {
+        |      "data": null
+        |    }
+        |  }
+        |}
+      """.stripMargin.parseJson
+
+    val authorNullJsonOptional =
+      """
+        |{
+        |  "id": "test",
+        |  "type": "json-maybes",
+        |  "relationships": {
+        |    "authors": null
+        |  }
+        |}
+      """.stripMargin.parseJson
+
+    val dataAbsentJsonOptional =
+      """
+        |{
+        |  "id": "test",
+        |  "type": "json-maybes",
+        |  "relationships": {
+        |  }
+        |}
+      """.stripMargin.parseJson
+
+    val properJsonOptionalObj     = JsonMaybe("test", JsonSome(ToMany.reference(Set("test"))))
+    val dataNullJsonOptionalObj   = JsonMaybe("test", JsonNull)
+    val dataAbsentJsonOptionalObj = JsonMaybe("test", JsonAbsent)
+
+    // reads
+    implicitly[JsonApiFormat[JsonMaybe]].read(properJsonOptional, Set.empty) must be equalTo properJsonOptionalObj
+    implicitly[JsonApiFormat[JsonMaybe]]
+      .read(missingDataJsonOptional, Set.empty) must throwA[DeserializationException](
+      message = "expected 'data', 'links' or 'meta' in 'authors' in relationships json")
+    implicitly[JsonApiFormat[JsonMaybe]].read(dataNullJsonOptional, Set.empty) must be equalTo dataNullJsonOptionalObj
+    implicitly[JsonApiFormat[JsonMaybe]]
+      .read(authorNullJsonOptional, Set.empty) must be equalTo dataNullJsonOptionalObj
+    implicitly[JsonApiFormat[JsonMaybe]]
+      .read(dataAbsentJsonOptional, Set.empty) must be equalTo dataAbsentJsonOptionalObj
+
+    // writes
+    readOne[JsonMaybe](rawOne(properJsonOptionalObj), Set("authors")) must be equalTo properJsonOptionalObj
+    readOne[JsonMaybe](rawOne(dataNullJsonOptionalObj), Set("authors")) must be equalTo dataNullJsonOptionalObj
+    readOne[JsonMaybe](rawOne(dataAbsentJsonOptionalObj), Set("authors")) must be equalTo dataAbsentJsonOptionalObj
+  }
+
   "json option poly to one relation read and write" in {
     implicit val apiRoot: com.qvantel.jsonapi.ApiRoot = ApiRoot.empty
 
@@ -536,5 +628,36 @@ class JsonOptionSpec extends Specification {
 
     // read / writes
     readOne[JsonMaybe](rawOne(polyToOneObj), Set("author")) must be equalTo polyToOneObj
+  }
+
+  "json option poly to many relation read and write" in {
+    implicit val apiRoot: com.qvantel.jsonapi.ApiRoot = ApiRoot.empty
+
+    @jsonApiResource final case class Person(id: String, name: String)
+    @jsonApiResource final case class Company(id: String, name: String)
+
+    type Author = Person :+: Company :+: CNil
+    implicit object AuthorPolyIdentifiable extends PolyIdentifiable[Author] {
+      private[this] object polyIdentify extends Poly1 {
+        implicit def casePerson  = at[Person](obj => obj.id)
+        implicit def caseCompany = at[Company](obj => obj.id)
+      }
+
+      private[this] object polyResourceType extends Poly1 {
+        implicit def casePerson  = at[Person](_ => implicitly[ResourceType[Person]].resourceType)
+        implicit def caseCompany = at[Company](_ => implicitly[ResourceType[Company]].resourceType)
+      }
+
+      override def identify(a: Author): String     = a fold polyIdentify
+      override def resourceType(a: Author): String = a fold polyResourceType
+    }
+
+    @jsonApiResource final case class JsonMaybe(id: String, authors: JsonOption[PolyToMany[Author]])
+
+    val polyToManyObj =
+      JsonMaybe("test", JsonSome(PolyToMany.reference[Author](Set(("jani", "people"), ("willys", "companies")))))
+
+    // read / writes
+    readOne[JsonMaybe](rawOne(polyToManyObj), Set("authors")) must be equalTo polyToManyObj
   }
 }
