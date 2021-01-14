@@ -27,7 +27,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package com.qvantel.jsonapi
 
 import io.lemonlabs.uri.Url
-import io.lemonlabs.uri.typesafe.dsl._
 
 trait PathTo[A] {
   def root: Url
@@ -41,7 +40,7 @@ object PathTo {
 }
 
 abstract class PathToId[A: Identifiable] extends PathTo[A] {
-  def self(id: String): Url      = root / id
+  def self(id: String): Url      = root.addPathPart(id)
   override def entity(a: A): Url = self(Identifiable[A].identify(a))
 }
 
