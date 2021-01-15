@@ -1,5 +1,6 @@
 .idea
 /.idea_modules
+/.bsp
 .DS_Store
 test_data
 staging_data
@@ -8,9 +9,6 @@ archive
 error
 .*\.orig
 .*\.swp
-input
-archive
-error
 */target/
 target/
 keys/

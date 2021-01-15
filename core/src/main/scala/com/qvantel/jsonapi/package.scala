@@ -41,7 +41,7 @@ import shapeless.{:+:, CNil, Coproduct, Inl, Inr}
 package object jsonapi {
   type NameMangler = String => String
 
-  implicit val uriConfig: UriConfig = UriConfig(encoder = PercentEncoder() ++ '"')
+  implicit val uriConfig: UriConfig = UriConfig(encoder = PercentEncoder())
 
   implicit object PathJsonFormat extends JsonFormat[Url] {
     override def write(obj: Url): JsValue = JsString(obj.toString)
