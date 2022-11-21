@@ -113,7 +113,7 @@ val scala212 = Seq(
 
 description in ThisBuild := "jsonapi.org scala implementation"
 
-version in ThisBuild := "10.2.0"
+version in ThisBuild := "10.3.0"
 
 startYear in ThisBuild := Some(2015)
 
@@ -136,15 +136,6 @@ scmInfo in ThisBuild := Some(
   )
 )
 
-developers in ThisBuild := List(
-  Developer(
-    id = "Doikor",
-    name = "Aki Huttunen",
-    email = "doikor@gmail.com",
-    url = url("http://doikor.fi")
-  )
-)
-
 publishMavenStyle in ThisBuild := true
 
 publishTo in ThisBuild := {
@@ -163,7 +154,7 @@ testOptions in Test in ThisBuild ++= Seq(
 
 javacOptions in ThisBuild ++= Seq("-deprecation", "-g", "-source", "8", "-target", "8", "-Xlint")
 
-val specs2Version = "4.10.5"
+val specs2Version = "4.19.0"
 val testDeps = Seq(
   // testing related
   "org.specs2" %% "specs2-core"          % specs2Version % Test,
@@ -186,8 +177,8 @@ lazy val core = (project in file("core"))
   .settings(scalafixSettings)
   .settings(
     name := "jsonapi-scala-core",
-    scalaVersion := "2.13.4",
-    crossScalaVersions := Seq("2.12.10", "2.13.4"),
+    scalaVersion := "2.13.10",
+    crossScalaVersions := Seq("2.12.17", "2.13.10"),
     scalacOptions ++= {
       if (scalaVersion.value startsWith "2.12.") {
         scala212
@@ -196,12 +187,12 @@ lazy val core = (project in file("core"))
     },
     libraryDependencies ++= Seq(
       "org.scala-lang"   % "scala-reflect"    % scalaVersion.value,
-      "com.chuusai"      %% "shapeless"       % "2.3.3",
+      "com.chuusai"      %% "shapeless"       % "2.3.10",
       "com.qvantel"      %% "scala-inflector" % "1.4.0",
       "io.spray"         %% "spray-json"      % "1.3.6",
       "io.lemonlabs"     %% "scala-uri"       % "3.0.0",
-      "org.typelevel"    %% "cats-effect"     % "2.2.0",
-      "co.fs2"           %% "fs2-io"          % "2.4.4",
+      "org.typelevel"    %% "cats-effect"     % "2.5.5",
+      "co.fs2"           %% "fs2-io"          % "2.5.11",
       "net.virtual-void" %% "json-lenses"     % "0.6.2"
     ) ++ testDeps
   )
@@ -211,8 +202,8 @@ lazy val model = (project in file("model"))
   .settings(scalafixSettings)
   .settings(
     name := "jsonapi-scala-model",
-    scalaVersion := "2.13.4",
-    crossScalaVersions := Seq("2.12.10", "2.13.4"),
+    scalaVersion := "2.13.10",
+    crossScalaVersions := Seq("2.12.17", "2.13.10"),
     scalacOptions ++= {
       if (scalaVersion.value startsWith "2.12.") {
         scala212
@@ -222,8 +213,8 @@ lazy val model = (project in file("model"))
     libraryDependencies ++= testDeps
   )
 
-val akkaVersion     = "2.5.31"
-val akkaHttpVersion = "10.1.11"
+val akkaVersion     = "2.6.20"
+val akkaHttpVersion = "10.2.10"
 
 lazy val akkaClient = (project in file("akka-client"))
   .dependsOn(core)
@@ -231,8 +222,8 @@ lazy val akkaClient = (project in file("akka-client"))
   .settings(scalafixSettings)
   .settings(
     name := "jsonapi-scala-akka-client",
-    scalaVersion := "2.13.4",
-    crossScalaVersions := Seq("2.12.10", "2.13.4"),
+    scalaVersion := "2.13.10",
+    crossScalaVersions := Seq("2.12.17", "2.13.10"),
     scalacOptions ++= {
       if (scalaVersion.value startsWith "2.12.") {
         scala212
@@ -253,8 +244,8 @@ lazy val akka = (project in file("akka"))
   .settings(scalafixSettings)
   .settings(
     name := "jsonapi-scala-akka",
-    scalaVersion := "2.13.4",
-    crossScalaVersions := Seq("2.12.10", "2.13.4"),
+    scalaVersion := "2.13.10",
+    crossScalaVersions := Seq("2.12.17", "2.13.10"),
     scalacOptions ++= {
       if (scalaVersion.value startsWith "2.12.") {
         scala212
@@ -271,7 +262,7 @@ lazy val akka = (project in file("akka"))
       "com.typesafe.akka" %% "akka-http-core"    % akkaHttpVersion % Provided,
       "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % Test,
       "com.typesafe.akka" %% "akka-testkit"      % akkaVersion     % Test,
-      "org.scalatest"     %% "scalatest"         % "3.2.2"         % Test
+      "org.scalatest"     %% "scalatest"         % "3.2.14"        % Test
     ) ++ testDeps
   )
 
@@ -281,8 +272,8 @@ lazy val http4sClient = (project in file("http4s-client"))
   .settings(scalafixSettings)
   .settings(
     name := "jsonapi-scala-http4s-client",
-    scalaVersion := "2.13.4",
-    crossScalaVersions := Seq("2.12.10", "2.13.4"),
+    scalaVersion := "2.13.10",
+    crossScalaVersions := Seq("2.12.17", "2.13.10"),
     scalacOptions ++= {
       if (scalaVersion.value startsWith "2.12.") {
         scala212
@@ -290,7 +281,7 @@ lazy val http4sClient = (project in file("http4s-client"))
         scala213
     },
     libraryDependencies ++= {
-      val http4sVersion = "0.21.8"
+      val http4sVersion = "0.21.33"
       Seq(
         "org.http4s" %% "http4s-dsl"          % http4sVersion,
         "org.http4s" %% "http4s-blaze-client" % http4sVersion,
@@ -304,5 +295,5 @@ lazy val root = (project in file("."))
   .settings(
     publishArtifact := false,
     name := "jsonapi-scala",
-    scalaVersion := "2.13.4"
+    scalaVersion := "2.13.10"
   )
