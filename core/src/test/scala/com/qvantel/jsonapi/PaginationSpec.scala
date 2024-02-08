@@ -84,4 +84,27 @@ class PaginationSpec extends Specification {
       json.getFields("links").head must be equalTo JsObject()
     }
   }
+
+  "total count" >> {
+    "is included when set" >> {
+      val entities = 1.to(10).map(i => Test(i.toString, "attr"))
+      implicit val pagination: JsonApiPagination.PaginationFunc =
+        _ =>
+          JsonApiPagination("")
+            .withTotal(entities.size)
+      val json     = rawCollection(entities)
+
+      json.asJsObject.fields.get("meta").flatMap(_.asJsObject.fields.get("total")) must be equalTo Some(JsNumber(10))
+    }
+
+    "is not included when set" >> {
+      val entities = 1.to(10).map(i => Test(i.toString, "attr"))
+      implicit val pagination: JsonApiPagination.PaginationFunc =
+        _ =>
+          JsonApiPagination("")
+      val json     = rawCollection(entities)
+
+      json.asJsObject.fields must not haveKey("meta")
+    }
+  }
 }

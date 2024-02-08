@@ -4,7 +4,8 @@ import io.lemonlabs.uri.Url
 import io.lemonlabs.uri.typesafe.dsl._
 
 /**
-  * Case class for handling the top level pagination links in collection responses
+  * Case class for handling the top level pagination links in collection responses, also supports
+  * a `total` count of resources for collection responses.
   *
   * @param originalUrl The URL (relative or absolute) of the original incoming request, complete with all query parameters
   */
@@ -12,7 +13,8 @@ case class JsonApiPagination(originalUrl: Url,
                              private val firstParams: Map[String, String] = Map.empty,
                              private val lastParams: Map[String, String] = Map.empty,
                              private val prevParams: Map[String, String] = Map.empty,
-                             private val nextParams: Map[String, String] = Map.empty) {
+                             private val nextParams: Map[String, String] = Map.empty,
+                             total: Option[Long] = None) {
 
   /**
     * Adds a 'first' link to the response
@@ -41,6 +43,9 @@ case class JsonApiPagination(originalUrl: Url,
     */
   def withNext(pageParams: (String, String)*): JsonApiPagination =
     this.copy(nextParams = pageParams.toMap)
+
+  def withTotal(total: Long): JsonApiPagination =
+    this.copy(total = Some(total))
 
   /**
     * Returns all non empty pagination links in a map
