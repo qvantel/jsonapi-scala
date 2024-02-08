@@ -109,7 +109,16 @@ package object jsonapi {
         val oldLinks: Map[String, JsValue]  = obj.fields.get("links").map(_.asJsObject.fields).getOrElse(Map.empty)
         val pageLinks: Map[String, JsValue] = paging.allLinksAsUrls.mapValues(url => PathJsonFormat.write(url)).toMap
         val links: Map[String, JsValue]     = Map("links" -> JsObject(oldLinks ++ pageLinks))
-        JsObject(obj.fields ++ links)
+        val total                           = paging.total.map(t => Map("total" -> JsNumber(t))).getOrElse(Map.empty)
+        val oldMeta                         = obj.fields.get("meta").map(_.asJsObject.fields).getOrElse(Map.empty)
+        val meta = // don't add an empty meta object for everything
+          if (total.nonEmpty || oldMeta.nonEmpty) {
+            Map("meta" -> JsObject(oldMeta ++ total))
+          } else {
+            Map.empty
+          }
+
+        JsObject(obj.fields ++ links ++ meta)
     }
 
   def rawOne[T](entity: T)(implicit writer: JsonApiWriter[T],

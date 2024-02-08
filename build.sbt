@@ -111,9 +111,12 @@ val scala212 = Seq(
   "-Ywarn-value-discard" // Warn when non-Unit expression results are unused.
 )
 
+val scalaVersion213 = "2.13.12"
+val scalaVersion212 = "2.12.18"
+
 description in ThisBuild := "jsonapi.org scala implementation"
 
-version in ThisBuild := "10.3.0"
+version in ThisBuild := "10.4.0"
 
 startYear in ThisBuild := Some(2015)
 
@@ -177,8 +180,8 @@ lazy val core = (project in file("core"))
   .settings(scalafixSettings)
   .settings(
     name := "jsonapi-scala-core",
-    scalaVersion := "2.13.10",
-    crossScalaVersions := Seq("2.12.17", "2.13.10"),
+    scalaVersion := scalaVersion213,
+    crossScalaVersions := Seq(scalaVersion212, scalaVersion213),
     scalacOptions ++= {
       if (scalaVersion.value startsWith "2.12.") {
         scala212
@@ -202,8 +205,8 @@ lazy val model = (project in file("model"))
   .settings(scalafixSettings)
   .settings(
     name := "jsonapi-scala-model",
-    scalaVersion := "2.13.10",
-    crossScalaVersions := Seq("2.12.17", "2.13.10"),
+    scalaVersion := scalaVersion213,
+    crossScalaVersions := Seq(scalaVersion212, scalaVersion213),
     scalacOptions ++= {
       if (scalaVersion.value startsWith "2.12.") {
         scala212
@@ -222,8 +225,8 @@ lazy val akkaClient = (project in file("akka-client"))
   .settings(scalafixSettings)
   .settings(
     name := "jsonapi-scala-akka-client",
-    scalaVersion := "2.13.10",
-    crossScalaVersions := Seq("2.12.17", "2.13.10"),
+    scalaVersion := scalaVersion213,
+    crossScalaVersions := Seq(scalaVersion212, scalaVersion213),
     scalacOptions ++= {
       if (scalaVersion.value startsWith "2.12.") {
         scala212
@@ -244,8 +247,8 @@ lazy val akka = (project in file("akka"))
   .settings(scalafixSettings)
   .settings(
     name := "jsonapi-scala-akka",
-    scalaVersion := "2.13.10",
-    crossScalaVersions := Seq("2.12.17", "2.13.10"),
+    scalaVersion := scalaVersion213,
+    crossScalaVersions := Seq(scalaVersion212, scalaVersion213),
     scalacOptions ++= {
       if (scalaVersion.value startsWith "2.12.") {
         scala212
@@ -272,8 +275,8 @@ lazy val http4sClient = (project in file("http4s-client"))
   .settings(scalafixSettings)
   .settings(
     name := "jsonapi-scala-http4s-client",
-    scalaVersion := "2.13.10",
-    crossScalaVersions := Seq("2.12.17", "2.13.10"),
+    scalaVersion := scalaVersion213,
+    crossScalaVersions := Seq(scalaVersion212, scalaVersion213),
     scalacOptions ++= {
       if (scalaVersion.value startsWith "2.12.") {
         scala212
@@ -295,5 +298,5 @@ lazy val root = (project in file("."))
   .settings(
     publishArtifact := false,
     name := "jsonapi-scala",
-    scalaVersion := "2.13.10"
+    scalaVersion := scalaVersion213
   )
