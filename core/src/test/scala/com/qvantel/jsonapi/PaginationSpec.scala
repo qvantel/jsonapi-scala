@@ -94,7 +94,7 @@ class PaginationSpec extends Specification {
             .withTotal(entities.size)
       val json = rawCollection(entities)
 
-      json.asJsObject.fields.get("meta").flatMap(_.asJsObject.fields.get("total")) must be equalTo Some(JsNumber(10))
+      json.asJsObject().fields.get("meta").flatMap(_.asJsObject().fields.get("total")) must be equalTo Some(JsNumber(10))
     }
 
     "is not included when set" >> {
@@ -103,7 +103,7 @@ class PaginationSpec extends Specification {
         _ => JsonApiPagination("")
       val json = rawCollection(entities)
 
-      json.asJsObject.fields must not haveKey ("meta")
+      json.asJsObject().fields must not haveKey ("meta")
     }
   }
 }
