@@ -13,6 +13,9 @@
   If you are using Scala 2.13 you should instead use the compiler flag `-Ymacro-annotations`.  
   An example for handling cross-compiling with both can be found in `project/MacrosCompiler`.
 
+## Releasing
+
+Releasing is done automatically using [sbt-ci-release](https://github.com/sbt/sbt-ci-release).
 
 ### Example
 ```scala
