@@ -1,4 +1,4 @@
-# http://jsonapi.org/ implementation in scala
+# [JSON:API v1.1](http://jsonapi.org/) implementation in scala
 
 ![CI](https://github.com/qvantel/jsonapi-scala/actions/workflows/ci.yml/badge.svg)
 [![codecov](https://codecov.io/gh/qvantel/jsonapi-scala/branch/master/graph/badge.svg)](https://codecov.io/gh/qvantel/jsonapi-scala)
