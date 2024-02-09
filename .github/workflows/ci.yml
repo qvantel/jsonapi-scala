@@ -1,0 +1,20 @@
+name: CI
+on:
+  pull_request:
+  push:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: 'sbt'
+      - name: Build and Test
+        run: sbt +clean scalafmt::test test:scalafmt::test sbt:scalafmt::test coverage +compile +test:compile +test coverageReport && sbt coverageAggregate
+      - name: Upload code coverage
+        run: bash <(curl -s https://codecov.io/bash)
