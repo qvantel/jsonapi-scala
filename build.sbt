@@ -116,7 +116,8 @@ val scalaVersion212 = "2.12.18"
 
 description in ThisBuild := "jsonapi.org scala implementation"
 
-version in ThisBuild := "10.4.0"
+// Version is based on git tags, see sbt-ci-release and sbt-dynver
+//version in ThisBuild := "10.4.0"
 
 startYear in ThisBuild := Some(2015)
 
