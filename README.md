@@ -1,8 +1,8 @@
 # http://jsonapi.org/ implementation in scala
 
-[![Build Status](https://travis-ci.org/qvantel/jsonapi-scala.svg?branch=master)](https://travis-ci.org/qvantel/jsonapi-scala)
+![CI](https://github.com/qvantel/jsonapi-scala/actions/workflows/ci.yml/badge.svg)
 [![codecov](https://codecov.io/gh/qvantel/jsonapi-scala/branch/master/graph/badge.svg)](https://codecov.io/gh/qvantel/jsonapi-scala)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.qvantel/jsonapi-scala-core_2.11/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.qvantel/jsonapi-scala-core_2.11)
+[![Maven Central (2.12 and 2.13)](https://maven-badges.herokuapp.com/maven-central/com.qvantel/jsonapi-scala-core_2.13/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.qvantel/jsonapi-scala-core_2.13)
 
 ## Features
 * Automatic generation of jsonapi json writers with relationship handling for case classes
