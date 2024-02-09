@@ -139,11 +139,8 @@ scmInfo in ThisBuild := Some(
   )
 )
 
-ThisBuild / developers := List(Developer(
-  "ane",
-  "Antoine Kalmbach",
-  "antoine.kalmbach@qvantel.com",
-  url("http://github.com/ane")))
+ThisBuild / developers := List(
+  Developer("ane", "Antoine Kalmbach", "antoine.kalmbach@qvantel.com", url("http://github.com/ane")))
 
 publishMavenStyle in ThisBuild := true
 
