@@ -13,7 +13,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-          cache: 'sbt''
+          cache: 'sbt'
       - name: Build and Test
         run: sbt +clean scalafmt::test test:scalafmt::test sbt:scalafmt::test coverage +compile +test:compile +test coverageReport && sbt coverageAggregate
       - name: Upload code coverage
