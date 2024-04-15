@@ -46,7 +46,7 @@ or see https://github.com/Doikor/jsonapi-scala-example
 There is a very generic JsonApiClient interface for implementing a simple client 
 interface for handling the http query writing side of this
 
-The subproject "akka-client" has an implementation of this using akka-http
+The subproject "pekko-client" has an implementation of this using pekko-http
 
 The subproject "http4s-client" has an implementation of this using http4s
 
@@ -74,19 +74,19 @@ val filtered = jac.filter[BillingAccount]("some nice filter string here")
 
 ### Setup
 
-#### akka-http client
+#### pekko-http client
 ```scala
-// needs ActorSystem and Materializer for akka-http
+// needs ActorSystem and Materializer for pekko-http
 // the ApiEndPoint is used to as the "root" where to launch queries
 import io.lemonlabs.uri.typesafe.dsl._
-import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.Materializer
 import com.qvantel.jsonapi.ApiEndpoint
 import com.qvantel.jsonapi.JsonApiClient
-import com.qvantel.jsonapi.client.akka.AkkaClient._
+import com.qvantel.jsonapi.client.pekko.PekkoClient._
 
 implicit val system: ActorSystem  = ActorSystem()
-implicit val materializer: ActorMaterializer = ActorMaterializer()
+implicit val materializer: Materializer     = Materializer(system)
 implicit val endpoint: ApiEndpoint = ApiEndpoint.Static("http://localhost:8080/api")
 
 val jac = JsonApiClient.instance

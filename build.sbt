@@ -25,6 +25,8 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import Dependencies.*
+
 val scala213 = Seq(
   "-deprecation", // Emit warning and location for usages of deprecated APIs.
   "-encoding",
@@ -220,15 +222,12 @@ lazy val model = (project in file("model"))
     libraryDependencies ++= testDeps
   )
 
-val akkaVersion     = "2.6.20"
-val akkaHttpVersion = "10.2.10"
-
-lazy val akkaClient = (project in file("akka-client"))
+lazy val pekkoClient = (project in file("pekko-client"))
   .dependsOn(core)
   .enablePlugins(MacrosCompiler)
   .settings(scalafixSettings)
   .settings(
-    name := "jsonapi-scala-akka-client",
+    name := "jsonapi-scala-pekko-client",
     scalaVersion := scalaVersion213,
     crossScalaVersions := Seq(scalaVersion212, scalaVersion213),
     scalacOptions ++= {
@@ -238,19 +237,21 @@ lazy val akkaClient = (project in file("akka-client"))
         scala213
     },
     libraryDependencies ++= Seq(
-      "com.typesafe.akka" %% "akka-stream"          % akkaVersion     % Provided,
-      "com.typesafe.akka" %% "akka-actor"           % akkaVersion     % Provided,
-      "com.typesafe.akka" %% "akka-http"            % akkaHttpVersion % Provided,
-      "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion % Provided
+      `pekko-stream`          % Provided,
+      `pekko-actor`           % Provided,
+      `pekko-http`            % Provided,
+      `pekko-http-spray-json` % Provided,
+      "io.lemonlabs"          %% "scala-uri" % "4.0.3" % Test,
+      "org.parboiled"         %% "parboiled" % "2.5.1" % Test
     ) ++ testDeps
   )
 
-lazy val akka = (project in file("akka"))
+lazy val pekko = (project in file("pekko"))
   .dependsOn(core, model)
   .enablePlugins(MacrosCompiler)
   .settings(scalafixSettings)
   .settings(
-    name := "jsonapi-scala-akka",
+    name := "jsonapi-scala-pekko",
     scalaVersion := scalaVersion213,
     crossScalaVersions := Seq(scalaVersion212, scalaVersion213),
     scalacOptions ++= {
@@ -260,16 +261,18 @@ lazy val akka = (project in file("akka"))
         scala213
     },
     libraryDependencies ++= Seq(
-      "com.typesafe.akka" %% "akka-actor" % akkaVersion % Provided excludeAll (
-        ExclusionRule(organization = "com.typesafe.akka", name = "akka-cluster"),
-        ExclusionRule(organization = "com.typesafe.akka", name = "akka-remote")
+      `pekko-actor` % Provided excludeAll (
+        ExclusionRule(organization = "org.apache.pekko", name = "pekko-cluster"),
+        ExclusionRule(organization = "org.apache.pekko", name = "pekko-remote")
       ),
-      "com.typesafe.akka" %% "akka-stream"       % akkaVersion     % Provided,
-      "com.typesafe.akka" %% "akka-http"         % akkaHttpVersion % Provided,
-      "com.typesafe.akka" %% "akka-http-core"    % akkaHttpVersion % Provided,
-      "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % Test,
-      "com.typesafe.akka" %% "akka-testkit"      % akkaVersion     % Test,
-      "org.scalatest"     %% "scalatest"         % "3.2.14"        % Test
+      `pekko-stream`       % Provided,
+      `pekko-http`         % Provided,
+      `pekko-http-core`    % Provided,
+      `pekko-http-testkit` % Test,
+      `pekko-testkit`      % Test,
+      "io.lemonlabs"       %% "scala-uri" % "4.0.3" % Test,
+      "org.parboiled"      %% "parboiled" % "2.5.1" % Test,
+      "org.scalatest"      %% "scalatest" % "3.2.18" % Test
     ) ++ testDeps
   )
 
@@ -298,7 +301,7 @@ lazy val http4sClient = (project in file("http4s-client"))
   )
 
 lazy val root = (project in file("."))
-  .aggregate(core, model, akkaClient, http4sClient, akka)
+  .aggregate(core, model, pekkoClient, http4sClient, pekko)
   .settings(
     publishArtifact := false,
     name := "jsonapi-scala",
