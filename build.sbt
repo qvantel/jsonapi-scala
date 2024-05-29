@@ -276,6 +276,59 @@ lazy val pekko = (project in file("pekko"))
     ) ++ testDeps
   )
 
+val akkaVersion     = "2.6.20"
+val akkaHttpVersion = "10.2.10"
+
+lazy val akkaClient = (project in file("akka-client"))
+  .dependsOn(core)
+  .enablePlugins(MacrosCompiler)
+  .settings(scalafixSettings)
+  .settings(
+    name := "jsonapi-scala-akka-client",
+    scalaVersion := scalaVersion213,
+    crossScalaVersions := Seq(scalaVersion212, scalaVersion213),
+    scalacOptions ++= {
+      if (scalaVersion.value startsWith "2.12.") {
+        scala212
+      } else
+        scala213
+    },
+    libraryDependencies ++= Seq(
+      "com.typesafe.akka" %% "akka-stream"          % akkaVersion     % Provided,
+      "com.typesafe.akka" %% "akka-actor"           % akkaVersion     % Provided,
+      "com.typesafe.akka" %% "akka-http"            % akkaHttpVersion % Provided,
+      "com.typesafe.akka" %% "akka-http-spray-json" % akkaHttpVersion % Provided
+    ) ++ testDeps
+  )
+
+lazy val akka = (project in file("akka"))
+  .dependsOn(core, model)
+  .enablePlugins(MacrosCompiler)
+  .settings(scalafixSettings)
+  .settings(
+    name := "jsonapi-scala-akka",
+    scalaVersion := scalaVersion213,
+    crossScalaVersions := Seq(scalaVersion212, scalaVersion213),
+    scalacOptions ++= {
+      if (scalaVersion.value startsWith "2.12.") {
+        scala212
+      } else
+        scala213
+    },
+    libraryDependencies ++= Seq(
+      "com.typesafe.akka" %% "akka-actor" % akkaVersion % Provided excludeAll (
+        ExclusionRule(organization = "com.typesafe.akka", name = "akka-cluster"),
+        ExclusionRule(organization = "com.typesafe.akka", name = "akka-remote")
+      ),
+      "com.typesafe.akka" %% "akka-stream"       % akkaVersion     % Provided,
+      "com.typesafe.akka" %% "akka-http"         % akkaHttpVersion % Provided,
+      "com.typesafe.akka" %% "akka-http-core"    % akkaHttpVersion % Provided,
+      "com.typesafe.akka" %% "akka-http-testkit" % akkaHttpVersion % Test,
+      "com.typesafe.akka" %% "akka-testkit"      % akkaVersion     % Test,
+      "org.scalatest"     %% "scalatest"         % "3.2.14"        % Test
+    ) ++ testDeps
+  )
+
 lazy val http4sClient = (project in file("http4s-client"))
   .dependsOn(core)
   .enablePlugins(MacrosCompiler)
@@ -301,7 +354,7 @@ lazy val http4sClient = (project in file("http4s-client"))
   )
 
 lazy val root = (project in file("."))
-  .aggregate(core, model, pekkoClient, http4sClient, pekko)
+  .aggregate(core, model, pekkoClient, http4sClient, pekko, akkaClient, akka)
   .settings(
     publishArtifact := false,
     name := "jsonapi-scala",
