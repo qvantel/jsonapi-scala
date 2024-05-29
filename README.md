@@ -92,6 +92,25 @@ implicit val endpoint: ApiEndpoint = ApiEndpoint.Static("http://localhost:8080/a
 val jac = JsonApiClient.instance
 ```
 
+#### akka-http client (to be deprecated in favor of pekko-http)
+
+```scala
+// needs ActorSystem and Materializer for akka-http
+// the ApiEndPoint is used to as the "root" where to launch queries
+import io.lemonlabs.uri.typesafe.dsl._
+import akka.actor.ActorSystem
+import akka.stream.ActorMaterializer
+import com.qvantel.jsonapi.ApiEndpoint
+import com.qvantel.jsonapi.JsonApiClient
+import com.qvantel.jsonapi.client.akka.AkkaClient._
+
+implicit val system: ActorSystem  = ActorSystem()
+implicit val materializer: ActorMaterializer = ActorMaterializer()
+implicit val endpoint: ApiEndpoint = ApiEndpoint.Static("http://localhost:8080/api")
+
+val jac = JsonApiClient.instance
+```
+
 #### http4s client
 Setup for http4s client
 ```scala
