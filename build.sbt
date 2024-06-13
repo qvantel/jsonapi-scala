@@ -199,7 +199,7 @@ lazy val core = (project in file("core"))
       "com.chuusai"      %% "shapeless"       % "2.3.10",
       "com.qvantel"      %% "scala-inflector" % "1.4.0",
       "io.spray"         %% "spray-json"      % "1.3.6",
-      "io.lemonlabs"     %% "scala-uri"       % "3.0.0",
+      "io.lemonlabs"     %% "scala-uri"       % "4.0.3",
       "org.typelevel"    %% "cats-effect"     % "2.5.5",
       "co.fs2"           %% "fs2-io"          % "2.5.11",
       "net.virtual-void" %% "json-lenses"     % "0.6.2"
