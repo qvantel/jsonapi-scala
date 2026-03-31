@@ -233,7 +233,13 @@ trait JsonApiReaders extends JsonApiCommon {
               } else if (entities.forall(_.isEmpty)) {
                 _root_.com.qvantel.jsonapi.ToMany.reference[$containedType](data.map { x => x.fields.get("id").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'id' not found in " + x.compactPrint)) }.toSet)
               } else {
-                throw new _root_.spray.json.DeserializationException("mixed reference and loaded types found")
+                val missedEntities = data.zip(entities).collect {
+                  case (x, _root_.scala.None) =>
+                    val tpe = x.fields.get("type").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'type' not found in " + x.compactPrint))
+                    val id = x.fields.get("id").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'id' not found in " + x.compactPrint))
+                    tpe + ":" + id
+                }
+                throw new _root_.spray.json.DeserializationException("mixed reference and loaded types found, following are missed: [" + missedEntities.mkString(", ") + "]")
               }
             } else {
               _root_.com.qvantel.jsonapi.ToMany.reference[$containedType](data.map { x =>
@@ -314,7 +320,13 @@ trait JsonApiReaders extends JsonApiCommon {
                   (id, tpe)
                 }.toSet)
               } else {
-                throw new _root_.spray.json.DeserializationException("mixed reference and loaded types found")
+                val missedEntities = data.zip(entities).collect {
+                  case (x, _root_.scala.None) =>
+                    val tpe = x.fields.get("type").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'type' not found in " + x.compactPrint))
+                    val id = x.fields.get("id").map(_.convertTo[String]).getOrElse(throw new _root_.spray.json.DeserializationException("'id' not found in " + x.compactPrint))
+                    tpe + ":" + id
+                }
+                throw new _root_.spray.json.DeserializationException("mixed reference and loaded types found, following are missed: [" + missedEntities.mkString(", ") + "]")
               }
             } else {
               _root_.com.qvantel.jsonapi.PolyToMany.reference[$containedType](data.map { x =>

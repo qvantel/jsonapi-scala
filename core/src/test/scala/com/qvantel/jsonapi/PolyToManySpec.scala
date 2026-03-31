@@ -241,6 +241,9 @@ final class PolyToManySpec extends Specification {
           |        }, {
           |          "type": "companies",
           |          "id": "evil"
+          |        }, {
+          |          "type": "companies",
+          |          "id": "good"
           |        }],
           |        "links": {
           |          "related": "/articles/1/authors"
@@ -266,7 +269,7 @@ final class PolyToManySpec extends Specification {
           |}
         """.stripMargin.parseJson.asJsObject
       readOne[Article](json, Set("authors")) must throwA[DeserializationException](
-        "mixed reference and loaded types found")
+        "mixed reference and loaded types found, following are missed: \\[companies:evil, companies:good\\]")
     }
   }
 
