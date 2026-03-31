@@ -257,6 +257,9 @@ final class ToManySpec extends Specification with MatcherMacros {
           |        }, {
           |          "type": "comments",
           |          "id": "3"
+          |        }, {
+          |          "type": "comments",
+          |          "id": "4"
           |        }],
           |        "links": {
           |          "related": "/articles/1/comments"
@@ -282,7 +285,7 @@ final class ToManySpec extends Specification with MatcherMacros {
           |}
         """.stripMargin.parseJson.asJsObject
       readOne[Article](json, Set("comments")) must throwA[DeserializationException](
-        "mixed reference and loaded types found")
+        "mixed reference and loaded types found, following are missed: \\[comments:3, comments:4\\]")
     }
   }
 
