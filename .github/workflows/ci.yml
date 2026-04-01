@@ -14,6 +14,8 @@ jobs:
           distribution: temurin
           java-version: 21
           cache: 'sbt'
+      - name: Setup sbt launcher
+        uses: sbt/setup-sbt@v1
       - name: Build and Test
         run: sbt +clean scalafmt::test test:scalafmt::test sbt:scalafmt::test coverage +compile +test:compile +test coverageReport && sbt coverageAggregate
       - name: Upload code coverage
