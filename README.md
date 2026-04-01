@@ -131,3 +131,4 @@ implicit val client: Client[IO] = Http1Client[IO]().unsafeRunSync()
 
 val jac = JsonApiClient.instance
 ```
+
