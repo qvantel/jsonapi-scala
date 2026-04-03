@@ -199,32 +199,65 @@ package object jsonapi {
   /** Reads a collection of jsonapi entities. Due to no includes path being provided includes are ignored.
     */
   def readCollection[T](json: JsObject)(implicit reader: JsonApiReader[T]): Iterable[T] = {
-    val dataJson = json.fields
-      .get("data")
-      .filterNot(_.isInstanceOf[JsNull.type])
-      .map(_.convertTo[Set[JsObject]])
-      .getOrElse(Set.empty)
+    val dataJson = getDataSet(json)
 
     dataJson.map(x => reader.read(x, Map.empty[(String, String), JsObject], Set.empty[String], ""))
   }
 
   /** Reads a collection of jsonapi entities. Due to include paths being provided includes will be handled.
-    */
+   */
   def readCollection[T](json: JsObject, includes: Set[String])(implicit reader: JsonApiReader[T]): Iterable[T] = {
-    val dataJson = json.fields
-      .get("data")
-      .filterNot(_.isInstanceOf[JsNull.type])
-      .map(_.convertTo[Set[JsObject]])
-      .getOrElse(Set.empty)
-    val includedJson = json.fields
-      .get("included")
-      .filterNot(_.isInstanceOf[JsNull.type])
-      .map(_.convertTo[Set[JsObject]])
-      .getOrElse(Set.empty)
+    val dataJson = getDataSet(json)
+    val includedJson = getIncludedSet(json)
 
     val includedWithData = includedJson ++ dataJson.filter(_.fields.contains("id"))
 
     dataJson.map(x => reader.read(x, includedWithData, fillIncludes(includes), ""))
+  }
+
+  /** Reads an ordered collection of jsonapi entities. Due to no includes path being provided includes are ignored.
+    */
+  def readOrderedCollection[T](json: JsObject)(implicit reader: JsonApiReader[T]): Iterable[T] = {
+    val dataJson = getDataList(json)
+
+    dataJson.map(x => reader.read(x, Map.empty[(String, String), JsObject], Set.empty[String], ""))
+  }
+
+  /** Reads an ordered collection of jsonapi entities. Due to include paths being provided includes will be handled.
+    */
+  def readOrderedCollection[T](json: JsObject, includes: Set[String])(implicit reader: JsonApiReader[T]): Iterable[T] = {
+    val dataJson = getDataList(json)
+    val includedJson = getIncludedSet(json)
+
+    val includedWithData = includedJson ++ dataJson.filter(_.fields.contains("id"))
+
+    dataJson.map(x => reader.read(x, includedWithData, fillIncludes(includes), ""))
+  }
+
+  private def getData(json: JsObject): Option[JsValue] = {
+    json.fields
+      .get("data")
+      .filterNot(_.isInstanceOf[JsNull.type])
+  }
+
+  private def getDataSet[T](json: JsObject): Set[JsObject] = {
+    getData(json)
+      .map(_.convertTo[Set[JsObject]])
+      .getOrElse(Set.empty)
+  }
+
+  private def getDataList(json: JsObject): List[JsObject] = {
+    getData(json)
+      .map(_.convertTo[List[JsObject]])
+      .getOrElse(List.empty)
+  }
+
+  private def getIncludedSet(json: JsObject): Set[JsObject] = {
+    json.fields
+      .get("included")
+      .filterNot(_.isInstanceOf[JsNull.type])
+      .map(_.convertTo[Set[JsObject]])
+      .getOrElse(Set.empty)
   }
 
   private[this] def fillIncludes(includes: Set[String]): Set[String] = {

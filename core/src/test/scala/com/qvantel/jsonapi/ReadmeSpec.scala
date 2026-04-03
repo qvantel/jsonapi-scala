@@ -44,4 +44,24 @@ class ReadmeSpec extends Specification {
   "parsed must equal to acme" >> {
     parsed must be equalTo acme
   }
+
+  val companies = List(
+    Company("1", "first", ToMany.reference),
+    Company("2", "second", ToMany.reference),
+    Company("3", "third", ToMany.reference),
+    Company("4", "fourth", ToMany.reference),
+    Company("5", "fifth", ToMany.reference),
+    Company("6", "sixth", ToMany.reference),
+    Company("7", "seventh", ToMany.reference),
+  )
+
+  val jsonCollection = rawCollection(companies)
+  val expectedJsonStr = jsonCollection.prettyPrint
+
+  val parsedCollection = readOrderedCollection[Company](jsonCollection)
+  val parsedJsonStr = rawCollection(parsedCollection).prettyPrint
+
+  "parsed collection must equal to initial collection and order of elements shall be preserved" >> {
+    parsedJsonStr must be equalTo expectedJsonStr
+  }
 }
